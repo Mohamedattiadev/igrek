@@ -82,5 +82,62 @@
   },
   "rules": {
     "message": "Your details go from Igrek on this computer straight into the page. Nothing is sent anywhere else."
+  },
+  "actTitle": {
+    "message": "Do something on this page"
+  },
+  "actHint": {
+    "message": "Ask about the page, or say what to do. Igrek proposes steps; each is shown on the page and done only when you click it."
+  },
+  "actPlaceholder": {
+    "message": "For example: what does this plan include? Or: fill the delivery address with my details"
+  },
+  "pick": {
+    "message": "Pick an element"
+  },
+  "picking": {
+    "message": "Click the element on the page (Esc to stop)."
+  },
+  "pickedEl": {
+    "message": "Picked: $1"
+  },
+  "ask": {
+    "message": "Ask"
+  },
+  "more": {
+    "message": "Next steps"
+  },
+  "thinking": {
+    "message": "Reading the page…"
+  },
+  "show": {
+    "message": "Show"
+  },
+  "doIt": {
+    "message": "Do it"
+  },
+  "skip": {
+    "message": "Skip"
+  },
+  "riskyConfirm": {
+    "message": "This step sends, pays, deletes or publishes something: $1. Do it?"
+  },
+  "click": {
+    "message": "Click: $1"
+  },
+  "type": {
+    "message": "Type into: $1"
+  },
+  "select": {
+    "message": "Choose in: $1"
+  },
+  "scroll": {
+    "message": "Scroll to: $1"
+  },
+  "stepGone": {
+    "message": "That element is not on the page any more. Ask again for new steps."
+  },
+  "needClick": {
+    "message": "To work on this page, click Igrek's toolbar icon once more (the browser allows it page by page)."
   }
 }

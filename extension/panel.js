@@ -8,9 +8,12 @@ const $ = (id) => document.getElementById(id);
 document.documentElement.lang = chrome.i18n.getUILanguage();
 for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);
 $("instruction").placeholder = t("writePlaceholder");
+$("goal").placeholder = t("actPlaceholder");
 
 let config = { address: "", key: "" };
 let matches = [];
+/** The page as last read, the picked element, the steps proposed and what was done, for the next ask. */
+const act = { page: undefined, picked: undefined, steps: [], done: [] };
 
 function note(text, error = false) {
   const el = $("note");
@@ -38,8 +41,14 @@ async function activeTab() {
 }
 
 async function inPage(func, args = []) {
-  const [result] = await chrome.scripting.executeScript({ target: { tabId: await activeTab() }, func, args });
-  return result?.result;
+  try {
+    const [result] = await chrome.scripting.executeScript({ target: { tabId: await activeTab() }, func, args });
+    return result?.result;
+  } catch (err) {
+    // activeTab lasts until the page changes; after that the user opens the panel on the new page.
+    if (/permission|Cannot access/i.test(String(err?.message))) throw new Error(t("needClick"));
+    throw err;
+  }
 }
 
 // ---- run inside the page -------------------------------------------------------------------
@@ -99,6 +108,110 @@ function fillTarget(text) {
   el.dispatchEvent(new Event("change", { bubbles: true }));
   el.removeAttribute("data-igrek-target");
   return true;
+}
+
+/**
+ * The page for acting on it: its text and the things a step can use, each marked with data-igrek-el.
+ * Password fields are left out: no step ever types into one.
+ */
+function snapshotPage() {
+  const visible = (el) => !!(el.offsetParent || el.getClientRects().length);
+  const nodes = document.querySelectorAll(
+    'a[href], button, input:not([type=hidden]):not([type=password]), textarea, select, [role=button], [role=link], [role=checkbox], [role=tab], [role=menuitem], [contenteditable="true"]',
+  );
+  const elements = [];
+  for (const el of nodes) {
+    if (elements.length >= 150) break;
+    if (!visible(el) || el.disabled) continue;
+    const id = String(elements.length + 1);
+    el.dataset.igrekEl = id;
+    const role =
+      el.getAttribute("role") ||
+      (el.tagName === "A" ? "link" : el.tagName === "SELECT" ? "select" : el.tagName === "BUTTON" ? "button" : "") ||
+      (el.tagName === "TEXTAREA" ? "textbox" : el.type === "checkbox" || el.type === "radio" ? el.type : "textbox");
+    const label = el.labels?.[0]?.innerText || el.getAttribute("aria-label") || el.placeholder || "";
+    const text = [label, el.innerText || el.value || el.name || ""].filter(Boolean).join(" · ").replace(/\s+/g, " ");
+    elements.push({ id, role, text: text.slice(0, 160) });
+  }
+  return { title: document.title, url: location.href, text: document.body.innerText.slice(0, 8000), elements };
+}
+
+/** Outlines one element, so the user sees what a step would touch before allowing it. */
+function highlight(id) {
+  for (const old of document.querySelectorAll("[data-igrek-shown]")) {
+    old.style.outline = old.dataset.igrekShown;
+    old.removeAttribute("data-igrek-shown");
+  }
+  const el = id && document.querySelector(`[data-igrek-el="${id}"]`);
+  if (!el) return false;
+  el.dataset.igrekShown = el.style.outline;
+  el.style.outline = "3px solid #2267ef";
+  el.scrollIntoView({ block: "center", behavior: "smooth" });
+  return true;
+}
+
+/** Does one step the user allowed. Typing goes in the way typing does, so the page's own code sees it. */
+function doStep(step) {
+  const el = document.querySelector(`[data-igrek-el="${step.el}"]`);
+  if (!el) return false;
+  if (step.action === "scroll") el.scrollIntoView({ block: "center", behavior: "smooth" });
+  else if (step.action === "click") el.click();
+  else if (step.action === "select" && el instanceof HTMLSelectElement) {
+    const want = String(step.text ?? "").toLowerCase();
+    const option = [...el.options].find((o) => o.value.toLowerCase() === want || o.text.toLowerCase().includes(want));
+    if (!option) return false;
+    el.value = option.value;
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  } else if (step.action === "type") {
+    if (el instanceof HTMLInputElement && el.type === "password") return false;
+    if (el.isContentEditable) el.textContent = step.text ?? "";
+    else {
+      const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      Object.getOwnPropertyDescriptor(proto, "value")?.set?.call(el, step.text ?? "");
+    }
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  return true;
+}
+
+/** The picker: the element under the pointer is outlined; a click picks it (and does nothing else), Esc stops. */
+function pickElement() {
+  return new Promise((resolve) => {
+    let last;
+    const mark = (el, on) => {
+      if (!el) return;
+      if (on) {
+        el.dataset.igrekPickOutline = el.style.outline;
+        el.style.outline = "2px dashed #2267ef";
+      } else {
+        el.style.outline = el.dataset.igrekPickOutline ?? "";
+        el.removeAttribute("data-igrek-pick-outline");
+      }
+    };
+    const over = (e) => {
+      mark(last, false);
+      last = e.target;
+      mark(last, true);
+    };
+    const done = (value) => {
+      mark(last, false);
+      document.removeEventListener("mouseover", over, true);
+      document.removeEventListener("click", click, true);
+      document.removeEventListener("keydown", key, true);
+      resolve(value);
+    };
+    const click = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const el = e.target;
+      done({ el: el.dataset.igrekEl ?? "", text: (el.innerText || el.value || el.outerHTML).slice(0, 2000) });
+    };
+    const key = (e) => e.key === "Escape" && done(null);
+    document.addEventListener("mouseover", over, true);
+    document.addEventListener("click", click, true);
+    document.addEventListener("keydown", key, true);
+  });
 }
 
 // ---- the panel -----------------------------------------------------------------------------
@@ -191,3 +304,100 @@ $("write").onclick = async () => {
 };
 
 void start();
+
+// ---- acting on the page, one allowed step at a time ------------------------------------------
+
+function describe(step) {
+  const el = act.page?.elements.find((e) => e.id === step.el);
+  return t(step.action, el?.text || step.el);
+}
+
+function showSteps(steps) {
+  const list = $("steps");
+  list.replaceChildren();
+  for (const step of steps) {
+    const li = document.createElement("li");
+    if (step.risky) li.classList.add("risky");
+    const why = document.createElement("div");
+    why.className = "why";
+    why.textContent = `${describe(step)}${step.why ? ` (${step.why})` : ""}`;
+    const row = document.createElement("div");
+    row.className = "row";
+    const button = (label, onClick, primary) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = t(label);
+      if (primary) b.className = "primary";
+      b.onclick = onClick;
+      row.append(b);
+      return b;
+    };
+    button("show", () => void inPage(highlight, [step.el]).catch((err) => note(err.message, true)));
+    const go = button(
+      "doIt",
+      async () => {
+        if (step.risky && !window.confirm(t("riskyConfirm", describe(step)))) return;
+        try {
+          await inPage(highlight, [undefined]);
+          if (!(await inPage(doStep, [step]))) return note(t("stepGone"), true);
+          act.done.push(describe(step));
+          li.classList.add("done");
+          row.remove();
+        } catch (err) {
+          note(err.message, true);
+        }
+      },
+      true,
+    );
+    button("skip", () => {
+      li.classList.add("done");
+      row.remove();
+    });
+    go.dataset.step = step.el;
+    li.append(why, row);
+    list.append(li);
+  }
+  $("more").hidden = steps.length === 0;
+}
+
+async function ask() {
+  note("");
+  const goal = $("goal").value.trim();
+  if (!goal) return note(t("sayWhat"), true);
+  $("ask").disabled = true;
+  $("more").disabled = true;
+  try {
+    note(t("thinking"));
+    // Read again each time: the page changes as steps are done.
+    act.page = await inPage(snapshotPage);
+    const reply = await call("/api/ext/act", { goal, page: act.page, picked: act.picked, done: act.done });
+    note("");
+    $("answer").hidden = !reply.answer;
+    $("answer").textContent = reply.answer ?? "";
+    act.steps = reply.steps ?? [];
+    showSteps(act.steps);
+  } catch (err) {
+    note(err.message, true);
+  } finally {
+    $("ask").disabled = false;
+    $("more").disabled = false;
+  }
+}
+
+$("ask").onclick = () => void ask();
+$("more").onclick = () => void ask();
+
+$("pick").onclick = async () => {
+  note(t("picking"));
+  try {
+    // Marks the elements first, so the picked one has an id a step can use.
+    act.page = await inPage(snapshotPage);
+    const picked = await inPage(pickElement);
+    note("");
+    act.picked = picked ?? undefined;
+    $("picked").hidden = !picked;
+    $("picked").textContent = picked ? t("pickedEl", picked.text.slice(0, 120)) : "";
+  } catch (err) {
+    note(err.message, true);
+  }
+};

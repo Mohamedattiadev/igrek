@@ -38,7 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/inbox", label: "nav.inbox", icon: Inbox },
   { to: "/personas", label: "nav.personas", icon: UsersRound },
   { to: "/servers", label: "nav.servers", icon: Server },
-  { to: "/tools", label: "nav.tools", icon: Wrench, more: true },
+  { to: "/tools", label: "nav.tools", icon: Wrench, more: true, proOnly: true },
   { to: "/schedules", label: "nav.schedules", icon: CalendarClock, more: true },
   { to: "/ideas", label: "nav.ideas", icon: Lightbulb, more: true },
   { to: "/prompts", label: "nav.prompts", icon: BookMarked, more: true },

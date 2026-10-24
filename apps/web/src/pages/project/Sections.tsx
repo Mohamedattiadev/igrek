@@ -33,16 +33,16 @@ import {
   SlidersHorizontal,
   TrendingUp,
   TriangleAlert,
-  Wrench,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Comments } from "../../components/Comments";
+import { FixButton } from "../../components/FixButton";
 import { Diagram, ScoreRing, Trend } from "../../components/insight";
 import { ScreenCheckCard } from "../../components/ScreenCheck";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
-import { api } from "../../lib/api";
+import { api, type FixId } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import i18n from "../../lib/i18n";
@@ -248,6 +248,9 @@ function StatusIcon({ status }: { status: Finding["status"] }) {
   return <CircleAlert size={15} className="mt-0.5 shrink-0 text-danger" />;
 }
 
+/** Findings Igrek fixes with a known command, no model (apps/server/src/fixes.ts). */
+const QUICK_FIX: Record<string, FixId> = { "deps.lockfile": "lockfile", "sec.envTracked": "untrack-env" };
+
 function FindingRow({
   finding,
   projectId,
@@ -321,19 +324,29 @@ function FindingRow({
                 <Badge tone="accent">+{finding.gain}</Badge>
               </span>
             )}
-            <Button size="sm" icon={Wrench} onClick={() => onFix(finding)} data-tip={t("insight.fixTip")}>
-              {t("insight.fix")}
-            </Button>
+            {/* Fixed without a model when Igrek knows the command; otherwise in the owner's own copy. */}
+            {QUICK_FIX[finding.id] ? (
+              <FixButton fix={QUICK_FIX[finding.id] as FixId} projectId={projectId} label={t("insight.fix")} />
+            ) : (
+              <Button
+                usesModel
+                size="sm"
+                icon={GitBranch}
+                onClick={() => onFixInCopy(finding)}
+                data-tip={t("insight.fixInCopyTip")}
+              >
+                {t("insight.fix")}
+              </Button>
+            )}
             <Button
-              usesModel
               size="sm"
               variant="ghost"
-              icon={GitBranch}
-              onClick={() => onFixInCopy(finding)}
-              data-tip={t("insight.fixInCopyTip")}
-              aria-label={t("insight.fixInCopy")}
+              icon={MessageSquare}
+              onClick={() => onFix(finding)}
+              data-tip={t("insight.fixTip")}
+              aria-label={t("insight.fixInChat")}
             >
-              <span className="hidden xl:inline">{t("insight.fixInCopy")}</span>
+              <span className="hidden xl:inline">{t("insight.fixInChat")}</span>
             </Button>
           </>
         )}

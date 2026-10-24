@@ -3,6 +3,7 @@ import { CheckCircle2, ExternalLink, RefreshCw, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { FixButton } from "./FixButton";
 import { Button, CopyButton } from "./ui";
 
 const WINDOWS = navigator.userAgent.includes("Windows");
@@ -65,6 +66,10 @@ export function AiToolsCheck() {
                 </code>
                 <CopyButton text={tool.command} />
               </div>
+              <FixButton
+                fix={tool.id === "claude" ? "install-claude" : "install-codex"}
+                label={t("fix.installTool", { tool: tool.name })}
+              />
               <a
                 href={tool.docs}
                 target="_blank"

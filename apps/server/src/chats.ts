@@ -8,7 +8,9 @@ import {
   type ChatMode,
   type ChatPill,
   type ChatSpend,
+  estimateTurn,
   fillPrivate,
+  findAiRules,
   hidePrivate,
   namesForOnce,
   PRIVATE_HINT,
@@ -335,6 +337,8 @@ export class Chats {
   /** How long after the limit resets a chat goes on by itself (the reset time is approximate). */
   static resumeMargin = 60_000;
   private chats = new Map<string, Chat>();
+  /** Shares of the 5-hour limit the last turns took, per project (for the estimate before sending). */
+  private shares = new Map<string, number[]>();
   /** Called whenever Claude reports limit usage (wired to the Limits page). */
   onRateLimit: (accountId: string | undefined, info: RateLimitInfo) => void = () => undefined;
   /** A chat started in a folder (the gate takes its baseline there). */
@@ -827,11 +831,13 @@ export class Chats {
           const index = chat.index.get(String(part.tool_use_id));
           const event = index !== undefined ? chat.events[index] : undefined;
           if (event?.kind === "tool") {
+            const result = resultText(part.content);
             this.upsert(chat, {
               ...event,
               status: part.is_error ? "error" : "done",
-              result: clip(resultText(part.content), MAX_RESULT),
+              result: clip(result, MAX_RESULT),
             });
+            this.watchAiRules(chat, event, result, now);
           }
         }
         return;
@@ -878,6 +884,7 @@ export class Chats {
         this.closeOpenSteps(chat, now);
         this.noticeLimit(chat, msg);
         chat.info.spend = turnSpend(chat, msg);
+        this.rememberShare(chat.info.projectId, chat.info.spend.turn.limitPct);
         chat.info.status = "idle";
         // Claude Code says how large the window really is.
         const models = msg.modelUsage as Record<string, { contextWindow?: number }> | undefined;
@@ -979,6 +986,27 @@ export class Chats {
   }
 
   /**
+   * A file the AI read tells AI tools not to help ("Bu ödevde yapay zekâ kullanmak yasaktır"). The
+   * agent may stop on it; the user sees the line once per chat and decides, never the file. The line
+   * is shown as it is and is not hidden from the model either.
+   */
+  private watchAiRules(chat: Chat, tool: Extract<ChatEvent, { kind: "tool" }>, result: string, now: number): void {
+    const found = findAiRules(result, 1)[0];
+    if (!found || chat.loopsSaid.has(`rule:${found.line}`)) return;
+    chat.loopsSaid.add(`rule:${found.line}`);
+    const input = (tool.input ?? {}) as { file_path?: unknown; path?: unknown };
+    const file = String(input.file_path ?? input.path ?? "");
+    this.upsert(chat, {
+      kind: "notice",
+      id: `rule-${now}`,
+      at: now,
+      text: JSON.stringify({ line: found.line.slice(0, 300), file }),
+      tone: "neutral",
+      code: "aiRule",
+    });
+  }
+
+  /**
    * The same tool with the same input LOOP_REPEATS times among the last LOOP_WINDOW steps: the AI is
    * going round in circles (plan.md 16.3). Said once per step, as a notice in the chat.
    */
@@ -1041,7 +1069,14 @@ export class Chats {
 
   private view(chat: Chat): ChatInfo {
     const pill = pillOf(chat);
-    return { ...chat.info, ...(pill ? { pill } : {}) };
+    const estimate = estimateTurn(this.shares.get(chat.info.projectId) ?? [], chat.info.rateLimit?.fiveHour);
+    return { ...chat.info, ...(pill ? { pill } : {}), ...(estimate ? { estimate } : {}) };
+  }
+
+  /** The last turns' shares of the limit per project, for the estimate before the next message. */
+  private rememberShare(projectId: string, share?: number): void {
+    if (share === undefined) return;
+    this.shares.set(projectId, [...(this.shares.get(projectId) ?? []), share].slice(-SHARES_KEPT));
   }
 
   private changed(): void {
@@ -1050,6 +1085,7 @@ export class Chats {
 }
 
 const KEEP_HISTORY = 200;
+const SHARES_KEPT = 30;
 const LOOP_WINDOW = 10;
 const LOOP_REPEATS = 3;
 

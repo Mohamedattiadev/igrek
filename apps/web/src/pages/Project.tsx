@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Code,
   EyeOff,
+  FolderOpen,
   Gauge,
   GitBranch,
   GitCommitHorizontal,
@@ -34,7 +35,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
-import { NewSession } from "../components/NewSession";
+import { StartBox } from "../components/StartBox";
 import { TeamPresence } from "../components/TeamPresence";
 import { Badge, Button, Card, EmptyState, Section, Segmented } from "../components/ui";
 import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
@@ -43,6 +44,7 @@ import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useAccounts, useLiveData } from "../lib/live";
 import { usePageActions } from "../lib/page-actions";
+import { useSettings } from "../lib/settings";
 import { BoardTab } from "./project/Board";
 import { CodeTab } from "./project/Code";
 import { CodeHostTab } from "./project/CodeHost";
@@ -65,6 +67,7 @@ const TABS = [
   "sections",
   "timeline",
   "sessions",
+  "files",
   "experts",
   "code",
   "memory",
@@ -82,6 +85,11 @@ type Tab = (typeof TABS)[number];
  * for a project that runs somewhere).
  */
 const MAIN_TABS: Tab[] = ["overview", "sessions", "code", "board", "sections"];
+/**
+ * The Simple view (for people who do not write code): a project is what it says, its chats and its
+ * files. The other tabs are still there for a link that points at them, they are only not offered.
+ */
+const SIMPLE_TABS: Tab[] = ["overview", "sessions", "files"];
 
 /** One small icon per tab, so a tab is found by shape as well as by name. */
 const TAB_ICONS: Record<Tab, LucideIcon> = {
@@ -91,6 +99,7 @@ const TAB_ICONS: Record<Tab, LucideIcon> = {
   sections: Gauge,
   timeline: History,
   sessions: MessagesSquare,
+  files: FolderOpen,
   experts: UsersRound,
   code: Code,
   memory: Brain,
@@ -115,7 +124,8 @@ function MoreTabs({ tab, onPick }: { tab: Tab; onPick: (name: Tab) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const rest = TABS.filter((name) => !MAIN_TABS.includes(name));
+  // Files is the Code tab without the developer parts; in this view the Code tab is right there.
+  const rest = TABS.filter((name) => !MAIN_TABS.includes(name) && name !== "files");
   const current = rest.includes(tab) ? tab : undefined;
   useEffect(() => {
     if (!open) return;
@@ -187,11 +197,14 @@ function gitWarnings(git: GitInfo): { tone: "warning" | "accent"; key: string; c
 
 function Overview({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
+  // The Simple view leaves the code flow (upstream, ahead and behind) to the Developer view.
+  const simple = useSettings().settings.mode === "simple";
   const latest = project.recentSessions.find((s) => s.summary);
   const status = project.memory.filter((m) => m.section === "status").slice(0, 2);
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-4">
+        <StartBox projectId={project.id} />
         <Card className="p-pad">
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("project.latest")}</h3>
           {latest?.summary ? (
@@ -232,7 +245,7 @@ function Overview({ project }: { project: ProjectDetail }) {
           </Card>
         )}
         <GitCard project={project} />
-        {project.git && <GitFlow project={project} />}
+        {project.git && !simple && <GitFlow project={project} />}
       </div>
     </div>
   );
@@ -241,6 +254,7 @@ function Overview({ project }: { project: ProjectDetail }) {
 function GitCard({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
   const git = project.git;
+  if (useSettings().settings.mode === "simple") return <PlainFolderCard project={project} />;
   return (
     <Card className="space-y-2.5 p-pad text-[13px]">
       <div>
@@ -272,6 +286,29 @@ function GitCard({ project }: { project: ProjectDetail }) {
         </>
       ) : (
         <Badge>{t("projects.noGit")}</Badge>
+      )}
+    </Card>
+  );
+}
+
+/** The Simple view's folder card: where the project is and its last saved change, without branch or hash. */
+function PlainFolderCard({ project }: { project: ProjectDetail }) {
+  const { t } = useTranslation();
+  const last = project.git?.lastCommit;
+  return (
+    <Card className="space-y-2.5 p-pad text-[13px]">
+      <div>
+        <p className="text-xs text-fg-subtle">{t("project.path")}</p>
+        <p className="break-all font-mono text-xs">{project.path}</p>
+      </div>
+      {last && (
+        <div className="border-t border-border pt-2.5">
+          <p className="text-xs text-fg-subtle">{t("project.lastCommit")}</p>
+          <p className="truncate">{last.subject}</p>
+          <p className="text-[11px] text-fg-subtle">
+            {last.author} · {relativeTime(last.at)}
+          </p>
+        </div>
       )}
     </Card>
   );
@@ -575,6 +612,7 @@ export function ProjectPage() {
   const { projectId = "" } = useParams();
   const [params, setParams] = useSearchParams();
   const tab = (TABS.find((name) => name === params.get("tab")) ?? "overview") as Tab;
+  const simple = useSettings().settings.mode === "simple";
   const navigate = useNavigate();
   usePageActions([
     {
@@ -627,10 +665,9 @@ export function ProjectPage() {
           {project?.health && <HealthBadge health={project.health} />}
           {project && (project.share !== "off" || project.teamLinked) && <TeamPresence projectId={project.id} />}
           <div className="flex-1" />
-          {project && <NewSession projectId={project.id} />}
         </div>
         <nav className="-mx-4 mt-2 flex flex-wrap gap-x-1 px-4 sm:-mx-6 sm:px-6">
-          {MAIN_TABS.map((name) => (
+          {(simple ? SIMPLE_TABS : MAIN_TABS).map((name) => (
             <button
               key={name}
               type="button"
@@ -652,7 +689,7 @@ export function ProjectPage() {
               )}
             </button>
           ))}
-          <MoreTabs tab={tab} onPick={(name) => setParams({ tab: name })} />
+          {!simple && <MoreTabs tab={tab} onPick={(name) => setParams({ tab: name })} />}
         </nav>
       </header>
       {project?.teamLinked && project.share === "off" && (
@@ -668,7 +705,7 @@ export function ProjectPage() {
           </Button>
         </div>
       )}
-      <div className={tab === "code" ? "flex min-h-0 flex-1" : "mx-auto w-full max-w-6xl p-6"}>
+      <div className={tab === "code" || tab === "files" ? "flex min-h-0 flex-1" : "mx-auto w-full max-w-6xl p-6"}>
         {!project ? (
           <div className="h-64 animate-pulse rounded-ui bg-bg-subtle" />
         ) : tab === "overview" ? (
@@ -685,8 +722,13 @@ export function ProjectPage() {
           <TimelineTab projectId={project.id} />
         ) : tab === "code" ? (
           <CodeTab project={project} />
+        ) : tab === "files" ? (
+          <CodeTab project={project} plain />
         ) : tab === "sessions" ? (
-          <Sessions projectId={project.id} />
+          <div className="space-y-4">
+            <StartBox projectId={project.id} />
+            <Sessions projectId={project.id} />
+          </div>
         ) : tab === "host" ? (
           <CodeHostTab projectId={project.id} />
         ) : tab === "docs" ? (

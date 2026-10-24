@@ -83,7 +83,7 @@ import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { SkillsDialog } from "../components/SkillsDialog";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
-import { SpendMeter } from "../components/SpendMeter";
+import { EstimateMeter, SpendMeter } from "../components/SpendMeter";
 import { TodoStrip } from "../components/TodoStrip";
 import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
 import { WhyButton, WhyContext } from "../components/Why";
@@ -1478,6 +1478,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{shownTitle(info?.title, t)}</h1>
         {info?.context && <ContextMeter context={info.context} />}
         {info?.spend && <SpendMeter spend={info.spend} />}
+        {info?.estimate && <EstimateMeter estimate={info.estimate} />}
         <span className="text-[11px] text-fg-subtle">{t(`chat.${status}`)}</span>
         {info?.sessionId && (
           <Button
@@ -1711,6 +1712,15 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                             </p>
                           );
                         if (event.code === "run") return <RunReport key={event.id} text={event.text} />;
+                        if (event.code === "aiRule")
+                          return (
+                            <AiRuleNotice
+                              key={event.id}
+                              text={event.text}
+                              onProceed={(message) => chat.send(message)}
+                              onStop={chat.interrupt}
+                            />
+                          );
                         if (event.code)
                           return (
                             <p
@@ -1768,6 +1778,67 @@ function chatUrl(left: string, right?: string, drafts: { left?: string; right?: 
 
 /** One chat, or two side by side (`?with=`): each keeps its own box, shortcuts stay with the left one. */
 /** The chief's chat, shown at /chief itself so going back returns there (pages/ChiefPage.tsx). */
+/**
+ * A file the AI read tells AI tools not to help. Shown once, as it is; the user decides. "Go on"
+ * tells the agent plainly that the user saw the line and chose to continue, so the file's text is
+ * treated as data and not as the agent's instructions; "Stop" ends the turn.
+ */
+function AiRuleNotice({
+  text,
+  onProceed,
+  onStop,
+}: {
+  text: string;
+  onProceed: (message: string) => void;
+  onStop: () => void;
+}) {
+  const { t } = useTranslation();
+  const [done, setDone] = useState<"go" | "stop">();
+  let rule = { line: "", file: "" };
+  try {
+    rule = JSON.parse(text) as typeof rule;
+  } catch {
+    // An older notice: nothing to show.
+  }
+  return (
+    <div className="space-y-2 rounded-md border border-warning bg-warning-soft p-3 text-xs">
+      <p className="flex items-center gap-1.5 font-medium">
+        <ShieldAlert size={13} className="shrink-0 text-warning" aria-hidden="true" />
+        {t("chat.aiRuleTitle")}
+      </p>
+      <blockquote className="border-s-2 border-warning ps-2 text-[12.5px] italic">{rule.line}</blockquote>
+      {rule.file && <p className="font-mono text-[11px] text-fg-subtle">{rule.file}</p>}
+      <p className="text-fg-muted">{t("chat.aiRuleBody")}</p>
+      {done ? (
+        <p className="text-fg-subtle">{done === "go" ? t("chat.aiRuleWentOn") : t("chat.aiRuleStopped")}</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => {
+              setDone("go");
+              onProceed(t("chat.aiRuleMessage", { line: rule.line, file: rule.file || "-" }));
+            }}
+          >
+            {t("chat.aiRuleProceed")}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setDone("stop");
+              onStop();
+            }}
+          >
+            {t("chat.aiRuleStop")}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ChiefChat({ chatId, draft, autoSend }: { chatId: string; draft?: string; autoSend?: boolean }) {
   const navigate = useNavigate();
   return (

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ChatEvent, ChatInfo, FlowRun } from "@igrek/core";
+import { type ChatEvent, type ChatInfo, type FlowRun, findPrivateShapes, type StartedItem } from "@igrek/core";
 import type { Hono } from "hono";
 import type { ChatOp, Chats } from "./chats";
 
@@ -13,6 +13,10 @@ import type { ChatOp, Chats } from "./chats";
  */
 const NOTES = "NOTES.md";
 const STATE = "chief.json";
+/** What was started from the one box, newest first; the chief's page is its history. */
+const STARTED = "started.json";
+const STARTED_KEEP = 200;
+const STARTED_TEXT = 160;
 
 /** Claude Code reads CLAUDE.md in the chat's folder at every start; the notebook comes in with it. */
 const CLAUDE_MD = `# The chief
@@ -158,6 +162,31 @@ export class Chief {
     return thread === GENERAL ? "" : this.projectName(thread);
   }
 
+  started(): StartedItem[] {
+    try {
+      return JSON.parse(readFileSync(join(this.dir, STARTED), "utf8")) as StartedItem[];
+    } catch {
+      return [];
+    }
+  }
+
+  /** Kept on this computer only; a salary or an IBAN in the box is not kept even here. */
+  addStarted(text: string, to: { chatId?: string; projectId?: string; runs?: string[] }): StartedItem {
+    let short = text.trim().replace(/\s+/g, " ");
+    for (const found of findPrivateShapes(short).reverse())
+      short = `${short.slice(0, found.start)}***${short.slice(found.end)}`;
+    if (short.length > STARTED_TEXT) short = `${short.slice(0, STARTED_TEXT - 1)}…`;
+    const item: StartedItem = {
+      at: Date.now(),
+      text: short,
+      ...(to.chatId ? { chatId: to.chatId } : {}),
+      ...(to.projectId ? { projectId: to.projectId } : {}),
+      ...(to.runs?.length ? { runs: to.runs.slice(0, 50) } : {}),
+    };
+    writeFileSync(join(this.dir, STARTED), JSON.stringify([item, ...this.started()].slice(0, STARTED_KEEP)));
+    return item;
+  }
+
   notes(): string {
     return readFileSync(join(this.dir, NOTES), "utf8");
   }
@@ -198,6 +227,22 @@ export function registerChiefRoutes(
     }
   });
   app.get("/api/chief/threads", (c) => c.json(chief.list()));
+  app.get("/api/chief/started", (c) => c.json(chief.started()));
+  app.post("/api/chief/started", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      text?: unknown;
+      chatId?: unknown;
+      projectId?: unknown;
+      runs?: unknown;
+    };
+    const text = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+    const runs = Array.isArray(body.runs) ? body.runs.filter((r): r is string => typeof r === "string" && !!r) : [];
+    if (!text(body.text)?.trim() || (!text(body.chatId) && !runs.length))
+      return c.json({ error: "text and a chat or runs are needed" }, 400);
+    return c.json(
+      chief.addStarted(String(body.text), { chatId: text(body.chatId), projectId: text(body.projectId), runs }),
+    );
+  });
   app.get("/api/chief/notes", (c) => c.json({ text: chief.notes() }));
   app.put("/api/chief/notes", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { text?: unknown };

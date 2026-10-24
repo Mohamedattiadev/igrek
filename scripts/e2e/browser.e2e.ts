@@ -57,7 +57,7 @@ describe.skipIf(!ready)("the app in a browser", () => {
     project = (await seededProjectId(server)) ?? "";
     browser = await chromium.launch({ executablePath, args: ["--no-sandbox"] });
     if (SHOTS) mkdirSync(SHOTS, { recursive: true });
-    await settings({ onboarded: true, language: "en" });
+    await settings({ onboarded: true, askedCoding: true, language: "en" });
   }, 60_000);
 
   afterAll(async () => {
@@ -108,9 +108,39 @@ describe.skipIf(!ready)("the app in a browser", () => {
     await page.getByRole("heading", { name: "Welcome to Igrek" }).waitFor();
     // Projects are only the folders the user adds, so the next step asks for one.
     await page.getByRole("button", { name: "Continue" }).click();
+    // Asked once, before the folders: the answer picks the Simple or the Developer view.
+    await page.getByRole("heading", { name: "Do you write code?" }).waitFor();
+    await page.getByRole("button", { name: /No, I don't/ }).click();
     await page.getByRole("heading", { name: "Where are your projects?" }).waitFor();
     await ctx.close();
-    await settings({ onboarded: true });
+    await settings({ onboarded: true, mode: "simple" });
+  }, 30_000);
+
+  test("the one box starts a chat in the picked project, and the chief's page lists it", async () => {
+    const { page, ctx } = await open("light", "/");
+    const box = page.getByRole("textbox", { name: "What do you want to do?" });
+    await box.fill("Add a cart page to the shop");
+    await page.getByRole("combobox", { name: "Where it goes" }).selectOption({ label: "demo-shop" });
+    await page.getByRole("button", { name: "Start", exact: true }).click();
+    await page.waitForURL(/\/c\/[^/?]+/);
+    await page.goto(`${server.url}/chief`, { waitUntil: "networkidle" });
+    await page.getByText("Add a cart page to the shop").first().waitFor();
+    await ctx.close();
+  }, 30_000);
+
+  test("the Simple view shows a project's overview, chats and files; the Developer view every tab", async () => {
+    await settings({ mode: "simple" });
+    const simple = await open("light", `/p/${project}`);
+    const tabs = simple.page.locator("header nav button");
+    await tabs.first().waitFor();
+    const names = (await tabs.allInnerTexts()).map((x) => x.replace(/\d+/g, "").trim());
+    expect(names).toEqual(["Overview", "Chats", "Files"]);
+    await simple.ctx.close();
+    await settings({ mode: "pro" });
+    const pro = await open("light", `/p/${project}`);
+    await pro.page.getByRole("button", { name: "Code", exact: true }).waitFor();
+    await pro.ctx.close();
+    await settings({ mode: "simple" });
   }, 30_000);
 
   for (const scheme of SCHEMES)

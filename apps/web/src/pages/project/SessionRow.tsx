@@ -5,6 +5,7 @@ import { Badge } from "../../components/ui";
 import { ActiveDot, HealthBadge, useSummaryText } from "../../components/work";
 import { mainModel, modelName, relativeTime } from "../../lib/format";
 import { PersonaIcon, useMyName, usePersonaLabel, usePersonas } from "../../lib/personas";
+import { useSettings } from "../../lib/settings";
 
 /** "Mohamed → Backend Senior persona" (plan.md 6.3). */
 function PersonaChip({ personaId, author }: { personaId: string; author?: string }) {
@@ -23,7 +24,9 @@ function PersonaChip({ personaId, author }: { personaId: string; author?: string
 
 export function SessionRow({ session, projectId }: { session: SessionListItem; projectId: string }) {
   const summary = useSummaryText(session.summary);
-  const model = mainModel(session.models);
+  // Model names mean nothing to someone who does not write code (plan.md 7.2).
+  const simple = useSettings().settings.mode === "simple";
+  const model = simple ? undefined : mainModel(session.models);
   return (
     <Link
       to={`/p/${projectId}/s/${session.id}`}

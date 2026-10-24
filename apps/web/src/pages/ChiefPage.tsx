@@ -1,17 +1,50 @@
-import type { ProjectListItem } from "@igrek/core";
+import type { ProjectListItem, StartedItem } from "@igrek/core";
 import { Bot, Folder } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { LoadError } from "../components/LoadError";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
+import { relativeTime } from "../lib/format";
 import { ChiefChat } from "./Chat";
 
 const GENERAL = "general";
 
+/** How many of the newest things started from the box the page lists. */
+const HISTORY = 30;
+
 /**
- * "/chief": the chief's threads, the general one and one per project (a long talk about one project
+ * What was started from the one box (components/StartBox.tsx), newest first: a project's chat opens
+ * that chat, the chief's goes to its general thread.
+ */
+function StartedList({ items, projects }: { items: StartedItem[]; projects: ProjectListItem[] }) {
+  const { t } = useTranslation();
+  if (items.length === 0) return <p className="px-2 py-1 text-[12px] text-fg-subtle">{t("start.historyEmpty")}</p>;
+  const name = (id?: string) =>
+    id ? (projects.find((p) => p.id === id)?.name ?? t("start.goneProject")) : t("start.chief");
+  return (
+    <ul className="space-y-0.5">
+      {items.slice(0, HISTORY).map((item) => (
+        <li key={`${item.at}-${item.chatId ?? item.runs?.[0]}`}>
+          <Link
+            to={item.runs ? `/batch?runs=${item.runs.join(",")}` : item.projectId ? `/c/${item.chatId}` : "/chief"}
+            className="block rounded-md px-2 py-1.5 hover:bg-bg-hover"
+          >
+            <span className="line-clamp-2 text-[12.5px]">{item.text}</span>
+            <span className="block truncate text-[11px] text-fg-subtle">
+              {item.runs ? t("start.manyCount", { count: item.runs.length }) : name(item.projectId)} ·{" "}
+              {relativeTime(item.at)}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * "/chief": the history of the one box, then the chief's threads, the general one and one per project (a long talk about one project
  * no longer buries the others). A thread opens when it is chosen; projects with a talk come first.
  */
 export function ChiefPage() {
@@ -27,6 +60,7 @@ export function ChiefPage() {
   }, []);
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [talked, setTalked] = useState<string[]>([]);
+  const [started, setStarted] = useState<StartedItem[]>([]);
   const [chatId, setChatId] = useState<string>();
   const [error, setError] = useState<string>();
   const [attempt, setAttempt] = useState(0);
@@ -34,11 +68,12 @@ export function ChiefPage() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: the list again when a new thread opened
   useEffect(() => {
     let current = true;
-    void Promise.all([api.projects(), api.chiefThreads()])
-      .then(([list, threads]) => {
+    void Promise.all([api.projects(), api.chiefThreads(), api.started()])
+      .then(([list, threads, history]) => {
         if (!current) return;
         setProjects(list.filter((p) => !p.hidden && p.status !== "archived"));
         setTalked(threads);
+        setStarted(history);
       })
       .catch(() => undefined);
     return () => {
@@ -68,7 +103,7 @@ export function ChiefPage() {
     <div className="flex h-full min-h-0 flex-col md:flex-row">
       <nav
         aria-label={t("chief.threads")}
-        className="shrink-0 border-border border-b p-2 md:w-52 md:overflow-y-auto md:border-e md:border-b-0"
+        className="shrink-0 border-border border-b p-2 md:w-64 md:overflow-y-auto md:border-e md:border-b-0"
       >
         <select
           value={thread}
@@ -83,7 +118,12 @@ export function ChiefPage() {
             </option>
           ))}
         </select>
+        <div className="hidden md:block">
+          <p className="px-2 pt-1 pb-1 text-[11px] font-medium text-fg-subtle uppercase">{t("start.history")}</p>
+          <StartedList items={started} projects={projects} />
+        </div>
         <ul className="hidden space-y-0.5 md:block">
+          <li className="px-2 pt-3 pb-1 text-[11px] font-medium text-fg-subtle uppercase">{t("chief.threads")}</li>
           <li>
             <ThreadButton active={thread === GENERAL} onClick={() => pick(GENERAL)} icon="general">
               {t("chief.general")}

@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
 import { fillPrivate, hidePrivate, PRIVATE_HINT, type PrivateValueInfo } from "@igrek/core";
 import type { Hono } from "hono";
+import { type ActInput, actPrompt, hideForModel, type PageElement, parseSteps } from "./extension-act";
 import type { PrivateValues } from "./private-values";
 
 const hash = (key: string) => createHash("sha256").update(key).digest("hex");
@@ -170,6 +171,30 @@ export function registerExtensionRoutes(
         }),
       );
       return c.json({ draft, text: fillPrivate(draft.trim(), secret) });
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 502);
+    }
+  });
+  // Proposes steps on the page; the extension shows each and does it only when the user clicks it.
+  app.post("/api/ext/act", async (c) => {
+    await values.ready;
+    const body = (await c.req.json().catch(() => ({}))) as Partial<ActInput>;
+    const secret = values.values();
+    const hide = (v: unknown) => (typeof v === "string" ? hideForModel(v, secret) : "");
+    const goal = hide(body.goal);
+    if (goal.trim().length < 3) return c.json({ error: "Say what to do" }, 400);
+    const elements = (Array.isArray(body.page?.elements) ? body.page.elements : [])
+      .filter((e): e is PageElement => typeof e?.id === "string" && typeof e?.role === "string")
+      .slice(0, 150)
+      .map((e) => ({ id: e.id, role: e.role, text: hide(e.text) }));
+    const input: ActInput = {
+      goal,
+      page: { title: hide(body.page?.title), url: hide(body.page?.url), text: hide(body.page?.text), elements },
+      picked: body.picked ? { el: String(body.picked.el ?? ""), text: hide(body.picked.text) } : undefined,
+      done: (Array.isArray(body.done) ? body.done : []).map(hide).slice(-10),
+    };
+    try {
+      return c.json(parseSteps(await deps.write(actPrompt(input, values.list())), elements, secret));
     } catch (err) {
       return c.json({ error: (err as Error).message }, 502);
     }

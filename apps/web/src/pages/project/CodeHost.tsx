@@ -3,6 +3,7 @@ import { CircleCheck, CircleDot, CircleX, ExternalLink, Eye, GitPullRequest, Loa
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { FixButton } from "../../components/FixButton";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { relativeTime } from "../../lib/format";
 import { hostApi } from "../../lib/ops-api";
@@ -313,6 +314,15 @@ export function CodeHostTab({ projectId }: { projectId: string }) {
         icon={GitPullRequest}
         title={info.cliInstalled ? t("host.signInTitle", { cli: info.cli }) : t("host.installTitle", { cli: info.cli })}
         body={info.cliInstalled ? t("host.signInBody", { cli: info.cli }) : t(`host.install_${info.cli}`)}
+        action={
+          info.cliInstalled ? (
+            <FixButton
+              fix={info.cli === "gh" ? "login-gh" : "login-glab"}
+              label={t("fix.signIn", { cli: info.cli })}
+              variant="primary"
+            />
+          ) : undefined
+        }
       />
     );
   return (

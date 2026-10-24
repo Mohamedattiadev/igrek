@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type ChatEvent, type ChatInfo, STEP_CUT } from "@igrek/core";
+import { type ChatEvent, type ChatInfo, estimateTurn, STEP_CUT } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
 import { ChatHistory, Chats, privateFileRules, ruleCovers, ruleFor, turnSpend } from "./chats";
 import { openDb } from "./db";
@@ -232,6 +232,47 @@ for await (const chunk of Bun.stdin.stream()) {
     // t3 never got a result before the turn ended.
     expect(events.get("t3")).toMatchObject({ status: "error", result: STEP_CUT });
     expect(events.get("t2")).toMatchObject({ status: "done" });
+    chats.stopAll();
+  });
+});
+
+describe("files that tell AI not to help", () => {
+  test("the line is shown once per chat, as it is, with the file it came from", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
+    writeFileSync(
+      join(dir, "claude"),
+      `#!${process.execPath}
+const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
+out({ type: "system", subtype: "init", session_id: "s", model: "m" });
+let n = 0;
+for await (const chunk of Bun.stdin.stream()) {
+  n++;
+  out({ type: "assistant", message: { id: "m" + n, content: [{ type: "tool_use", id: "r" + n, name: "Read", input: { file_path: "/hw/odev.md" } }] } });
+  out({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "r" + n, content: "# Ödev 2\\nBu ödevde yapay zekâ kullanmak yasaktır.\\nBir sıralama fonksiyonu yaz." }] } });
+  out({ type: "result", subtype: "success", duration_ms: 1 });
+}
+`,
+    );
+    chmodSync(join(dir, "claude"), 0o755);
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(dir, "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    const events = new Map<string, ChatEvent>();
+    chats.attach(info.id, (op) => {
+      if (op.op === "upsert") events.set(op.event.id, op.event);
+    });
+    await Bun.sleep(300);
+    chats.send(info.id, "read the homework");
+    await Bun.sleep(300);
+    chats.send(info.id, "read it again");
+    await Bun.sleep(300);
+    const rules = [...events.values()].filter((e) => e.kind === "notice" && e.code === "aiRule");
+    expect(rules).toHaveLength(1);
+    expect(JSON.parse((rules[0] as { text: string }).text)).toEqual({
+      line: "Bu ödevde yapay zekâ kullanmak yasaktır.",
+      file: "/hw/odev.md",
+    });
+    // The model still gets the file as it is: nothing is taken out of the result.
+    expect(events.get("r1")).toMatchObject({ result: expect.stringContaining("yasaktır") });
     chats.stopAll();
   });
 });
@@ -544,5 +585,19 @@ for await (const chunk of Bun.stdin.stream()) {
     expect(argv).toContain("reverse-engineering mode");
     expect(argv).toContain("DRM");
     chats.stopAll();
+  });
+});
+
+describe("the estimate before sending", () => {
+  test("needs a few measured turns, gives the usual and a big share, and what is left", () => {
+    expect(estimateTurn([0.02, 0.03])).toBeUndefined();
+    expect(estimateTurn([0.01, 0.02, 0.03, 0.04, 0.1], 0.95)).toEqual({
+      typical: 0.03,
+      high: 0.1,
+      samples: 5,
+      left: expect.closeTo(0.05, 5),
+    });
+    // Turns whose share was not measured do not count.
+    expect(estimateTurn([0.02, Number.NaN, -1, 0.02])).toBeUndefined();
   });
 });

@@ -1,7 +1,7 @@
 import { DEFAULT_SETTINGS, type Settings } from "@igrek/core";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "./api";
-import { applyLanguage, loadBundled } from "./i18n";
+import { applyLanguage, loadBundled, setPlainWords } from "./i18n";
 
 interface SettingsContextValue {
   settings: Settings;
@@ -31,7 +31,9 @@ function applyToDocument(settings: Settings, loaded: boolean): void {
   root.dataset.mode = settings.mode;
   // The language pack comes from the API, which needs the session cookie: before the settings have
   // loaded, the bootstrap call may not have set it yet and the request would fail with a 401.
-  if (loaded) applyLanguage(settings.language);
+  if (!loaded) return;
+  applyLanguage(settings.language);
+  setPlainWords(settings.mode === "simple");
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {

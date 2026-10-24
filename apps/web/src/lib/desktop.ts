@@ -13,7 +13,8 @@ type Command =
   | "update_check"
   | "update_install"
   | "update_progress"
-  | "tray_texts";
+  | "tray_texts"
+  | "capture_screen";
 
 interface Tauri {
   core: { invoke<T>(command: Command, args?: Record<string, unknown>): Promise<T> };

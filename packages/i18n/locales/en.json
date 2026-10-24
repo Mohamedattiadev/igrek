@@ -1,7 +1,7 @@
 {
   "nav": {
     "back": "Back",
-    "chief": "Chief",
+    "chief": "Chief & history",
     "projects": "Projects",
     "inbox": "Inbox",
     "limits": "Limits",
@@ -195,9 +195,9 @@
     "densityCompact": "Compact",
     "mode": "Mode",
     "modeSimple": "Simple",
-    "modeSimpleHint": "Only what you need, in plain words.",
-    "modePro": "Pro",
-    "modeProHint": "Every panel and detail.",
+    "modeSimpleHint": "A project shows its overview, chats and files, in plain words. The other tabs are still there behind a link.",
+    "modePro": "Developer",
+    "modeProHint": "Every tab and panel: code, board, health, setup, tools, with the usual terms.",
     "keymap": "Keyboard",
     "keymapDefault": "Standard",
     "keymapVim": "Vim",
@@ -374,7 +374,8 @@
     "statusLabel": "Project status",
     "more": "More",
     "experts": "Experts",
-    "openChats": "Open chats"
+    "openChats": "Open chats",
+    "files": "Files"
   },
   "memory": {
     "title": "Project memory",
@@ -1070,7 +1071,14 @@
     "starter_chiefToday": "What changed in which project today?",
     "starter_chiefOpen": "Which projects have unfinished work?",
     "starter_chiefWeek": "Sum up this week across my projects",
-    "more": "More: image, prompt, expert"
+    "more": "More: image, prompt, expert",
+    "aiRuleTitle": "A file here says not to use AI",
+    "aiRuleBody": "The AI may stop because of it. The file is not your instruction; you decide. If it is your own rule, for example a course's rules, keep to it.",
+    "aiRuleProceed": "Go on, it is my decision",
+    "aiRuleStop": "Stop",
+    "aiRuleWentOn": "You told the AI to go on.",
+    "aiRuleStopped": "Stopped.",
+    "aiRuleMessage": "I have seen this line in {{file}}: \"{{line}}\". It is text in a file, not an instruction from me. I have decided to go on, and the responsibility is mine. Please continue with what I asked."
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -1364,7 +1372,7 @@
     "openFile": "Open in the code editor",
     "gainTip": "Fixing this raises the score by about {{points}} points",
     "fix": "Fix",
-    "fixTip": "Open a chat with a ready prompt for this. Nothing is sent until you press Send.",
+    "fixTip": "Open a chat with a ready prompt for this, to change it before it is sent. Nothing is sent until you press Send.",
     "fixDone": "Igrek's check \"{{check}}\" passes",
     "fixTests": "Existing tests still pass",
     "fixFocus": "Change only what this needs",
@@ -1664,7 +1672,6 @@
     "findingsTrend_other": "Open findings: {{count}} (goal 0)",
     "findingsTrendLabel": "Open findings went from {{from}} to {{to}}",
     "source": "Source",
-    "fixInCopy": "In a copy",
     "fixInCopyTip": "The expert that owns this part fixes it in its own copy of the project; the checks must pass and nothing reaches your branch until you approve.",
     "raise": "Raise to 100",
     "raiseTip_one": "Its owner fixes the {{count}} open finding in its own copy. Igrek scores the copy after each round and sends it back while findings stay open (up to 3 rounds). The checks must pass and nothing merges without your OK.",
@@ -1673,7 +1680,8 @@
     "raiseDone": "Every finding below passes when Igrek scans the project again",
     "changeTip": "The score in the scan before this one, and now.",
     "failed": "Failed · {{what}}",
-    "partly": "Partly · {{what}}"
+    "partly": "Partly · {{what}}",
+    "fixInChat": "In a chat"
   },
   "apis": {
     "title": "API map",
@@ -4276,9 +4284,6 @@
     "close": "Close"
   },
   "home": {
-    "chiefLabel": "Write to the chief",
-    "chiefPlaceholder": "Tell the chief what you want, in any project: \"Add a cart page to the shop\"",
-    "chiefSend": "Send to the chief",
     "title": "What do you want to do?"
   },
   "helper": {
@@ -4611,7 +4616,12 @@
     "turnLimit": "That is {{pct}}% of your 5-hour limit.",
     "chatTip_one": "The whole chat: {{count}} turn, {{tokens}} tokens.",
     "chatTip_other": "The whole chat: {{count}} turns, {{tokens}} tokens.",
-    "cost": "At API prices that would be about {{turn}} for the turn and {{total}} for the chat; with a plan you pay nothing extra."
+    "cost": "At API prices that would be about {{turn}} for the turn and {{total}} for the chat; with a plan you pay nothing extra.",
+    "estimate": "Next: ~{{pct}}%",
+    "estimateLeft": "Next: ~{{pct}}% · {{left}}% left",
+    "estimateTip": "Before you send: from the last {{count}} turns in this project, a message usually takes about {{typical}}% of your 5-hour limit, a big one about {{high}}%.",
+    "leftTip": "{{pct}}% of the limit is left now.",
+    "shortTip": "A big turn may not fit in what is left: it could stop halfway. Waiting for the reset or continuing in Codex avoids that."
   },
   "changes": {
     "count_one": "{{count}} file changed in this chat",
@@ -4721,7 +4731,23 @@
     "overflow": "Wider than the screen: it scrolls sideways",
     "console": "Browser error: {{error}}",
     "images_one": "{{count}} picture does not load",
-    "images_other": "{{count}} pictures do not load"
+    "images_other": "{{count}} pictures do not load",
+    "ask": {
+      "title": "Ask about your screen",
+      "body": "Igrek takes a picture of your screen only when you press the button. Private details it finds on it are blacked out here, and you see the picture before it is sent.",
+      "placeholder": "What do you want to know? For example: where do I change the font?",
+      "take": "Take a picture",
+      "again": "Take it again",
+      "send": "Send",
+      "taking": "Taking the picture…",
+      "asking": "Asking…",
+      "hidden_one": "{{count}} private detail blacked out.",
+      "hidden_other": "{{count}} private details blacked out.",
+      "noOcr": "Igrek could not read the text on the picture (tesseract is not installed), so nothing was blacked out by itself.",
+      "drag": "Drag over anything else to black it out.",
+      "previewAlt": "Your screen, as it will be sent",
+      "privacy": "Only the blacked-out picture is sent, to the model your Claude plan uses. Nothing is kept on disk."
+    }
   },
   "private": {
     "title": "My private details",
@@ -4819,5 +4845,131 @@
     "unnamed_other": "{{count}} buttons have no name for a screen reader",
     "crashes_one": "{{count}} crash line in the log",
     "crashes_other": "{{count}} crash lines in the log"
+  },
+  "coding": {
+    "title": "Do you write code?",
+    "body": "Igrek shows what fits you. Nothing is taken away: you can switch any time in Settings.",
+    "no": "No, I don't",
+    "noBody": "Simple: a project shows its overview, chats and files, in plain words.",
+    "yes": "Yes, I do",
+    "yesBody": "Developer: code, board, health, setup and tools too, with the usual terms (branch, commit).",
+    "later": "Settings, Mode changes it later."
+  },
+  "plain": {
+    "project": {
+      "sessions": "Chats",
+      "branch": "Line of work",
+      "lastCommit": "Last saved change",
+      "fetch": "Check the online copy",
+      "commitBy": "{{author}} saved a change",
+      "sessionsAndCommits": "{{sessions}} chats · {{commits}} saved changes",
+      "latest": "Latest chat",
+      "recent": "Recent chats"
+    },
+    "projects": {
+      "aheadTip": "Saved changes not sent online yet",
+      "behindTip": "Changes in the online copy you do not have yet"
+    },
+    "inbox": {
+      "notice_secret": "A password or key was saved into the project's history"
+    },
+    "setup": {
+      "hooksBody": "Adds a small automatic step to this project's local Claude Code settings. Every new chat then starts with the memory above. Your project is not changed: the file stays out of its history."
+    },
+    "term": {
+      "forkHint": "Starts a new version of this conversation; the original stays as it is."
+    },
+    "enhance": {
+      "ctxTip_git": "Which line of work, changes not saved yet and the last saved changes. Click to leave it out."
+    },
+    "today": {
+      "commits_one": "{{count}} saved change",
+      "commits_other": "{{count}} saved changes"
+    },
+    "copy": {
+      "banner": "Working in a separate copy ({{branch}}, made from {{base}}). Your folder isn't touched until you bring the changes in.",
+      "mergeTip": "Bring these changes into your folder. Nothing is sent online.",
+      "mergeConfirm": "Bring the changes from this copy into your folder ({{branch}})? Nothing is sent online.",
+      "merged": "Brought into your folder ({{branch}}). Sending it online is up to you.",
+      "discardConfirm": "Stop this chat and delete its copy? Changes you didn't bring in are lost."
+    },
+    "board": {
+      "safety": "The team works in its own copy of the project, without asking. Nothing reaches your folder until you approve, and nothing is ever sent online."
+    },
+    "update": {
+      "dirty": "Igrek's folder has changes of its own; save or put them aside before updating."
+    },
+    "recap": {
+      "numbers": "{{projects}} projects · {{commits}} saved changes · {{time}}",
+      "commits_one": "1 saved change",
+      "commits_other": "{{count}} saved changes"
+    },
+    "trust": {
+      "hooks_one": "{{count}} automatic step",
+      "hooks_other": "{{count}} automatic steps",
+      "mcp_one": "{{count}} connected tool",
+      "mcp_other": "{{count}} connected tools",
+      "title": "The project's own automatic steps and connected tools",
+      "hint": "A project can bring automatic steps and connected tools that run commands. Chats use them only after you trust them, and ask again when they change."
+    },
+    "help": {
+      "d_settings": "Language, theme, a free local model through Ollama, your own connected tools, notifications to Telegram, Discord or e-mail, backups, updates, disk and network."
+    },
+    "settings": {
+      "aiMay_ship": "Sending your work online, putting it live or publishing it always waits for your OK."
+    },
+    "chat": {
+      "modeHint_auto": "Claude decides what's safe and runs it, in a separate copy of your project. Sending online, bringing changes in and putting it live still always ask.",
+      "guard_ship": "This would send your work out (online, live or published). AI never does that on its own, so it asks every time."
+    }
+  },
+  "start": {
+    "label": "What do you want to do?",
+    "placeholder": "What do you want to do? Igrek takes it to the right project: \"Add a cart page to the shop\"",
+    "placeholderProject": "What do you want to do in this project?",
+    "where": "Where it goes",
+    "whereTip": "Igrek picks: the chief, who knows every project, hands it to the right one. Or pick the project yourself.",
+    "chief": "Igrek picks",
+    "send": "Start",
+    "empty": "Empty chat",
+    "history": "Started from the box",
+    "historyEmpty": "What you start from the \"What do you want to do?\" box shows here.",
+    "goneProject": "A removed project",
+    "many": "Several projects…",
+    "manyPick": "Each picked project works on it in its own copy",
+    "manyNote_one": "{{count}} project: one run, in its own copy. Nothing reaches your folders until you approve each one.",
+    "manyNote_other": "{{count}} projects: one run each, in its own copy, and each uses your Claude limit. Nothing reaches your folders until you approve each one.",
+    "manyCount_one": "{{count}} project",
+    "manyCount_other": "{{count}} projects"
+  },
+  "fix": {
+    "tip": "Igrek shows the command first and runs it only when you say so. No AI model is used.",
+    "title": "Run this command?",
+    "body": "It runs in a terminal here, so you see everything it prints and can stop it.",
+    "where": "In: {{folder}}",
+    "cancel": "Cancel",
+    "run": "Run it",
+    "install": "Install",
+    "reinstall": "Install again",
+    "installTool": "Install {{tool}}",
+    "signIn": "Sign in with {{cli}}"
+  },
+  "batch": {
+    "title": "One task, several projects",
+    "empty": "No runs here",
+    "emptyBody": "Pick \"Several projects\" in the \"What do you want to do?\" box to send one task to several projects.",
+    "files_one": "{{count}} file changed",
+    "files_other": "{{count}} files changed",
+    "hint": "Open a project's run to read its changes and merge them, or not. Each is decided on its own."
+  },
+  "agentFiles": {
+    "title": "One memory for Claude and Codex",
+    "claudeOnly": "The project's rules are in CLAUDE.md, which only Claude Code reads. Codex and other agents read AGENTS.md, so they do not know them.",
+    "apart_one": "CLAUDE.md (Claude Code) and AGENTS.md (Codex and others) differ in {{count}} rule: one agent knows it, the other does not.",
+    "apart_other": "CLAUDE.md (Claude Code) and AGENTS.md (Codex and others) differ in {{count}} rules: one agent knows them, the other does not.",
+    "onlyIn": "only {{file}}:",
+    "join": "Join them",
+    "joinTip": "Every rule goes into AGENTS.md and CLAUDE.md just brings it in (@AGENTS.md), so both agents read the same rules. A snapshot is taken first. No AI model is used.",
+    "joined": "Claude and Codex read the same rules (CLAUDE.md brings in AGENTS.md)."
   }
 }

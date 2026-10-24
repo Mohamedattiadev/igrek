@@ -15,8 +15,8 @@ import { lazy, type ReactNode, Suspense, useEffect, useMemo, useState } from "re
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { AddProjectForm } from "../components/AddProjectForm";
-import { ChiefLine } from "../components/HomeComposer";
 import { LoadError } from "../components/LoadError";
+import { StartBox } from "../components/StartBox";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
@@ -564,7 +564,7 @@ export function ProjectsPage() {
       ) : (
         <div className="p-6">
           <div className="mb-4 space-y-3">
-            {projects && visible.length > 0 && <ChiefLine />}
+            {projects && visible.length > 0 && <StartBox />}
             {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
               <Segmented
                 label={t("projects.status")}

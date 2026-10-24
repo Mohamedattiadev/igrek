@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { AutostartPanel, DesktopUpdatePanel } from "../components/DesktopPanels";
 import { EnhanceSettings } from "../components/EnhanceSettings";
 import { ExtensionPanel } from "../components/ExtensionPanel";
+import { FixButton } from "../components/FixButton";
 import { LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import {
@@ -26,6 +27,42 @@ import { askNotificationPermission } from "../lib/notify";
 import { useSettings } from "../lib/settings";
 import { startTour } from "../lib/tour";
 
+/** One AI or system tool: found, missing or broken, and for Claude Code and Codex a one-click install. */
+function ToolRow({ tool }: { tool: SystemStatus["tools"][number] }) {
+  const { t } = useTranslation();
+  return (
+    <li data-nav-item tabIndex={-1} className="flex h-row items-center gap-3 px-3 text-[13px]">
+      {tool.broken ? (
+        <AlertTriangle size={15} className="text-warning" />
+      ) : tool.found ? (
+        <CheckCircle2 size={15} className="text-success" />
+      ) : tool.required ? (
+        <XCircle size={15} className="text-danger" />
+      ) : (
+        <Circle size={15} className="text-fg-subtle" />
+      )}
+      <span className="w-16 font-medium">{tool.id}</span>
+      <span className="flex-1 truncate font-mono text-xs text-fg-subtle">{tool.version}</span>
+      {(tool.id === "claude" || tool.id === "codex") && (tool.broken || !tool.found) && (
+        <FixButton
+          fix={tool.id === "claude" ? "install-claude" : "install-codex"}
+          label={tool.broken ? t("fix.reinstall") : t("fix.install")}
+        />
+      )}
+      {tool.broken ? (
+        <Badge tone="warning">{t("settings.broken")}</Badge>
+      ) : tool.found ? (
+        <Badge tone="success">{t("settings.found")}</Badge>
+      ) : (
+        <Badge tone={tool.required ? "danger" : "neutral"}>
+          {t("settings.missing")}
+          {!tool.required && ` · ${t("settings.optional")}`}
+        </Badge>
+      )}
+    </li>
+  );
+}
+
 function SystemCheck() {
   const { t } = useTranslation();
   const [status, setStatus] = useState<SystemStatus>();
@@ -42,29 +79,7 @@ function SystemCheck() {
     <Card>
       <ul className="divide-y divide-border">
         {status.tools.map((tool) => (
-          <li key={tool.id} data-nav-item tabIndex={-1} className="flex h-row items-center gap-3 px-3 text-[13px]">
-            {tool.broken ? (
-              <AlertTriangle size={15} className="text-warning" />
-            ) : tool.found ? (
-              <CheckCircle2 size={15} className="text-success" />
-            ) : tool.required ? (
-              <XCircle size={15} className="text-danger" />
-            ) : (
-              <Circle size={15} className="text-fg-subtle" />
-            )}
-            <span className="w-16 font-medium">{tool.id}</span>
-            <span className="flex-1 truncate font-mono text-xs text-fg-subtle">{tool.version}</span>
-            {tool.broken ? (
-              <Badge tone="warning">{t("settings.broken")}</Badge>
-            ) : tool.found ? (
-              <Badge tone="success">{t("settings.found")}</Badge>
-            ) : (
-              <Badge tone={tool.required ? "danger" : "neutral"}>
-                {t("settings.missing")}
-                {!tool.required && ` · ${t("settings.optional")}`}
-              </Badge>
-            )}
-          </li>
+          <ToolRow key={tool.id} tool={tool} />
         ))}
       </ul>
       <p className="border-t border-border px-3 py-2 text-xs text-fg-subtle">

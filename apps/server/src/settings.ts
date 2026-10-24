@@ -100,6 +100,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
   }
   for (const key of [
     "onboarded",
+    "askedCoding",
     "autoSummarize",
     "richAnswers",
     "consultExperts",

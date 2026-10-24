@@ -21,6 +21,7 @@ import { codexAdapter } from "./adapters/codex";
 import { geminiAdapter } from "./adapters/gemini";
 import { opencodeAdapter } from "./adapters/opencode";
 import { piAdapter } from "./adapters/pi";
+import { registerAgentFileRoutes } from "./agent-files";
 import { AgentRequests, registerAgentRequestRoutes } from "./agent-requests";
 import { AiComments } from "./aicomments";
 import { Analytics } from "./analytics";
@@ -68,6 +69,7 @@ import { registerExtrasRoutes } from "./extras-routes";
 import { FeedbackBox } from "./feedback";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
+import { registerFixRoutes } from "./fixes";
 import { registerArenaRoutes, registerFlowRoutes, registerImportRoutes } from "./flow-routes";
 import { Flows } from "./flows";
 import { startGateway } from "./gateway";
@@ -134,6 +136,7 @@ import { Retention } from "./retention";
 import { Routines } from "./routines";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
+import { registerScreenRoutes } from "./screen";
 import { Sealer } from "./seal";
 import {
   hasValidSession,
@@ -669,6 +672,31 @@ const app = createApp({
       privateValues: gatewayValues,
     });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
+    registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
+    registerScreenRoutes(hono, {
+      secret: gatewayValues,
+      ask: (prompt, image) =>
+        runClaude(prompt, join(config.dataDir, "runner"), stops, "sonnet", [], undefined, [
+          { mediaType: "image/png", data: image },
+        ]),
+    });
+    registerFixRoutes(hono, {
+      projectPath: (id) => store.projectRow(id)?.path,
+      evidence: (id, check) => {
+        const scan = insight.latest(id);
+        const findings = "categories" in scan ? scan.categories.flatMap((c) => c.findings) : [];
+        return findings.find((f) => f.id === check)?.evidence.map((e) => e.path) ?? [];
+      },
+      context: () => ({ platform: process.platform, home: homedir(), has: (bin) => !!Bun.which(bin) }),
+      run: (plan, projectId) =>
+        terminals.start({
+          projectId: projectId ?? "igrek:fix",
+          cwd: plan.cwd,
+          tool: "shell",
+          title: plan.command,
+          args: ["-c", plan.command],
+        }),
+    });
     registerServerRoutes(hono, servers);
     const igrekMcp = {
       // Read when a chat starts: Igrek's own tools plus the user's enabled MCP servers.

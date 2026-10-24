@@ -1,3 +1,4 @@
+export * from "./ai-rules";
 export * from "./data";
 export * from "./docs";
 export * from "./e2e";
@@ -36,6 +37,8 @@ export interface Settings {
   /** Bigger text everywhere (plan.md 7.0). */
   textSize: TextSize;
   mode: UiMode;
+  /** "Do you write code?" was asked once (first run, or the first start after the question came in). */
+  askedCoding: boolean;
   keymap: Keymap;
   onboarded: boolean;
   /** Summarize finished sessions automatically with a small, cheap model. */
@@ -111,6 +114,7 @@ export const DEFAULT_SETTINGS: Settings = {
   density: "comfortable",
   textSize: "normal",
   mode: "simple",
+  askedCoding: false,
   keymap: "default",
   onboarded: false,
   autoSummarize: true,
@@ -534,6 +538,18 @@ export interface RateLimitInfo {
 
 export type ChatFocus = "reverse" | "chief";
 
+/** Something started from the one "What do you want to do?" box (plan.md 7.2): the chief's page lists them. */
+export interface StartedItem {
+  at: number;
+  /** What was typed, shortened, with private details by their shape left out. */
+  text: string;
+  /** The project it went to; none when the chief took it. */
+  projectId?: string;
+  chatId?: string;
+  /** Sent to several projects at once: one run per project, each in its own copy. */
+  runs?: string[];
+}
+
 export interface ChatInfo {
   id: string;
   projectId: string;
@@ -570,6 +586,8 @@ export interface ChatInfo {
   limit?: { resetsAt?: number; resumeAt?: number };
   /** What the last turn and the whole chat used: tokens, the 5-hour limit and an API-price estimate. */
   spend?: ChatSpend;
+  /** What the next message will likely use of the 5-hour limit, from this project's recent turns. */
+  estimate?: TurnEstimate;
 }
 
 /**
@@ -581,6 +599,34 @@ export interface TurnSpend {
   outputTokens: number;
   costUsd?: number;
   limitPct?: number;
+}
+
+/** Shares of the 5-hour limit (0–1): a usual turn, a big one, and what is left now. */
+export interface TurnEstimate {
+  typical: number;
+  high: number;
+  samples: number;
+  left?: number;
+}
+
+/** Fewer turns than this say too little to guess from. */
+const ESTIMATE_MIN = 3;
+
+/**
+ * Before a message is sent (plan.md 13): how much of the limit a turn here usually takes (the median)
+ * and a big one (the 80th percentile), from turns whose share the plan reported, and whether what is
+ * left covers a big one. Only measured turns count; with too few there is no estimate, not a guess.
+ */
+export function estimateTurn(shares: number[], used?: number): TurnEstimate | undefined {
+  const sorted = shares.filter((s) => Number.isFinite(s) && s >= 0).sort((a, b) => a - b);
+  if (sorted.length < ESTIMATE_MIN) return undefined;
+  const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
+  return {
+    typical: at(0.5),
+    high: at(0.8),
+    samples: sorted.length,
+    ...(used !== undefined ? { left: Math.max(0, 1 - used) } : {}),
+  };
 }
 
 /** One line of a chat's own to-do list, written and ticked off by the user. */
@@ -658,9 +704,10 @@ export type ChatEvent =
        * "loop": the same step with the same input again and again (text = the tool's name);
        * "history": the end of the earlier conversation a continued chat shows (text = how many messages);
        * "private": private details were hidden in the message before it left (text = their names, comma-separated);
-       * "run": a run the chief started has a result (text = "runId|status|project|changed files").
+       * "run": a run the chief started has a result (text = "runId|status|project|changed files");
+       * "aiRule": something the AI read tells AI tools not to help (text = JSON { line, file }).
        */
-      code?: "external" | "notebook" | "notebookRejected" | "loop" | "history" | "private" | "run";
+      code?: "external" | "notebook" | "notebookRejected" | "loop" | "history" | "private" | "run" | "aiRule";
     }
   | {
       /** The project's checks after a turn that changed files (plan.md 15.5). */

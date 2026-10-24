@@ -82,4 +82,21 @@ describe("chief", () => {
     chief.onRun({ ...run("ready", "chief"), id: "r2" });
     expect(added.at(-1)?.[0]).toBe(shop.id);
   });
+
+  test("what was started from the box is kept newest first, short, without private details", () => {
+    const { chats, start } = fakeChats();
+    const chief = new Chief(mkdtempSync(join(tmpdir(), "chief-")), chats, start, () => "Shop");
+    chief.addStarted("Add a cart page", { chatId: "c1", projectId: "p1" });
+    chief.addStarted("Maaşım 85.000 TL, IBAN TR33 0006 1005 1978 6457 8413 26 için bir dilekçe yaz", { chatId: "c2" });
+    const [last, first] = chief.started();
+    expect(first).toMatchObject({ text: "Add a cart page", chatId: "c1", projectId: "p1" });
+    expect(last?.projectId).toBeUndefined();
+    expect(last?.text).not.toContain("85.000");
+    expect(last?.text).not.toContain("TR33");
+    chief.addStarted("x".repeat(500), { chatId: "c3" });
+    expect(chief.started()[0]?.text.length).toBe(160);
+    chief.addStarted("Update React everywhere", { runs: ["r1", "r2"] });
+    expect(chief.started()[0]).toMatchObject({ runs: ["r1", "r2"] });
+    expect(chief.started()[0]?.chatId).toBeUndefined();
+  });
 });

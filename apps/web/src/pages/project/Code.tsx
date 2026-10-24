@@ -524,14 +524,22 @@ function CodeEnhance({ projectId }: { projectId: string }) {
   );
 }
 
-export function CodeTab({ project }: { project: ProjectDetail }) {
+/** The panels of the side strip; the Files tab of the Simple view keeps the ones about files. */
+const PANELS = ["files", "changes", "branches", "snapshots", "search"] as const;
+const PLAIN_PANELS: readonly (typeof PANELS)[number][] = ["files", "search"];
+
+/**
+ * The project's files with an editor. `plain` is the Files tab of the Simple view: the same files,
+ * without changes, branches, snapshots, blame and the editor keymaps of the Code tab.
+ */
+export function CodeTab({ project, plain }: { project: ProjectDetail; plain?: boolean }) {
   const { t } = useTranslation();
   const [sideWidth, setSideWidth] = usePanelSize("code-side", 256, 180, 520);
   const { settings, update } = useSettings();
   // Older settings only had a Vim switch.
   const keymap: EditorKeymap =
     settings.editorKeymap === "vscode" && settings.editorVim ? "vim" : (settings.editorKeymap ?? "vscode");
-  const [panel, setPanel] = useState<"files" | "changes" | "branches" | "snapshots" | "search">("files");
+  const [panel, setPanel] = useState<(typeof PANELS)[number]>("files");
   const [root, setRoot] = useState<FileEntry[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [active, setActive] = useState<Tab>();
@@ -666,7 +674,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
       <CodeEnhance projectId={project.id} />
       <aside className="flex shrink-0 flex-col border-e border-border bg-bg-subtle" style={{ width: sideWidth }}>
         <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1">
-          {(["files", "changes", "branches", "snapshots", "search"] as const).map((name) => (
+          {(plain ? PLAIN_PANELS : PANELS).map((name) => (
             <button
               key={name}
               type="button"
@@ -758,7 +766,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
               {showPreview ? t("code.edit") : t("code.preview")}
             </button>
           )}
-          {active?.mode === "file" && buffer && !buffer.binary && (
+          {!plain && active?.mode === "file" && buffer && !buffer.binary && (
             <button
               type="button"
               onClick={() => {
@@ -815,22 +823,24 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
               {t("quick.explain")}
             </button>
           )}
-          <select
-            value={keymap}
-            onChange={(e) => {
-              const next = e.target.value as EditorKeymap;
-              void update({ editorKeymap: next, editorVim: next === "vim" });
-            }}
-            aria-label={t("code.keymap")}
-            data-tip={t("code.keymapTip")}
-            className="h-6 bg-transparent px-1 font-mono text-[11px] text-fg-subtle outline-none hover:text-fg"
-          >
-            {(["vscode", "jetbrains", "vim", "emacs"] as const).map((k) => (
-              <option key={k} value={k}>
-                {t(`code.keymap_${k}`)}
-              </option>
-            ))}
-          </select>
+          {!plain && (
+            <select
+              value={keymap}
+              onChange={(e) => {
+                const next = e.target.value as EditorKeymap;
+                void update({ editorKeymap: next, editorVim: next === "vim" });
+              }}
+              aria-label={t("code.keymap")}
+              data-tip={t("code.keymapTip")}
+              className="h-6 bg-transparent px-1 font-mono text-[11px] text-fg-subtle outline-none hover:text-fg"
+            >
+              {(["vscode", "jetbrains", "vim", "emacs"] as const).map((k) => (
+                <option key={k} value={k}>
+                  {t(`code.keymap_${k}`)}
+                </option>
+              ))}
+            </select>
+          )}
           {active?.mode === "file" && buffer && !buffer.binary && (
             <button
               type="button"

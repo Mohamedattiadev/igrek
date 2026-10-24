@@ -14,6 +14,7 @@ import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
 import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
+import { CodingQuestion } from "./CodingQuestion";
 import { CommandPalette } from "./CommandPalette";
 import { Helper } from "./Helper";
 import { IdeaCapture } from "./IdeaCapture";
@@ -21,6 +22,7 @@ import { LanguagePackBanner, useLanguagePackSync } from "./LanguagePack";
 import { Logo } from "./Logo";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
+import { ScreenAsk } from "./ScreenAsk";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
@@ -408,6 +410,7 @@ export function Shell() {
         </main>
         {!zen && <StatusBar status={status} />}
       </div>
+      <CodingQuestion />
       {zen && (
         <button
           type="button"
@@ -422,6 +425,7 @@ export function Shell() {
       )}
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <QuickAsk />
+      <ScreenAsk />
       <WhatIs />
       <TooltipLayer />
       <UndoToast />

@@ -86,6 +86,7 @@ import type {
   SharePreview,
   SkillHit,
   SkillPreview,
+  StartedItem,
   SystemStatus,
   TaskStatus,
   TeamActivity,
@@ -111,6 +112,23 @@ import type {
 } from "@igrek/core";
 import type { LanguageOption } from "@igrek/i18n";
 import i18n from "./i18n";
+
+/** A fix Igrek can run in one click (apps/server/src/fixes.ts); the server builds the command. */
+export type FixId =
+  | "install-claude"
+  | "install-codex"
+  | "login-codex"
+  | "login-gh"
+  | "login-glab"
+  | "lockfile"
+  | "untrack-env";
+
+/** CLAUDE.md and AGENTS.md: one memory for every agent, or two that differ (apps/server/src/agent-files.ts). */
+export interface AgentFiles {
+  state: "none" | "claudeOnly" | "agentsOnly" | "joined" | "apart";
+  onlyClaude: string[];
+  onlyAgents: string[];
+}
 
 export interface PackStatus {
   code: string;
@@ -669,6 +687,10 @@ export const api = {
   chief: (thread?: string) => request<ChatInfo>("/api/chief", { method: "POST", body: JSON.stringify({ thread }) }),
   /** The chief's threads with a talk: "general" and project ids. */
   chiefThreads: () => request<string[]>("/api/chief/threads"),
+  /** What was started from the one box, newest first (the chief's page is its history). */
+  started: () => request<StartedItem[]>("/api/chief/started"),
+  addStarted: (body: { text: string; chatId?: string; projectId?: string; runs?: string[] }) =>
+    request<StartedItem>("/api/chief/started", { method: "POST", body: JSON.stringify(body) }),
   chiefNotes: () => request<{ text: string }>("/api/chief/notes"),
   saveChiefNotes: (text: string) =>
     request<{ ok: boolean }>("/api/chief/notes", { method: "PUT", body: JSON.stringify({ text }) }),
@@ -726,6 +748,26 @@ export const api = {
   /** A live chat goes on in a Codex terminal, told what the chat did. */
   continueInCodex: (chatId: string) =>
     request<TerminalInfo>(`/api/chats/${chatId}/continue`, { method: "POST", body: "{}" }),
+  agentFiles: (projectId: string) => request<AgentFiles>(`/api/projects/${projectId}/agent-files`),
+  joinAgentFiles: (projectId: string) =>
+    request<AgentFiles>(`/api/projects/${projectId}/agent-files/join`, { method: "POST", body: "{}" }),
+  /** Reads the text on a screen picture on this computer and says where private details are. */
+  screenScan: (image: string) =>
+    request<{ ocr: boolean; boxes: { x: number; y: number; w: number; h: number }[] }>("/api/screen/scan", {
+      method: "POST",
+      body: JSON.stringify({ image }),
+    }),
+  screenAsk: (body: { image: string; question: string; width: number; height: number }) =>
+    request<{ answer: string; point?: { x: number; y: number; label: string } }>("/api/screen/ask", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  fixPlan: (id: FixId, projectId?: string) =>
+    request<{ command: string; cwd: string }>(
+      `/api/fixes/${id}${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`,
+    ),
+  runFix: (id: FixId, projectId?: string) =>
+    request<TerminalInfo>(`/api/fixes/${id}`, { method: "POST", body: JSON.stringify({ projectId }) }),
   closeTerminal: (id: string) => request<{ ok: boolean }>(`/api/terminals/${id}`, { method: "DELETE" }),
   enhance: (body: {
     text: string;

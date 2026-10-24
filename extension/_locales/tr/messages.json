@@ -82,5 +82,62 @@
   },
   "rules": {
     "message": "Bilgilerin bu bilgisayardaki Igrek'ten doğrudan sayfaya gider. Başka hiçbir yere gönderilmez."
+  },
+  "actTitle": {
+    "message": "Bu sayfada bir şey yap"
+  },
+  "actHint": {
+    "message": "Sayfa hakkında sor ya da ne yapılacağını söyle. Igrek adımlar önerir; her biri sayfada gösterilir ve ancak sen tıklayınca yapılır."
+  },
+  "actPlaceholder": {
+    "message": "Örneğin: bu pakette neler var? Ya da: teslimat adresini bilgilerimle doldur"
+  },
+  "pick": {
+    "message": "Öğe seç"
+  },
+  "picking": {
+    "message": "Sayfadaki öğeye tıkla (durdurmak için Esc)."
+  },
+  "pickedEl": {
+    "message": "Seçilen: $1"
+  },
+  "ask": {
+    "message": "Sor"
+  },
+  "more": {
+    "message": "Sonraki adımlar"
+  },
+  "thinking": {
+    "message": "Sayfa okunuyor…"
+  },
+  "show": {
+    "message": "Göster"
+  },
+  "doIt": {
+    "message": "Yap"
+  },
+  "skip": {
+    "message": "Atla"
+  },
+  "riskyConfirm": {
+    "message": "Bu adım bir şey gönderir, öder, siler ya da yayımlar: $1. Yapılsın mı?"
+  },
+  "click": {
+    "message": "Tıkla: $1"
+  },
+  "type": {
+    "message": "Yaz: $1"
+  },
+  "select": {
+    "message": "Seç: $1"
+  },
+  "scroll": {
+    "message": "Kaydır: $1"
+  },
+  "stepGone": {
+    "message": "Bu öğe artık sayfada yok. Yeni adımlar için yeniden sor."
+  },
+  "needClick": {
+    "message": "Bu sayfada çalışmak için araç çubuğundaki Igrek simgesine bir kez daha tıkla (tarayıcı buna sayfa sayfa izin verir)."
   }
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddProjectForm } from "../components/AddProjectForm";
 import { AiToolsCheck } from "../components/AiToolsCheck";
+import { CodingChoice } from "../components/CodingQuestion";
 import { LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { Button } from "../components/ui";
@@ -121,7 +122,7 @@ export function Onboarding() {
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-bg p-6 shadow-ui">
           <div className="mb-6 flex items-center gap-2">
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3].map((i) => (
               <span key={i} className={`h-1 flex-1 rounded-full ${i <= step ? "bg-accent" : "bg-bg-muted"}`} />
             ))}
           </div>
@@ -140,7 +141,14 @@ export function Onboarding() {
               </div>
             </>
           ) : step === 1 ? (
-            <ProjectStep onDone={() => setStep(2)} />
+            <>
+              <h1 className="text-[18px] font-semibold">{t("coding.title")}</h1>
+              <p className="mt-1 mb-4 text-[13px] leading-relaxed text-fg-muted">{t("coding.body")}</p>
+              <CodingChoice onPicked={() => setStep(2)} />
+              <p className="mt-3 text-[12px] text-fg-subtle">{t("coding.later")}</p>
+            </>
+          ) : step === 2 ? (
+            <ProjectStep onDone={() => setStep(3)} />
           ) : (
             <>
               <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-success-soft text-success">

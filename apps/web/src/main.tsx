@@ -52,6 +52,7 @@ const router = createBrowserRouter([
       { path: "meetings/:meetingId", ...page(() => import("./pages/Meeting"), "MeetingPage") },
       { path: "test-runs/:runId", ...page(() => import("./pages/Testers"), "TestRunPage") },
       { path: "runs/:runId", ...page(() => import("./pages/FlowRun"), "FlowRunPage") },
+      { path: "batch", ...page(() => import("./pages/Batch"), "BatchPage") },
       { path: "schedules", ...page(() => import("./pages/SchedulesPage"), "SchedulesPage") },
       { path: "chief", ...page(() => import("./pages/ChiefPage"), "ChiefPage") },
       { path: "tools", ...page(() => import("./pages/tools/ToolsPage"), "ToolsPage") },

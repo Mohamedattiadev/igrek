@@ -46,7 +46,7 @@ describe.skipIf(!ready)("every page, every button", () => {
     await server.call("/api/settings", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ onboarded: true, language: "en" }),
+      body: JSON.stringify({ onboarded: true, askedCoding: true, language: "en" }),
     });
     const started = await server.call("/api/chats", {
       method: "POST",
@@ -157,7 +157,18 @@ describe.skipIf(!ready)("every page, every button", () => {
       expect(problems).toEqual([]);
     }, 300_000);
 
-  const TABS = ["overview", "board", "preview", "sections", "timeline", "sessions", "experts", "code", "memory"];
+  const TABS = [
+    "overview",
+    "board",
+    "preview",
+    "sections",
+    "timeline",
+    "sessions",
+    "files",
+    "experts",
+    "code",
+    "memory",
+  ];
   for (const tab of [...TABS, "docs", "host", "environments", "monitor", "plugins", "setup"])
     test(`the project tab ${tab}`, async () => {
       problems.length = 0;

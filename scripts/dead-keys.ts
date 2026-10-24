@@ -12,6 +12,7 @@ import { join, resolve } from "node:path";
 const ROOT = resolve(import.meta.dir, "..");
 const LOCALES = join(ROOT, "packages/i18n/locales");
 const PLURAL = /_(zero|one|two|few|many|other)$/;
+const PLAIN = "plain.";
 
 type Tree = { [key: string]: string | Tree };
 
@@ -54,9 +55,19 @@ function usedAs(key: string, src: string): boolean {
   return false;
 }
 
-/** Keys of the English file the code never uses (plural forms count as their base key). */
+/**
+ * Keys of the English file the code never uses (plural forms count as their base key). A text under
+ * "plain." is the Simple view's word for the key after it (apps/web/src/lib/i18n.ts): it is used when
+ * that key is, and is dead when the key is gone.
+ */
 export function unusedKeys(tree: Tree, src: string): string[] {
-  return keysOf(tree).filter((k) => !usedAs(k, src) && !usedAs(k.replace(PLURAL, ""), src));
+  const all = new Set(keysOf(tree));
+  const used = (k: string) => usedAs(k, src) || usedAs(k.replace(PLURAL, ""), src);
+  return [...all].filter((k) => {
+    if (!k.startsWith(PLAIN)) return !used(k);
+    const target = k.slice(PLAIN.length);
+    return !all.has(target) || !used(target);
+  });
 }
 
 /** Removes a key, and any group it leaves empty. */

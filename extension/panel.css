@@ -137,3 +137,25 @@ li span {
 .note.error {
   color: var(--danger);
 }
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#steps {
+  padding-inline-start: 18px;
+}
+#steps li {
+  margin-block: 6px;
+}
+#steps li.done {
+  color: var(--fg-muted);
+  text-decoration: line-through;
+}
+#steps li.risky .why {
+  color: var(--danger);
+}
+#steps .row {
+  margin-top: 4px;
+}

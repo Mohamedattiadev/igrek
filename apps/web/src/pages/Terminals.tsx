@@ -6,8 +6,8 @@ import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { ChatPill } from "../components/ChatPill";
 import { EnhanceButton, EnhanceDialog } from "../components/Enhance";
-import { NewSession } from "../components/NewSession";
 import { PromptPicker } from "../components/PromptPicker";
+import { StartBox } from "../components/StartBox";
 import { TerminalView } from "../components/TerminalView";
 import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
@@ -18,31 +18,19 @@ import { useChats, useLiveData, useServerEvent, useTerminals } from "../lib/live
 
 const TONE = { running: "success", idle: "neutral", attention: "warning", exited: "neutral" } as const;
 
-/** Start something in a project: a chat, a terminal (Claude Code, Codex, a shell). Always here. */
+/**
+ * Start something here too, with the one box: in the project worked in last (another is one pick
+ * away), as a chat, an empty chat or a terminal (Claude Code, Codex, a shell).
+ */
 function StartHere() {
-  const { t } = useTranslation();
   const { data: projects } = useLiveData(() => api.projects(), []);
   const recent = (projects ?? [])
     .filter((p) => !p.hidden && p.status === "active")
     .sort((a, b) => b.lastActivity - a.lastActivity);
-  const [picked, setPicked] = useState<string>();
-  const projectId = picked ?? recent[0]?.id;
-  if (!projectId) return null;
+  if (!projects) return null;
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <select
-        value={projectId}
-        onChange={(e) => setPicked(e.target.value)}
-        aria-label={t("term.startIn")}
-        className="h-8 min-w-0 max-w-56 rounded-ui border border-border bg-bg px-2 text-[13px]"
-      >
-        {recent.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </select>
-      <NewSession projectId={projectId} />
+    <div className="mx-auto w-full max-w-6xl px-6 pt-6">
+      <StartBox projectId={recent[0]?.id} />
     </div>
   );
 }
@@ -185,7 +173,8 @@ export function TerminalsPage() {
   const nothingOpen = terminals.length === 0 && chats.length === 0;
   return (
     <>
-      <PageHeader title={t("term.title")} actions={<StartHere />} />
+      <PageHeader title={t("term.title")} />
+      <StartHere />
       <div className="mx-auto grid w-full max-w-6xl gap-6 p-6 lg:grid-cols-2">
         <section aria-labelledby="open-now" className="space-y-2">
           <h2 id="open-now" className="text-[13px] font-semibold">

@@ -44,6 +44,22 @@
       <button id="write" type="button" data-i18n="write">Write it</button>
       <p class="muted small" data-i18n="usesLimit">Asks an AI model, so it uses your plan's limit.</p>
 
+      <h2 data-i18n="actTitle">Do something on this page</h2>
+      <p class="muted" data-i18n="actHint">Ask about the page, or say what to do. Igrek proposes steps; each is shown on the page and done only when you click it.</p>
+      <label>
+        <span data-i18n="actTitle">Do something on this page</span>
+        <textarea id="goal" rows="3"></textarea>
+      </label>
+      <div class="row">
+        <button id="pick" type="button" data-i18n="pick">Pick an element</button>
+        <button id="ask" type="button" class="primary" data-i18n="ask">Ask</button>
+      </div>
+      <p id="picked" class="muted small" hidden></p>
+      <p id="answer" hidden></p>
+      <ol id="steps"></ol>
+      <button id="more" type="button" hidden data-i18n="more">Next steps</button>
+      <p class="muted small" data-i18n="usesLimit">Asks an AI model, so it uses your plan's limit.</p>
+
       <p class="muted small" data-i18n="rules">Your details go from Igrek on this computer straight into the page.</p>
       <button id="unpair" type="button" class="ghost" data-i18n="disconnect">Disconnect this browser</button>
     </section>

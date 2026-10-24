@@ -1,6 +1,6 @@
 import type { MemoryItem, MemorySection, ProjectDetail } from "@igrek/core";
 import { AlertTriangle, Brain, Check, Eye, MessageSquare, Pencil, Plus, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Comments } from "../../components/Comments";
@@ -8,7 +8,7 @@ import { useTeamPeople } from "../../components/TeamAvatar";
 import { TeamText } from "../../components/TeamText";
 import { Button, Card, EmptyState } from "../../components/ui";
 import { AdrExportButton } from "../../components/Writeups";
-import { api } from "../../lib/api";
+import { type AgentFiles, api } from "../../lib/api";
 import { relativeTime } from "../../lib/format";
 import { deferDelete, usePendingDeletes } from "../../lib/undo";
 
@@ -190,6 +190,60 @@ function AddFact({ projectId, onChange }: { projectId: string; onChange: () => v
   );
 }
 
+/**
+ * Claude Code reads CLAUDE.md and Codex reads AGENTS.md: kept apart, a rule taught to one is unknown to
+ * the other. Shows which rules only one of them has and joins them in one click (no model; a snapshot
+ * is taken first, so it can be undone).
+ */
+function AgentFilesCard({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [files, setFiles] = useState<AgentFiles>();
+  const [error, setError] = useState<string>();
+  useEffect(() => {
+    api
+      .agentFiles(projectId)
+      .then(setFiles)
+      .catch(() => undefined);
+  }, [projectId]);
+  if (!files || files.state === "none" || files.state === "agentsOnly") return null;
+  const join = () =>
+    api
+      .joinAgentFiles(projectId)
+      .then(setFiles)
+      .catch((err: Error) => setError(err.message));
+  if (files.state === "joined")
+    return (
+      <p className="flex items-center gap-1.5 text-[12.5px] text-success">
+        <Check size={13} aria-hidden="true" />
+        {t("agentFiles.joined")}
+      </p>
+    );
+  const missing = [...files.onlyClaude.map((l) => ["CLAUDE.md", l]), ...files.onlyAgents.map((l) => ["AGENTS.md", l])];
+  return (
+    <Card className="space-y-2 p-pad text-[13px]">
+      <p className="font-medium">{t("agentFiles.title")}</p>
+      <p className="text-[12.5px] leading-relaxed text-fg-muted">
+        {files.state === "claudeOnly" ? t("agentFiles.claudeOnly") : t("agentFiles.apart", { count: missing.length })}
+      </p>
+      {files.state === "apart" && missing.length > 0 && (
+        <ul className="max-h-32 space-y-0.5 overflow-y-auto font-mono text-[11.5px] text-fg-muted">
+          {missing.slice(0, 20).map(([file, line]) => (
+            <li key={`${file}${line}`} className="truncate">
+              <span className="text-fg-subtle">{t("agentFiles.onlyIn", { file })}</span> {line}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="primary" onClick={() => void join()} data-tip={t("agentFiles.joinTip")}>
+          {t("agentFiles.join")}
+        </Button>
+        {error && <span className="text-xs text-danger">{error}</span>}
+      </div>
+    </Card>
+  );
+}
+
 export function MemoryTab({ project, onChange }: { project: ProjectDetail; onChange: () => void }) {
   const { t } = useTranslation();
   const [context, setContext] = useState<string>();
@@ -203,6 +257,7 @@ export function MemoryTab({ project, onChange }: { project: ProjectDetail; onCha
         <p className="min-w-0 max-w-2xl flex-1 text-[13px] leading-relaxed text-fg-muted">{t("memory.hint")}</p>
         {project.memory.some((m) => m.section === "decision") && <AdrExportButton projectId={project.id} />}
       </div>
+      <AgentFilesCard projectId={project.id} />
       {conflicts.map((item) => (
         <ConflictCard key={item.id} item={item} onDone={onChange} />
       ))}
