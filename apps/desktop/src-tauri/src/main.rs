@@ -8,6 +8,7 @@
 
 mod capture;
 mod overlay;
+mod runtime;
 #[cfg(target_os = "linux")]
 mod launcher;
 mod server;
@@ -284,7 +285,14 @@ fn start_server(app: &AppHandle) {
         let _ = std::fs::create_dir_all(&logs);
         let log = logs.join("server.log");
         let Some(window) = main_window(&app) else { return };
-        match server::start(&resources, &log) {
+        // The first start fetches the runtime (about 35 MB); the loading page says how far it is.
+        let shown = window.clone();
+        let fetched = runtime::ensure(&|bytes| {
+            let text = texts::get("desktop.preparing").replace("{{mb}}", &(bytes / 1_000_000).to_string());
+            let _ = shown.eval(format!("window.showProgress && window.showProgress({})", serde_json::Value::from(text)));
+        });
+        let started = fetched.and_then(|bun| server::start(&resources, &log, &bun));
+        match started {
             Ok((child, port)) => {
                 *app.state::<Server>().0.lock().unwrap() = Some(child);
                 let origin = format!("http://127.0.0.1:{port}");

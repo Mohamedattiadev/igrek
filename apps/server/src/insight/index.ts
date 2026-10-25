@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   type ApiMap,
   type ArchitectureReport,
@@ -74,6 +75,15 @@ function languageName(code: string): string {
  * free (static checks in a worker); only the plain-language explanation uses
  * the small model, on demand, and is cached until the files change.
  */
+/**
+ * The scan's worker: beside this file when run from source, and insight/worker.js beside the bundle
+ * in the desktop app, whose server is one JavaScript file run by Bun (apps/desktop/scripts/sidecar.ts).
+ */
+function workerUrl(): string {
+  const source = new URL("./worker.ts", import.meta.url);
+  return existsSync(fileURLToPath(source)) ? source.href : new URL("./insight/worker.js", import.meta.url).href;
+}
+
 export class Insight {
   private worker?: Worker;
   private next = 1;
@@ -92,7 +102,7 @@ export class Insight {
 
   private scanInWorker(root: string, projectId: string): Promise<WorkerReply> {
     if (!this.worker) {
-      this.worker = new Worker(new URL("./worker.ts", import.meta.url).href);
+      this.worker = new Worker(workerUrl());
       this.worker.onmessage = (event: MessageEvent<WorkerReply>) => {
         this.pending.get(event.data.id)?.(event.data);
         this.pending.delete(event.data.id);

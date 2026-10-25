@@ -1,5 +1,5 @@
 /**
- * Starts the single-file server the way the desktop app does (src-tauri/src/server.rs) and checks
+ * Starts the server bundle with Bun the way the desktop app does (src-tauri/src/server.rs) and checks
  * what building a package cannot: that it answers with the web app it carries, and that it stops
  * once its stdin closes, which is how the app stops it (apps/server/src/desktop.ts). Run after
  * sidecar.ts; the desktop workflow runs it on every system, where nobody tries the app by hand.
@@ -9,23 +9,19 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { serverFile, targetTriple } from "./target";
+import { targetTriple } from "./target";
 
 const TAURI = resolve(import.meta.dir, "..", "src-tauri");
 const triple = targetTriple();
 
-// A server built for the other Mac processor may not run on this one; it is built, not tried.
-const arch = { x64: "x86_64", arm64: "aarch64" }[process.arch as string];
-if (!triple.startsWith(arch ?? "?")) {
-  console.log(`skipped: ${triple} does not run on this ${process.arch} computer`);
-  process.exit(0);
-}
+// The app on the other Mac processor fetches its own Bun; this one runs the same bundle, so it is tried.
+console.log(`server bundle for ${triple}, run with Bun ${Bun.version}`);
 
 const free = Bun.serve({ port: 0, fetch: () => new Response() });
 const port = free.port;
 free.stop(true);
 const home = mkdtempSync(join(tmpdir(), "igrek-smoke-"));
-const server = Bun.spawn([join(TAURI, "binaries", serverFile(triple))], {
+const server = Bun.spawn([process.execPath, join(TAURI, "resources/server/desktop.js")], {
   env: {
     ...process.env,
     IGREK_HOME: home,

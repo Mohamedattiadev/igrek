@@ -1,6 +1,6 @@
-//! The Igrek server the window shows. It is the single-file server (`bun build --compile`) shipped
-//! beside this program, started hidden on a free port when the app opens and stopped, with
-//! everything it started, when the app closes.
+//! The Igrek server the window shows: one JavaScript file in the app's resources, run by Bun (see
+//! runtime.rs), started hidden on a free port when the app opens and stopped, with everything it
+//! started, when the app closes.
 
 use std::fs::File;
 use std::net::{TcpListener, TcpStream};
@@ -9,15 +9,19 @@ use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-const SERVER: &str = if cfg!(windows) { "igrek-server.exe" } else { "igrek-server" };
+/// The server bundle inside the resources (apps/desktop/scripts/sidecar.ts writes it).
+const SCRIPT: &str = "server/desktop.js";
+/// Where the app last found its server bundle, for `igrek-desktop mcp`, which runs without the app.
+const SCRIPT_NOTE: &str = "server-script.txt";
 
 /// The running server; `None` once it has been stopped.
 pub struct Server(pub Mutex<Option<Child>>);
 
-/// The server file, which the bundler puts next to this program.
-fn server_file() -> std::io::Result<PathBuf> {
-    let exe = std::env::current_exe()?;
-    Ok(exe.with_file_name(SERVER))
+/// Bun with the server bundle as its first argument.
+fn server_command(bun: &Path, script: &Path) -> Command {
+    let mut command = Command::new(bun);
+    command.arg(script);
+    command
 }
 
 /// The command Claude Code's settings may keep for Igrek's MCP tools. An AppImage runs from a new
@@ -119,11 +123,14 @@ fn free_port() -> std::io::Result<u16> {
 }
 
 /// Starts the server and waits until it answers. Its output goes to `log`.
-pub fn start(resources: &Path, log: &Path) -> Result<(Child, u16), String> {
+pub fn start(resources: &Path, log: &Path, bun: &Path) -> Result<(Child, u16), String> {
     let port = free_port().map_err(|e| e.to_string())?;
     let out = File::create(log).map_err(|e| e.to_string())?;
     let err = out.try_clone().map_err(|e| e.to_string())?;
-    let mut command = Command::new(server_file().map_err(|e| e.to_string())?);
+    let script = resources.join(SCRIPT);
+    // An AppImage mounts somewhere new each start: the helper reads where it is this time.
+    let _ = std::fs::write(crate::runtime::root().join(SCRIPT_NOTE), script.to_string_lossy().as_bytes());
+    let mut command = server_command(bun, &script);
     command
         .env("IGREK_PORT", port.to_string())
         .env("IGREK_HOST", "127.0.0.1")
@@ -171,8 +178,9 @@ pub fn stop(mut child: Child) {
 /// `igrek mcp`: the AppImage (or the installed program) stands in for the server file when Claude
 /// Code starts Igrek's MCP tools, passing its stdin and stdout straight through.
 pub fn run_helper(role: &str) -> i32 {
-    let Ok(file) = server_file() else { return 1 };
-    let mut command = Command::new(file);
+    let bun = crate::runtime::bun_path();
+    let Ok(script) = std::fs::read_to_string(crate::runtime::root().join(SCRIPT_NOTE)) else { return 1 };
+    let mut command = server_command(&bun, Path::new(script.trim()));
     command.arg(role).args(std::env::args_os().skip(2));
     hide_console(&mut command);
     outside_appimage(&mut command);

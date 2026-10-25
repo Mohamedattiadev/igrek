@@ -11,8 +11,3 @@ export function targetTriple(): string {
   const flag = process.argv.indexOf("--target");
   return flag > 0 ? (process.argv[flag + 1] ?? "") : hostTriple();
 }
-
-/** The server file sidecar.ts makes for that computer (Tauri wants <name>-<triple>). */
-export function serverFile(triple: string): string {
-  return `igrek-server-${triple}${triple.includes("windows") ? ".exe" : ""}`;
-}

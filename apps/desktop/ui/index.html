@@ -74,6 +74,11 @@
         font-size: 12px;
         word-break: break-all;
       }
+      #progress {
+        margin-top: 12px;
+        font-size: 13px;
+        opacity: 0.7;
+      }
     </style>
   </head>
   <body>
@@ -87,12 +92,18 @@
         <p id="message"></p>
         <p id="detail"></p>
       </div>
+      <p id="progress"></p>
     </main>
     <script>
       document.documentElement.lang = navigator.language;
       // Called by the app when the server did not start; the words come from Igrek's text files.
+      // The first start fetches the server's runtime; the app tells how far it is.
+      window.showProgress = (text) => {
+        document.getElementById("progress").textContent = text;
+      };
       window.showError = (message, detail) => {
         document.getElementById("dots").style.display = "none";
+        document.getElementById("progress").textContent = "";
         document.getElementById("error").style.display = "block";
         document.getElementById("message").textContent = message;
         document.getElementById("detail").textContent = detail;

@@ -2,12 +2,14 @@ import { dirname, join } from "node:path";
 import { envValue } from "./names";
 
 /**
- * The desktop app (apps/desktop) ships the server as one file made by `bun build --compile`.
- * Inside it the server's own source files live in Bun's virtual folder, not on disk, so the files
- * it reads or hands to other programs come from a folder the app ships beside it, and its helper
- * scripts run as the same file with a role as the first argument (see desktop.ts).
+ * The desktop app (apps/desktop) ships the server as one JavaScript bundle that Bun runs
+ * (apps/desktop/scripts/sidecar.ts marks it with IGREK_BUNDLE); a file made by `bun build --compile`
+ * counts too. Either way the server's own source files are not on disk, so the files it reads or
+ * hands to other programs come from a folder the app ships beside it, and its helper scripts run as
+ * the same bundle with a role as the first argument (see desktop.ts).
  */
-export const PACKAGED = /[\\/]\$bunfs|~BUN/.test(import.meta.dir);
+const COMPILED = /[\\/]\$bunfs|~BUN/.test(import.meta.dir);
+export const PACKAGED = COMPILED || process.env.IGREK_BUNDLE === "1";
 
 /** A file the desktop app ships beside the server (its web app, cheat sheets, preview helpers). */
 export function resourcePath(...parts: string[]): string {
@@ -23,5 +25,7 @@ export function ownScript(name: "mcp" | "embed-worker", lasting = false): { comm
   // This file sits beside the scripts it names.
   if (!PACKAGED) return { command: process.execPath, args: [join(import.meta.dir, `${name}.ts`)] };
   const launcher = lasting ? envValue(process.env, "LAUNCHER") : undefined;
-  return { command: launcher ?? process.execPath, args: [name] };
+  if (launcher) return { command: launcher, args: [name] };
+  // A bundle is a script for Bun (argv[1]); a compiled file is its own program.
+  return { command: process.execPath, args: COMPILED ? [name] : [process.argv[1] ?? "", name] };
 }

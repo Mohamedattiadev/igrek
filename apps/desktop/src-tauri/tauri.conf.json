@@ -30,7 +30,6 @@
       "icons/icon.ico",
       "icons/icon.png"
     ],
-    "externalBin": ["binaries/igrek-server"],
     "resources": {
       "resources/": "resources/"
     },

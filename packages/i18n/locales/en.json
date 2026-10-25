@@ -4679,7 +4679,8 @@
     "updateProgress": "{{done}} of {{total}} MB downloaded ({{pct}}%)",
     "updateProgressNoSize": "{{done}} MB downloaded",
     "updateNoticeTitle": "A new version of Igrek",
-    "updateNotice": "Igrek {{version}} is ready. Install it in Settings > Updates."
+    "updateNotice": "Igrek {{version}} is ready. Install it in Settings > Updates.",
+    "preparing": "Getting Igrek ready for its first start: {{mb}} of about 35 MB downloaded"
   },
   "packs": {
     "catalog": "Igrek's catalog",

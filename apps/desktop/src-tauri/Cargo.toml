@@ -18,6 +18,10 @@ tauri-plugin-opener = "=2.7.0"
 tauri-plugin-single-instance = "=2.5.2"
 tauri-plugin-updater = "=2.13.2"
 serde_json = "=1.0.151"
+# Checking and unpacking the server's runtime on the first start (runtime.rs); both already come
+# with the updater, at these versions.
+sha2 = "=0.10.9"
+zip = { version = "=4.6.1", default-features = false, features = ["deflate-flate2"] }
 
 # The screen helper's picture through the desktop portal (Wayland asks the compositor, not X11).
 [target.'cfg(target_os = "linux")'.dependencies]

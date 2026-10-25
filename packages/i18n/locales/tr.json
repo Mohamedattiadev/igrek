@@ -4679,7 +4679,8 @@
     "updateProgress": "{{total}} MB'ın {{done}} MB'ı indi (%{{pct}})",
     "updateProgressNoSize": "{{done}} MB indi",
     "updateNoticeTitle": "Igrek'in yeni sürümü",
-    "updateNotice": "Igrek {{version}} hazır. Ayarlar > Güncellemeler'den kurabilirsin."
+    "updateNotice": "Igrek {{version}} hazır. Ayarlar > Güncellemeler'den kurabilirsin.",
+    "preparing": "Igrek ilk açılış için hazırlanıyor: yaklaşık 35 MB'ın {{mb}} MB'ı indirildi"
   },
   "packs": {
     "catalog": "Igrek kataloğu",

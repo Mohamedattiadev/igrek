@@ -4,10 +4,12 @@ Igrek in a window of its own (plan.md Faz 17), made with [Tauri 2](https://tauri
 
 ## How it works
 
-- The window shows the same web app the browser does. Igrek's server is built into one file with
-  `bun build --compile` (`apps/server/src/desktop.ts` is its entry) and shipped beside the app as a Tauri
-  "sidecar". The app starts it hidden on a free port on 127.0.0.1, shows a loading page until it answers, then
-  opens it.
+- The window shows the same web app the browser does. Igrek's server is bundled into one JavaScript file
+  (`apps/server/src/desktop.ts` is its entry, `resources/server/desktop.js` in the app). Bun, which runs it, is
+  not packed: on the first start the app downloads Bun's official release for the computer (the version in
+  `src-tauri/src/runtime.rs`, checked against Bun's published SHA-256; about 35 MB, once) into the user's local
+  data folder (`igrek-runtime`). This keeps the packages near 15 MB instead of 60. The app then starts the server
+  hidden on a free port on 127.0.0.1, shows a loading page until it answers, then opens it.
 - The data folder is the usual one (`~/.igrek`, or `IGREK_HOME`), so the app, the browser version and the CLI
   share the same data. Run only one of them at a time.
 - The app holds the server's stdin open. When the app closes, or is killed, stdin closes and the server stops the
