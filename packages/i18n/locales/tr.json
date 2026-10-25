@@ -4798,13 +4798,17 @@
     "hint": "Tarayıcıdaki formlar için (iş ve burs başvuruları, şirket evrakı): özel bilgilerini isteyen alanları doldurur ve bir alanın metnini yazdırır; AI bu bilgileri hiç görmez. Sadece bu bilgisayardaki Igrek'le konuşur.",
     "step1": "Chrome, Brave ya da Edge'de eklentiler sayfasını aç (chrome://extensions), Geliştirici modunu aç ve Paketlenmemiş öğe yükle'yi seç.",
     "step2": "Igrek klasörünün içindeki extension klasörünü seç.",
-    "step3": "Aşağıdan bir eşleştirme anahtarı oluştur ve eklentinin paneline yapıştır.",
+    "step3": "Eklentinin panelinde \"Bağlan\"a bas ve Igrek sorunca burada izin ver (ya da aşağıda bir eşleme anahtarı yapıp yapıştır).",
     "pair": "Eşleştirme anahtarı oluştur",
     "forget": "Bütün tarayıcıların bağlantısını kes",
     "forgetConfirm": "Eşleşmiş bütün tarayıcıların bağlantısı kesilsin mi? Her biri sonra yeni bir anahtar ister.",
     "paired_one": "{{count}} tarayıcı eşleşmiş",
     "paired_other": "{{count}} tarayıcı eşleşmiş",
-    "keyOnce": "Sadece şimdi gösteriliyor. Eklentinin bu bilgisayardaki özel bilgilerini okumasını sağlar; sadece kendi tarayıcına yapıştır."
+    "keyOnce": "Sadece şimdi gösteriliyor. Eklentinin bu bilgisayardaki özel bilgilerini okumasını sağlar; sadece kendi tarayıcına yapıştır.",
+    "pairAsk": "Tarayıcı eklentisi bağlanmak istiyor",
+    "pairBody": "Yalnızca eklenti aynı kodu gösteriyorsa izin ver. Sonra bu bilgisayardaki özel bilgilerinle form doldurabilir ve senin onayınla sayfalarda iş yapabilir.",
+    "pairAllow": "İzin ver",
+    "pairDeny": "Reddet"
   },
   "phone": {
     "noAdb": "Telefonda test etmek için bu bilgisayarda adb (Android'in ücretsiz hata ayıklama aracı) gerekiyor. Kur, sonra bu sekmeyi yeniden aç:",

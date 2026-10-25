@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
+import { FixButton } from "../components/FixButton";
 import { Badge, Button, Card, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -177,7 +178,8 @@ export function TestersTab() {
       {status && !status.browser && (
         <p className="flex items-start gap-2 rounded-ui border border-warning bg-warning-soft p-2.5 text-xs">
           <AlertTriangle size={14} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-          {t("testers.noBrowser")}
+          <span className="min-w-0 flex-1">{t("testers.noBrowser")}</span>
+          <FixButton fix="install-chromium" label={t("fix.install")} />
         </p>
       )}
       <Card className="space-y-3 p-pad">

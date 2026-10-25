@@ -16,16 +16,18 @@
 
     <section id="pairing" hidden>
       <h2 data-i18n="pairTitle">Connect to Igrek</h2>
-      <p class="muted" data-i18n="pairHint">In Igrek, open Settings, Browser extension, and make a pairing key.</p>
       <label>
         <span data-i18n="address">Igrek's address</span>
         <input id="address" value="http://localhost:7777" />
       </label>
+      <button id="ask-pair" type="button" class="primary" data-i18n="askPair">Connect</button>
+      <p id="pair-code" class="muted" hidden></p>
+      <p class="muted small" data-i18n="pairHint">Or in Igrek, open Settings, Browser extension, and make a pairing key.</p>
       <label>
         <span data-i18n="key">Pairing key</span>
         <input id="key" type="password" autocomplete="off" />
       </label>
-      <button id="pair" type="button" class="primary" data-i18n="connect">Connect</button>
+      <button id="pair" type="button" data-i18n="connect">Connect</button>
     </section>
 
     <section id="main" hidden>

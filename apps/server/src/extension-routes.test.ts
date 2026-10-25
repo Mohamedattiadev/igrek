@@ -6,6 +6,7 @@ import { createApp } from "./app";
 import { Bus, StopRegistry } from "./bus";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
+import { ExtensionPairing, registerPairRoutes } from "./extension-pair";
 import { ExtensionKeys, matchFields, registerExtensionRoutes } from "./extension-routes";
 import { PrivateValues } from "./private-values";
 import { Sealer } from "./seal";
@@ -31,7 +32,8 @@ async function setup() {
     stops: new StopRegistry(),
     startedAt: Date.now(),
     extensionKey: (key) => keys.valid(key),
-    extraRoutes: (hono) =>
+    extraRoutes: (hono) => {
+      registerPairRoutes(hono, new ExtensionPairing(keys));
       registerExtensionRoutes(hono, {
         keys,
         values,
@@ -39,7 +41,8 @@ async function setup() {
           prompts.push(prompt);
           return "My identity number is [[private:tc_kimlik]].";
         },
-      }),
+      });
+    },
   });
   const call = (path: string, init: RequestInit & { headers?: Record<string, string> } = {}) =>
     app.request(`http://localhost:7777${path}`, { ...init, headers: { host: "localhost:7777", ...init.headers } });
@@ -85,6 +88,25 @@ describe("the browser extension", () => {
     expect((await call("/api/private", { headers: { origin: EXT, "x-igrek-ext-key": key } })).status).toBe(403);
     keys.forgetAll();
     expect((await call("/api/ext/hello", { headers: { origin: EXT, "x-igrek-ext-key": key } })).status).toBe(401);
+  });
+
+  test("pairing is asked from an extension only, and the key comes after the user allows it in Igrek", async () => {
+    const { call } = await setup();
+    expect((await call("/api/ext-pair", { method: "POST", headers: { origin: "https://evil.example" } })).status).toBe(
+      403,
+    );
+    const asked = (await (await call("/api/ext-pair", { method: "POST", headers: { origin: EXT } })).json()) as {
+      id: string;
+      code: string;
+    };
+    expect(asked.code).toMatch(/^\d{6}$/);
+    const poll = async () => (await call(`/api/ext-pair/${asked.id}`, { headers: { origin: EXT } })).json();
+    expect(await poll()).toEqual({ status: "waiting" });
+    // The extension cannot allow itself: that route is Igrek's own.
+    expect(
+      (await call(`/api/extension/requests/${asked.id}`, { method: "POST", headers: { origin: EXT }, body: "{}" }))
+        .status,
+    ).toBe(403);
   });
 
   test("a field's text is written from placeholders: the model never sees the value, the page gets it", async () => {

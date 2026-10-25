@@ -917,6 +917,8 @@ export type ServerMessage =
   | { type: "lessons-changed" }
   | { type: "knowledge-changed" }
   | { type: "flows-changed"; runId?: string }
+  /** The browser extension asks to pair; Igrek shows its code for the user to allow. */
+  | { type: "extension-pair" }
   | { type: "board-changed"; projectId: string }
   | { type: "schedules-changed" }
   | { type: "devservers-changed"; projectId: string }

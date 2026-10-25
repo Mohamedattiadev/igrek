@@ -60,4 +60,17 @@ describe("one-click fixes", () => {
     expect(command).not.toContain("/abs");
     expect(planFix("untrack-env", base([], { path: "/p", evidence: [] }))).toHaveProperty("error");
   });
+
+  test("a system program comes from the package manager that is there", () => {
+    expect(planFix("install-adb", base(["pacman"]))).toMatchObject({
+      command: "sudo pacman -S --needed android-tools",
+    });
+    expect(planFix("install-chromium", base(["apt-get"]))).toMatchObject({
+      command: "sudo apt-get install -y chromium",
+    });
+    expect(planFix("install-node", { ...base(["brew"]), platform: "darwin" })).toMatchObject({
+      command: "brew install node",
+    });
+    expect(planFix("install-node", base([]))).toHaveProperty("error");
+  });
 });

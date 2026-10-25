@@ -121,7 +121,10 @@ export type FixId =
   | "login-gh"
   | "login-glab"
   | "lockfile"
-  | "untrack-env";
+  | "untrack-env"
+  | "install-chromium"
+  | "install-adb"
+  | "install-node";
 
 /** CLAUDE.md and AGENTS.md: one memory for every agent, or two that differ (apps/server/src/agent-files.ts). */
 export interface AgentFiles {
@@ -762,6 +765,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  /** The browser extension's waiting requests to pair, each with the code it shows. */
+  extensionRequests: () => request<{ id: string; code: string; at: number }[]>("/api/extension/requests"),
+  decideExtension: (id: string, allow: boolean) =>
+    request<{ ok: boolean }>(`/api/extension/requests/${id}`, { method: "POST", body: JSON.stringify({ allow }) }),
   fixPlan: (id: FixId, projectId?: string) =>
     request<{ command: string; cwd: string }>(
       `/api/fixes/${id}${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`,

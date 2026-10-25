@@ -3,6 +3,7 @@ import { Check, ScanSearch, TerminalSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { FixButton } from "../../components/FixButton";
 import { Button, Card, field } from "../../components/ui";
 import { api } from "../../lib/api";
 
@@ -68,6 +69,9 @@ export function ReaTab() {
         ) : (
           <>
             <p className="text-fg-muted">{status && !status.node ? t("rea.noNode") : t("rea.setupHint")}</p>
+            {status && !status.node && (
+              <FixButton fix="install-node" label={t("fix.installTool", { tool: "Node.js" })} />
+            )}
             <Button icon={TerminalSquare} disabled={status !== undefined && !status.node} onClick={() => void setup()}>
               {t("rea.setup")}
             </Button>

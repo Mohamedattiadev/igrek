@@ -17,6 +17,7 @@ private details, and have a field's text written, without the AI ever seeing tho
 
 1. Open `chrome://extensions` (Brave: `brave://extensions`, Edge: `edge://extensions`).
 2. Turn on "Developer mode", choose "Load unpacked" and pick this `extension` folder.
-3. In Igrek: Settings, Browser extension, "Make a pairing key". Paste it into the extension's panel.
+3. In the extension's panel press "Connect": Igrek (open on this computer) shows the same six-digit
+   code; press "Allow" there. (Or make a pairing key in Igrek's Settings and paste it.)
 
 Under the Igrek Use License (`../LICENSE`).

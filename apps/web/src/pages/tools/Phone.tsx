@@ -2,6 +2,7 @@ import type { PhoneCheck, PhoneDevice, ProjectListItem } from "@igrek/core";
 import { ArrowLeft, Circle, Download, LayoutGrid, RefreshCw, ScanEye, Send, Smartphone, Wifi } from "lucide-react";
 import { type MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { FixButton } from "../../components/FixButton";
 import { Button, Card, field } from "../../components/ui";
 import { api, request } from "../../lib/api";
 
@@ -303,6 +304,7 @@ export function PhoneTab() {
           <li>macOS: brew install android-platform-tools</li>
           <li>Windows: winget install Google.PlatformTools</li>
         </ul>
+        <FixButton fix="install-adb" label={t("fix.installTool", { tool: "adb" })} />
       </Card>
     );
   const ready = state.devices.filter((d) => d.state === "ready");

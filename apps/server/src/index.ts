@@ -64,6 +64,7 @@ import { registerEnvRoutes } from "./env-routes";
 import { EnvFiles } from "./envfiles";
 import { Environments } from "./environments";
 import { syncExamples } from "./examples";
+import { ExtensionPairing, registerPairRoutes } from "./extension-pair";
 import { ExtensionKeys, registerExtensionRoutes } from "./extension-routes";
 import { registerExtrasRoutes } from "./extras-routes";
 import { FeedbackBox } from "./feedback";
@@ -939,6 +940,7 @@ const app = createApp({
       // A form field's text: the stronger model, no tools, in an empty folder.
       write: (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "sonnet"),
     });
+    registerPairRoutes(hono, new ExtensionPairing(extensionKeys, () => bus.publish({ type: "extension-pair" })));
     registerMcpRoutes(hono, mcpServers);
     hono.get("/api/disk", (c) => c.json(retention.usage(readSettings(db).transcriptDays)));
     hono.post("/api/disk/prune", (c) => c.json(retention.prune(readSettings(db).transcriptDays)));

@@ -54,6 +54,7 @@ async function extensionGate(
   c: Parameters<MiddlewareHandler>[0],
   next: Parameters<MiddlewareHandler>[1],
   extensionKey: ((key: string | undefined) => boolean) | undefined,
+  needsKey = true,
 ): Promise<Response | undefined> {
   const origin = c.req.header("origin") ?? "";
   if (!extensionKey || !EXTENSION_ORIGIN.test(origin)) return c.text("Forbidden origin", 403);
@@ -64,13 +65,23 @@ async function extensionGate(
     vary: "origin",
   };
   if (c.req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-  if (!extensionKey(c.req.header("x-igrek-ext-key")))
+  if (needsKey && !extensionKey(c.req.header("x-igrek-ext-key")))
     return new Response(JSON.stringify({ error: "Not paired" }), {
       status: 401,
       headers: { ...cors, "content-type": "application/json" },
     });
   await next();
   for (const [k, v] of Object.entries(cors)) c.res.headers.set(k, v);
+  return undefined;
+}
+
+/**
+ * The browser extension's ways in, from an extension's origin only: /api/ext/ with its pairing key,
+ * and /api/ext-pair without one yet (to ask; the user allows it in Igrek). Undefined: not the extension's.
+ */
+function extensionPath(path: string): boolean | undefined {
+  if (path.startsWith("/api/ext/")) return true;
+  if (path.startsWith("/api/ext-pair")) return false;
   return undefined;
 }
 
@@ -87,8 +98,8 @@ export function securityMiddleware(
     const path = c.req.path;
     // Your apps send their errors here from their own origin; the key in the path allows only that.
     if (path.startsWith("/ingest/")) return next();
-    // The paired browser extension: only /api/ext/, only from an extension's origin, only with its key.
-    if (path.startsWith("/api/ext/")) return extensionGate(c, next, extensionKey);
+    const needsKey = extensionPath(path);
+    if (needsKey !== undefined) return extensionGate(c, next, extensionKey, needsKey);
     if (!isAllowedOrigin(config, c.req.header("origin"))) {
       return c.text("Forbidden origin", 403);
     }

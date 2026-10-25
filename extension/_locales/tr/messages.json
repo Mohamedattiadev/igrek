@@ -9,7 +9,7 @@
     "message": "Igrek'e bağlan"
   },
   "pairHint": {
-    "message": "Igrek'te Ayarlar, Tarayıcı eklentisi'ni aç ve bir eşleştirme anahtarı oluştur. Buraya yapıştır."
+    "message": "Ya da Igrek'te Ayarlar, Tarayıcı eklentisi'nden bir eşleme anahtarı yapıp buraya yapıştır."
   },
   "address": {
     "message": "Igrek'in adresi"
@@ -18,7 +18,7 @@
     "message": "Eşleştirme anahtarı"
   },
   "connect": {
-    "message": "Bağlan"
+    "message": "Anahtarla bağlan"
   },
   "disconnect": {
     "message": "Bu tarayıcının bağlantısını kes"
@@ -139,5 +139,14 @@
   },
   "needClick": {
     "message": "Bu sayfada çalışmak için araç çubuğundaki Igrek simgesine bir kez daha tıkla (tarayıcı buna sayfa sayfa izin verir)."
+  },
+  "askPair": {
+    "message": "Bağlan"
+  },
+  "pairCode": {
+    "message": "Igrek $1 kodunu gösteriyor. Aynıysa orada izin ver."
+  },
+  "pairDenied": {
+    "message": "Igrek izin vermedi. Yeniden sormak için Bağlan'a bas."
   }
 }

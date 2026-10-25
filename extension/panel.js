@@ -244,6 +244,33 @@ $("pair").onclick = async () => {
   await start();
 };
 
+/** No key to copy: ask Igrek, show the code it shows too, and wait until the user allows it there. */
+$("ask-pair").onclick = async () => {
+  note("");
+  const address = $("address").value.trim().replace(/\/+$/, "");
+  try {
+    const res = await fetch(`${address}/api/ext-pair`, { method: "POST" });
+    const asked = await res.json();
+    if (!res.ok) throw new Error(asked.error || `${res.status}`);
+    $("pair-code").hidden = false;
+    $("pair-code").textContent = t("pairCode", asked.code);
+    for (let i = 0; i < 150; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      const answer = await (await fetch(`${address}/api/ext-pair/${asked.id}`)).json();
+      if (answer.status === "waiting") continue;
+      $("pair-code").hidden = true;
+      if (answer.status !== "allowed" || !answer.key) return note(t("pairDenied"), true);
+      config = { address, key: answer.key };
+      await chrome.storage.local.set(config);
+      return start();
+    }
+    $("pair-code").hidden = true;
+    note(t("pairDenied"), true);
+  } catch (err) {
+    note(err.message, true);
+  }
+};
+
 $("unpair").onclick = async () => {
   await chrome.storage.local.remove("key");
   config.key = "";

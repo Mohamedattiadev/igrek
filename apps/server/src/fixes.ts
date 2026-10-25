@@ -16,6 +16,9 @@ const FIX_IDS = [
   "login-glab",
   "lockfile",
   "untrack-env",
+  "install-chromium",
+  "install-adb",
+  "install-node",
 ] as const;
 type FixId = (typeof FIX_IDS)[number];
 
@@ -86,6 +89,23 @@ function untrackEnvPlan(ctx: FixContext): string | { error: string } {
   return `git rm --cached -- ${files.map(quote).join(" ")} && ${ignore}`;
 }
 
+/** A program from the system's own package manager; sudo asks for the password in the terminal. */
+const PACKAGES: Record<string, Record<string, string>> = {
+  "install-chromium": { pacman: "chromium", apt: "chromium", dnf: "chromium", brew: "--cask chromium" },
+  "install-adb": { pacman: "android-tools", apt: "adb", dnf: "android-tools", brew: "--cask android-platform-tools" },
+  "install-node": { pacman: "nodejs npm", apt: "nodejs npm", dnf: "nodejs npm", brew: "node" },
+};
+
+function packagePlan(id: FixId, ctx: FixContext): string | { error: string } {
+  const names = PACKAGES[id];
+  if (!names) return { error: "Unknown fix" };
+  if (ctx.has("brew") && names.brew) return `brew install ${names.brew}`;
+  if (ctx.has("pacman")) return `sudo pacman -S --needed ${names.pacman}`;
+  if (ctx.has("apt-get")) return `sudo apt-get install -y ${names.apt}`;
+  if (ctx.has("dnf")) return `sudo dnf install -y ${names.dnf}`;
+  return { error: "No package manager Igrek knows (pacman, apt, dnf or Homebrew) was found" };
+}
+
 function toolPlan(id: FixId, ctx: FixContext): string | { error: string } {
   if (id === "install-claude")
     return ctx.platform === "win32"
@@ -105,7 +125,13 @@ export function planFix(id: string, ctx: FixContext): FixPlan | { error: string 
   const known = FIX_IDS.find((f) => f === id);
   if (!known) return { error: "Unknown fix" };
   const command =
-    known === "lockfile" ? lockfilePlan(ctx) : known === "untrack-env" ? untrackEnvPlan(ctx) : toolPlan(known, ctx);
+    known === "lockfile"
+      ? lockfilePlan(ctx)
+      : known === "untrack-env"
+        ? untrackEnvPlan(ctx)
+        : PACKAGES[known]
+          ? packagePlan(known, ctx)
+          : toolPlan(known, ctx);
   if (typeof command !== "string") return command;
   return { id: known, command, cwd: ctx.project?.path ?? ctx.home };
 }

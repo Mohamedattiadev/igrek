@@ -4798,13 +4798,17 @@
     "hint": "For forms in your browser (job and scholarship applications, company paperwork): it fills the fields that ask for your private details and has a field's text written, and the AI never sees those details. It talks only to Igrek on this computer.",
     "step1": "In Chrome, Brave or Edge open the extensions page (chrome://extensions), turn on Developer mode and choose Load unpacked.",
     "step2": "Pick the extension folder inside Igrek's folder.",
-    "step3": "Make a pairing key below and paste it into the extension's panel.",
+    "step3": "In the extension's panel press \"Connect\" and allow it here when Igrek asks (or make a pairing key below and paste it).",
     "pair": "Make a pairing key",
     "forget": "Disconnect all browsers",
     "forgetConfirm": "Disconnect every paired browser? Each needs a new key afterwards.",
     "paired_one": "{{count}} browser paired",
     "paired_other": "{{count}} browsers paired",
-    "keyOnce": "Shown only now. It lets the extension read your private details on this computer, so paste it only into your own browser."
+    "keyOnce": "Shown only now. It lets the extension read your private details on this computer, so paste it only into your own browser.",
+    "pairAsk": "The browser extension asks to connect",
+    "pairBody": "Allow it only if the extension shows this same code. It can then fill forms with your private details on this computer and act on pages with your OK.",
+    "pairAllow": "Allow",
+    "pairDeny": "Deny"
   },
   "phone": {
     "noAdb": "Testing on your phone needs adb (Android's free debugging tool) on this computer. Install it, then open this tab again:",

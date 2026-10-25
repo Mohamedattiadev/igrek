@@ -16,6 +16,7 @@ import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
 import { CodingQuestion } from "./CodingQuestion";
 import { CommandPalette } from "./CommandPalette";
+import { ExtensionPairPrompt } from "./ExtensionPairPrompt";
 import { Helper } from "./Helper";
 import { IdeaCapture } from "./IdeaCapture";
 import { LanguagePackBanner, useLanguagePackSync } from "./LanguagePack";
@@ -426,6 +427,7 @@ export function Shell() {
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <QuickAsk />
       <ScreenAsk />
+      <ExtensionPairPrompt />
       <WhatIs />
       <TooltipLayer />
       <UndoToast />

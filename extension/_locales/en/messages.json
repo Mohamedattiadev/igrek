@@ -9,7 +9,7 @@
     "message": "Connect to Igrek"
   },
   "pairHint": {
-    "message": "In Igrek, open Settings, Browser extension, and make a pairing key. Paste it here."
+    "message": "Or in Igrek, open Settings, Browser extension, make a pairing key and paste it here."
   },
   "address": {
     "message": "Igrek's address"
@@ -18,7 +18,7 @@
     "message": "Pairing key"
   },
   "connect": {
-    "message": "Connect"
+    "message": "Connect with the key"
   },
   "disconnect": {
     "message": "Disconnect this browser"
@@ -139,5 +139,14 @@
   },
   "needClick": {
     "message": "To work on this page, click Igrek's toolbar icon once more (the browser allows it page by page)."
+  },
+  "askPair": {
+    "message": "Connect"
+  },
+  "pairCode": {
+    "message": "Igrek shows the code $1. Allow it there if it is the same."
+  },
+  "pairDenied": {
+    "message": "Igrek did not allow it. Press Connect to ask again."
   }
 }
