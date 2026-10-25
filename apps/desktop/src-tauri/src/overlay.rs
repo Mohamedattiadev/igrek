@@ -56,6 +56,62 @@ fn run(program: &str, args: &[&str]) -> Result<(), String> {
     }
 }
 
+/// Igrek's own window as Hyprland sees it: its address and fullscreen state (0 none, 1 maximized,
+/// 2 fullscreen). Hiding a window there loses that state, so it is put back afterwards.
+fn hypr_own_window() -> Option<(String, i64)> {
+    let out = Command::new("hyprctl").args(["clients", "-j"]).output().ok()?;
+    let clients: serde_json::Value = serde_json::from_slice(&out.stdout).ok()?;
+    let pid = i64::from(std::process::id());
+    clients.as_array()?.iter().find_map(|c| {
+        let mine = c["pid"].as_i64() == Some(pid) && c["title"].as_str() != Some(POINTER);
+        mine.then(|| (c["address"].as_str().unwrap_or_default().to_string(), c["fullscreen"].as_i64().unwrap_or(0)))
+    })
+}
+
+/// How Igrek's window was before it stepped aside, to come back the same way.
+pub struct Aside {
+    hypr: Option<(String, i64)>,
+    fullscreen: bool,
+    maximized: bool,
+}
+
+/// Igrek's window leaves the screen, and this waits until the compositor has really taken it off,
+/// so a picture or a click right after does not meet Igrek itself.
+pub fn step_aside(window: &tauri::WebviewWindow) -> Aside {
+    let aside = Aside {
+        hypr: if hyprland() { hypr_own_window() } else { None },
+        fullscreen: window.is_fullscreen().unwrap_or(false),
+        maximized: window.is_maximized().unwrap_or(false),
+    };
+    let _ = window.hide();
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(1500);
+    if let Some((address, _)) = &aside.hypr {
+        while std::time::Instant::now() < deadline && hypr_own_window().is_some_and(|(a, _)| &a == address) {
+            std::thread::sleep(std::time::Duration::from_millis(50));
+        }
+    }
+    // The compositor's fade-out, and a frame drawn without the window.
+    std::thread::sleep(std::time::Duration::from_millis(if aside.hypr.is_some() { 300 } else { 500 }));
+    aside
+}
+
+/// Back, fullscreen or maximized again if it was.
+pub fn come_back(window: &tauri::WebviewWindow, aside: &Aside) {
+    let _ = window.show();
+    let _ = window.set_focus();
+    if let Some((_, mode)) = aside.hypr {
+        if mode > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(150));
+            // Hyprland: "fullscreen 0" is fullscreen, "fullscreen 1" is maximized.
+            let _ = run("hyprctl", &["dispatch", "fullscreen", if mode == 2 { "0" } else { "1" }]);
+        }
+    } else if aside.fullscreen {
+        let _ = window.set_fullscreen(true);
+    } else if aside.maximized {
+        let _ = window.maximize();
+    }
+}
+
 /// Shows the pointer at a place on the screen for a few seconds; it never takes the focus or a click.
 pub fn show_pointer(app: &AppHandle, x: i32, y: i32, label: &str) -> Result<(), String> {
     if let Some(old) = app.get_webview_window(POINTER) {

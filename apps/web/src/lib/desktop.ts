@@ -15,6 +15,7 @@ type Command =
   | "update_progress"
   | "tray_texts"
   | "capture_screen"
+  | "take_pending_shot"
   | "show_pointer"
   | "speak"
   | "screen_step";
@@ -44,6 +45,13 @@ export function desktop<T = void>(command: Command, args?: Record<string, unknow
  */
 export function takeQuickAskFromStart(): boolean {
   if (!inDesktopApp || location.search !== "?quick-ask") return false;
+  history.replaceState(history.state, "", location.pathname);
+  return true;
+}
+
+/** The same for the screen helper (`--screen-ask`, opened as `/?screen-ask`). */
+export function takeScreenAskFromStart(): boolean {
+  if (!inDesktopApp || location.search !== "?screen-ask") return false;
   history.replaceState(history.state, "", location.pathname);
   return true;
 }

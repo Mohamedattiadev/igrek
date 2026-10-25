@@ -4754,7 +4754,8 @@
       "modeAsk": "Sor",
       "modeDo": "Benimle yap",
       "voice": "Cevabı sesli oku",
-      "next": "Adımlardan sonra görüntüyü yeniden alıp gönder; sonraki adımlar gelsin."
+      "next": "Adımlardan sonra görüntüyü yeniden alıp gönder; sonraki adımlar gelsin.",
+      "open": "Ekranın hakkında sor (Ctrl+Shift+Space; Wayland'de bir tuşu igrek-desktop --screen-ask komutuna bağla)"
     },
     "step": {
       "click": "Tıkla: {{label}}",

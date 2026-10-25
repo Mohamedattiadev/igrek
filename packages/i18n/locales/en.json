@@ -4754,7 +4754,8 @@
       "modeAsk": "Ask",
       "modeDo": "Do it with me",
       "voice": "Read the answer aloud",
-      "next": "After the steps, take the picture again and send to get the next ones."
+      "next": "After the steps, take the picture again and send to get the next ones.",
+      "open": "Ask about your screen (Ctrl+Shift+Space; on Wayland bind a key to igrek-desktop --screen-ask)"
     },
     "step": {
       "click": "Click: {{label}}",

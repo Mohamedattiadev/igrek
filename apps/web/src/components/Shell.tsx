@@ -23,7 +23,7 @@ import { LanguagePackBanner, useLanguagePackSync } from "./LanguagePack";
 import { Logo } from "./Logo";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
-import { ScreenAsk } from "./ScreenAsk";
+import { ScreenAsk, ScreenAskButton } from "./ScreenAsk";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
@@ -265,6 +265,7 @@ function TopBar({
       </button>
       <div className="flex-1" />
       {/* No "?" here: the helper in the corner answers the same questions and opens the guide and the tour. */}
+      <ScreenAskButton />
       <SyncChip />
       <span data-tour="account" className="flex">
         <AccountChip />

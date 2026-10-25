@@ -148,9 +148,9 @@ async function startFrom(text: string, projectId: string): Promise<string> {
 }
 
 /**
- * The one way to start work (plan.md 7.2, "What do you want to do?"): on the home page it goes to the
- * chief unless a project is picked, on a project's page to that project. It replaced the home page's
- * line to the chief and the "New chat" buttons, so there are no longer three ways that do one thing.
+ * "What do you want to do?" on the home page (plan.md 7.2): to the chief, who hands it to the right
+ * project, unless a project (or several) is picked. Inside a project the "New chat" button stays: the
+ * user found the box there more confusing than the button.
  */
 export function StartBox({ projectId: fixed }: { projectId?: string }) {
   const { t } = useTranslation();

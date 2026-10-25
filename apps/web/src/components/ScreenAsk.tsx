@@ -1,8 +1,8 @@
-import { Camera, MousePointer2, Send } from "lucide-react";
+import { Camera, MousePointer2, ScanEye, Send } from "lucide-react";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, type ScreenStep } from "../lib/api";
-import { desktop, inDesktopApp } from "../lib/desktop";
+import { desktop, inDesktopApp, takeScreenAskFromStart } from "../lib/desktop";
 import { ScreenSteps } from "./ScreenSteps";
 import { Button, Dialog, Segmented } from "./ui";
 
@@ -22,6 +22,26 @@ function keepVoice(on: boolean): void {
   } catch {
     // Remembering the choice is only a convenience.
   }
+}
+
+/**
+ * The screen helper from inside Igrek, in the top bar: where the system gives a program no shortcut
+ * of its own (Wayland), this and `igrek-desktop --screen-ask` are the ways in.
+ */
+export function ScreenAskButton() {
+  const { t } = useTranslation();
+  if (!inDesktopApp) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => window.dispatchEvent(new CustomEvent("igrek:screen-ask"))}
+      aria-label={t("screen.ask.title")}
+      data-tip={t("screen.ask.open")}
+      className="flex size-8 items-center justify-center rounded-ui text-fg-muted hover:bg-bg-hover hover:text-fg"
+    >
+      <ScanEye size={16} aria-hidden="true" />
+    </button>
+  );
 }
 
 interface Box {
@@ -85,10 +105,21 @@ export function ScreenAsk() {
   const [busy, setBusy] = useState<"capture" | "ask">();
   const [error, setError] = useState<string>();
   const drag = useRef<{ x: number; y: number } | undefined>(undefined);
+  // The latest takeShot for the listener below, which is added once.
+  const takeShotRef = useRef<(data: string) => Promise<void>>(async () => undefined);
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    const show = () => setOpen(true);
+    // Opened with the key: the desktop app took the screen before Igrek came forward.
+    const show = () => {
+      setOpen(true);
+      void desktop<string | null>("take_pending_shot")
+        .then((data) => {
+          if (data) void takeShotRef.current(data);
+        })
+        .catch(() => undefined);
+    };
+    if (takeScreenAskFromStart()) show();
     window.addEventListener("igrek:screen-ask", show);
     return () => window.removeEventListener("igrek:screen-ask", show);
   }, []);
@@ -102,15 +133,19 @@ export function ScreenAsk() {
   }, [shot]);
   if (!inDesktopApp) return null;
 
+  /** A picture taken: read here for private details, then shown before anything is sent. */
+  const takeShot = async (data: string) => {
+    const img = await loadImage(data);
+    const scan = await api.screenScan(data);
+    setShot({ data, width: img.naturalWidth, height: img.naturalHeight, boxes: scan.boxes, ocr: scan.ocr });
+  };
+  takeShotRef.current = takeShot;
   const capture = async () => {
     setBusy("capture");
     setError(undefined);
     setAnswer(undefined);
     try {
-      const data = await desktop<string>("capture_screen");
-      const img = await loadImage(data);
-      const scan = await api.screenScan(data);
-      setShot({ data, width: img.naturalWidth, height: img.naturalHeight, boxes: scan.boxes, ocr: scan.ocr });
+      await takeShot(await desktop<string>("capture_screen"));
     } catch (err) {
       setError((err as Error).message);
     } finally {

@@ -35,7 +35,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
-import { StartBox } from "../components/StartBox";
+import { NewSession } from "../components/NewSession";
 import { TeamPresence } from "../components/TeamPresence";
 import { Badge, Button, Card, EmptyState, Section, Segmented } from "../components/ui";
 import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
@@ -204,7 +204,6 @@ function Overview({ project }: { project: ProjectDetail }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-4">
-        <StartBox projectId={project.id} />
         <Card className="p-pad">
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("project.latest")}</h3>
           {latest?.summary ? (
@@ -665,6 +664,7 @@ export function ProjectPage() {
           {project?.health && <HealthBadge health={project.health} />}
           {project && (project.share !== "off" || project.teamLinked) && <TeamPresence projectId={project.id} />}
           <div className="flex-1" />
+          {project && <NewSession projectId={project.id} />}
         </div>
         <nav className="-mx-4 mt-2 flex flex-wrap gap-x-1 px-4 sm:-mx-6 sm:px-6">
           {(simple ? SIMPLE_TABS : MAIN_TABS).map((name) => (
@@ -725,10 +725,7 @@ export function ProjectPage() {
         ) : tab === "files" ? (
           <CodeTab project={project} plain />
         ) : tab === "sessions" ? (
-          <div className="space-y-4">
-            <StartBox projectId={project.id} />
-            <Sessions projectId={project.id} />
-          </div>
+          <Sessions projectId={project.id} />
         ) : tab === "host" ? (
           <CodeHostTab projectId={project.id} />
         ) : tab === "docs" ? (
