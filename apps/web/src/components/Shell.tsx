@@ -235,20 +235,23 @@ function TopBar({
 }) {
   const { t } = useTranslation();
   return (
-    <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-bg px-3 sm:gap-3 print:hidden">
-      {onMenu && (
-        <button
-          type="button"
-          onClick={onMenu}
-          aria-label={t("nav.menu")}
-          data-tour="menu"
-          className="flex size-8 shrink-0 items-center justify-center rounded-ui text-fg-muted hover:bg-bg-hover hover:text-fg"
-        >
-          <Menu size={18} aria-hidden="true" />
-        </button>
-      )}
-      <WorkspacePicker />
-      <div className="flex-1" />
+    // Three columns, the outer two of equal width: the search stays in the middle however wide the
+    // things on either side are (with two flexible gaps it slid towards the narrower side).
+    <header className="grid h-11 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border bg-bg px-3 sm:gap-3 print:hidden">
+      <div className="flex min-w-0 items-center gap-2">
+        {onMenu && (
+          <button
+            type="button"
+            onClick={onMenu}
+            aria-label={t("nav.menu")}
+            data-tour="menu"
+            className="flex size-8 shrink-0 items-center justify-center rounded-ui text-fg-muted hover:bg-bg-hover hover:text-fg"
+          >
+            <Menu size={18} aria-hidden="true" />
+          </button>
+        )}
+        <WorkspacePicker />
+      </div>
       <button
         type="button"
         onClick={onSearch}
@@ -262,15 +265,16 @@ function TopBar({
           <Kbd>Ctrl K</Kbd>
         </span>
       </button>
-      <div className="flex-1" />
-      {/* No "?" here: the helper in the corner answers the same questions and opens the guide and the tour. */}
-      <SyncChip />
-      <span data-tour="account" className="flex">
-        <AccountChip />
-      </span>
-      <span data-tour="stop" className="flex">
-        <StopButton onStopped={onToast} />
-      </span>
+      <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
+        {/* No "?" here: the helper in the corner answers the same questions and opens the guide and the tour. */}
+        <SyncChip />
+        <span data-tour="account" className="flex">
+          <AccountChip />
+        </span>
+        <span data-tour="stop" className="flex">
+          <StopButton onStopped={onToast} />
+        </span>
+      </div>
     </header>
   );
 }

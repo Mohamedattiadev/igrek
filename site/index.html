@@ -4,7 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Igrek: know why</title>
-    <meta name="description" content="Igrek is a control center for AI coding agents. It runs on your own computer, follows every chat, explains why each file changed, and keeps your work in one calm place." />
+    <meta name="description" content="Igrek is a control room for AI coding agents. It runs on your computer, follows every Claude Code and Codex chat, and tells you what changed, why, and what it cost." />
+    <meta property="og:title" content="Igrek: know why" />
+    <meta property="og:description" content="Igrek is a control room for AI coding agents. It runs on your computer, follows every Claude Code and Codex chat, and tells you what changed, why, and what it cost." />
+    <meta property="og:image" content="https://mohamedattiadev.github.io/igrek/img/en-health.webp" />
     <link rel="icon" href="logo.svg" />
     <link rel="alternate" hreflang="tr" href="tr/" />
     <link rel="stylesheet" href="style.css" />
@@ -12,41 +15,105 @@
   <body>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="./"><img src="logo.svg" width="22" height="22" alt="" /> Igrek</a>
+        <a class="brand" href="./"><img src="logo.svg" width="24" height="24" alt="" /> Igrek</a>
         <nav>
+          <a href="#features">Features</a>
           <a href="docs/">Docs</a>
-          <a href="docs/#install">Install</a>
           <a href="https://github.com/Mohamedattiadev/igrek">GitHub</a>
-          <a href="tr/">Türkçe</a>
+          <a class="lang" href="tr/">Türkçe</a>
+          <a class="cta" href="#download">Download</a>
         </nav>
       </div>
     </header>
-    <main class="wrap">
-      <div class="hero">
-        <h1>Igrek: know why.</h1>
-        <p>A control center for AI coding agents. Igrek runs on your own computer, follows every Claude Code and Codex chat, and tells you what changed, why it changed and what it cost.</p>
-        <a class="button" href="docs/#install">Install Igrek</a><a class="button ghost" href="docs/">Read the docs</a>
+    <main>
+      <div class="hero wrap">
+        <span class="pill"><b>New</b> 0.1.6: 17 MB installers, one start box, one-click fixes</span>
+        <h1>Your AI agents, <span>explained</span>.</h1>
+        <p class="lead">Igrek sits on top of Claude Code and Codex on your own computer. It remembers your projects, keeps private details out of the AI's reach, and shows why every file changed.</p>
+        <div class="actions">
+          <a class="button" href="#download"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Download Igrek</a>
+          <a class="button ghost" href="docs/">Read the docs<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+        <p class="note">Free. No account, no API keys, no telemetry. Linux, macOS and Windows.</p>
+        <div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="img/en-health.webp" width="1440" height="900" alt="Igrek showing a project's health" /></div>
       </div>
-      <section>
-        <h2>What it does</h2>
-        <div class="grid">
-          <div class="card"><h3>Why?</h3><p>Next to every changed file: the request that led to it, the plan step it belonged to and the expert's note.</p></div>
-          <div class="card"><h3>Calm chats</h3><p>One box for your messages, the agent's plan and your own to-do list above it, the changed files with a one-click undo.</p></div>
-          <div class="card"><h3>What a turn cost</h3><p>Each turn's share of your plan's limit, in the chat's header. Everything that calls a model is marked.</p></div>
-          <div class="card"><h3>Experts</h3><p>Security, database, architecture and more, as read-only reviewers who know their field, and packages to share them.</p></div>
-          <div class="card"><h3>Memory and lessons</h3><p>Decisions and mistakes are kept per project and put in front of the AI before similar work.</p></div>
-          <div class="card"><h3>Teams, encrypted</h3><p>An optional self-hosted hub shares chosen projects end to end encrypted; the hub cannot read them.</p></div>
+      <section id="features">
+        <div class="wrap">
+          <p class="eyebrow">What it does</p>
+          <h2>What one agent alone does not do</h2>
+          <p class="sub">Claude Code and Codex write the code. Igrek is the layer around them: memory, privacy, many projects at once, and a clear picture of what happened.</p>
+          <div class="grid">
+          <div class="card"><span class="ic"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span><h3>Why did this change?</h3><p>Next to every changed file: the request that led to it, the plan step it belongs to, and the expert's note.</p></div>
+          <div class="card"><span class="ic"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></span><h3>One place to start</h3><p>"What do you want to do?" goes to the right project, or to several at once, each in its own copy.</p></div>
+          <div class="card"><span class="ic"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></span><h3>Health, with a fix button</h3><p>Architecture, security, tests and dependencies scored; most findings fixed in one click, the rest by the right expert.</p></div>
+          <div class="card"><span class="ic"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><h3>Private by design</h3><p>Salaries, IBANs, IDs and .env secrets become placeholders before anything reaches the model.</p></div>
+          <div class="card"><span class="ic"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3>Thirty experts on call</h3><p>Security, database, architecture and more: read-only reviewers that know their field.</p></div>
+          <div class="card"><span class="ic"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span><h3>Memory that lasts</h3><p>Decisions and mistakes are kept per project and put in front of the AI before similar work. Claude and Codex read the same rules.</p></div>
+          </div>
         </div>
       </section>
       <section>
-        <h2>Yours, on your computer</h2>
-        <p class="muted">Igrek uses your own AI logins and needs no API key. It sends nothing to anyone, has no telemetry, and costs nothing. It works on Linux, macOS and Windows, with or without Docker.</p>
+        <div class="wrap">
+          <p class="eyebrow">How it works</p>
+          <h2>Three steps, then it just runs</h2>
+          <div class="steps" style="margin-top:32px">
+          <div class="card"><h3>Install</h3><p>Download the app for your computer (about 17 MB). The first start fetches its runtime once.</p></div>
+          <div class="card"><h3>Add your projects</h3><p>Pick the folders you work in. Igrek finds the ones Claude already worked in.</p></div>
+          <div class="card"><h3>Ask</h3><p>Type what you want. Igrek picks the project, a way of working, and shows every step.</p></div>
+          </div>
+        </div>
+      </section>
+      <div class="band">
+        <section>
+          <div class="wrap split">
+            <div>
+              <p class="eyebrow">Yours</p>
+              <h2>It runs on your computer</h2>
+              <p style="color:var(--muted)">Igrek uses the AI logins you already have, so there is nothing new to pay for. Nothing is sent to us: no telemetry, no account, and every address Igrek opens on the internet is listed in its Settings.</p>
+              <ul>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Your Claude and Codex subscriptions, no API keys</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Private details hidden from the model, filled back in on your side</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>A file that tells AI to stop is shown to you, and you decide</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Pushing, deploying and publishing always wait for your OK</span></li>
+              </ul>
+            </div>
+            <div class="shot" style="margin:0"><div class="bar"><i></i><i></i><i></i></div><img src="img/en-experts.webp" width="1440" height="900" alt="Igrek's experts" loading="lazy" /></div>
+          </div>
+          <div class="wrap stats">
+          <div class="stat"><b>17 MB</b><span>installer</span></div>
+          <div class="stat"><b>0</b><span>telemetry</span></div>
+          <div class="stat"><b>30</b><span>experts</span></div>
+          <div class="stat"><b>EN + TR</b><span>checked by hand; other languages translated on request</span></div>
+          </div>
+        </section>
+      </div>
+      <section id="download">
+        <div class="wrap">
+          <p class="eyebrow">Download</p>
+          <h2>Get Igrek</h2>
+          <p class="sub">Signed updates, installed by Igrek itself. Claude Code or Codex is needed too; Igrek shows how to install them on its first start.</p>
+          <div class="downloads">
+          <div class="card"><h3>Windows</h3><span>.msi, 64-bit</span><small>Windows 10 or later.</small><a class="button" href="https://github.com/Mohamedattiadev/igrek/releases/latest"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Download</a></div>
+          <div class="card"><h3>macOS</h3><span>.dmg, Apple silicon and Intel</span><small>macOS 11 or later.</small><a class="button" href="https://github.com/Mohamedattiadev/igrek/releases/latest"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Download</a></div>
+          <div class="card"><h3>Linux</h3><span>AppImage or .deb</span><small>The AppImage updates itself.</small><a class="button" href="https://github.com/Mohamedattiadev/igrek/releases/latest"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Download</a></div>
+          </div>
+        </div>
       </section>
       <section>
-        <h2>License</h2>
-        <p class="muted">Igrek is source-available under the Igrek Use License: anyone, companies included, may install and use it for free and read its code. Copying it into other products, redistributing or selling it, publishing changed versions, offering it as a service, using the name and logo, and training AI on it need written permission. <a href="https://github.com/Mohamedattiadev/igrek/blob/main/LICENSE">Read the license</a>.</p>
+        <div class="wrap" style="max-width:820px">
+          <h2>Questions</h2>
+        <details><summary>Is it free?</summary><p>Yes. Igrek is free to install and use, for people and companies. It uses your own Claude or Codex plan, and the ones that call a model are marked so you see what uses your limit.</p></details>
+        <details><summary>Does my code leave my computer?</summary><p>Only to the AI you already use, the way Claude Code and Codex send it. Igrek adds nothing on top: no telemetry, no server of ours. Private details are replaced by placeholders first.</p></details>
+        <details><summary>Why does the first start download something?</summary><p>Igrek's server runs on Bun. To keep the installer small, the app downloads Bun's official release once (about 35 MB), checks it against Bun's published checksum and keeps it.</p></details>
+        <details><summary>Is it open source?</summary><p>The source is open to read, but it is not open source: the Igrek Use License lets anyone use it for free, while selling it, redistributing it or offering it as a service needs written permission.</p></details>
+        </div>
       </section>
     </main>
-    <footer><div class="wrap">© 2026 Mohamed Attia. Igrek and its logo belong to Mohamed Attia.</div></footer>
+    <footer>
+      <div class="wrap">
+        <span>© 2026 Mohamed Attia. The Igrek name and logo belong to Mohamed Attia.</span>
+        <span><a href="https://github.com/Mohamedattiadev/igrek">GitHub</a> · <a href="https://github.com/Mohamedattiadev/igrek/blob/main/LICENSE">License</a> · <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">Security</a></span>
+      </div>
+    </footer>
   </body>
 </html>

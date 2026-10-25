@@ -4,90 +4,142 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Igrek belgeleri</title>
-    <meta name="description" content="Igrek'i kur, ilk sohbetini başlat; Neden?, uzmanlar, paketler ve takımlar." />
+    <meta name="description" content="Igrek'i kurmak, ilk işini başlatmak ve verinle ne yaptığını bilmek için gereken her şey." />
+    <meta property="og:title" content="Igrek belgeleri" />
+    <meta property="og:description" content="Igrek'i kurmak, ilk işini başlatmak ve verinle ne yaptığını bilmek için gereken her şey." />
+    <meta property="og:image" content="https://mohamedattiadev.github.io/igrek/img/tr-health.webp" />
     <link rel="icon" href="../../logo.svg" />
     <link rel="alternate" hreflang="en" href="../../docs/" />
     <link rel="stylesheet" href="../../style.css" />
   </head>
-  <body class="docs">
+  <body>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../"><img src="../../logo.svg" width="22" height="22" alt="" /> Igrek</a>
+        <a class="brand" href="../"><img src="../../logo.svg" width="24" height="24" alt="" /> Igrek</a>
         <nav>
+          <a href="../#features">Özellikler</a>
           <a href="./">Belgeler</a>
           <a href="https://github.com/Mohamedattiadev/igrek">GitHub</a>
-          <a href="../../docs/">English</a>
+          <a class="lang" href="../../">English</a>
+          <a class="cta" href="../#download">İndir</a>
         </nav>
       </div>
     </header>
-    <main class="wrap">
-      <div class="hero" style="padding-bottom: 16px">
-        <h1>Belgeler</h1>
-        <nav class="toc">
-          <a href="#kurulum">Kurulum</a><a href="#ilk-acilis">İlk açılış</a><a href="#sohbetler">Sohbetler</a><a href="#neden">Neden?</a>
-          <a href="#uzmanlar">Uzmanlar</a><a href="#paketler">Paketler</a><a href="#takim">Takım</a><a href="#tasima">Taşıma</a>
-          <a href="#gizlilik">Gizlilik</a><a href="#guncelleme">Güncelleme ve kaldırma</a>
-        </nav>
-      </div>
-      <section id="kurulum">
-        <h2>Kurulum</h2>
-        <p><a href="https://git-scm.com">Git</a> ve Claude Code gerekir (giriş için bir kez <code>claude</code> yaz). Bun yoksa betik kurar.</p>
-        <h3>Masaüstü uygulaması</h3>
-        <p>Igrek kendi penceresinde, başka bir şey kurmadan: bilgisayarına uygun paketi <a href="https://github.com/Mohamedattiadev/igrek/releases">Releases sayfasından</a> indir. Linux için AppImage ya da .deb, Windows için .msi, macOS için .dmg (Apple işlemci: <em>aarch64</em>, Intel: <em>x64</em>). Claude Code ve Codex içinde değildir; ilk açılışta Igrek nasıl kurulacaklarını gösterir.</p>
-        <p>Paketler ücretli bir sertifikayla imzalanmadığı için ilk açılışta işletim sistemi bir kez sorar:</p>
-        <ul>
-          <li><strong>Windows:</strong> "Windows bilgisayarınızı korudu" çıkar. <em>Ek bilgi</em>'ye, sonra <em>Yine de çalıştır</em>'a tıkla.</li>
-          <li><strong>macOS:</strong> "Igrek açılamıyor" çıkar. Kapat, <em>Sistem Ayarları &gt; Gizlilik ve Güvenlik</em>'i aç, aşağı kaydırıp Igrek'in yanındaki <em>Yine de Aç</em>'a, sonra <em>Aç</em>'a tıkla.</li>
-          <li><strong>Linux (AppImage):</strong> çalıştırılabilir yap (<code>chmod +x Igrek_*.AppImage</code> ya da Özellikler &gt; Çalıştırmaya izin ver), sonra aç. Bazı sistemlerde önce <code>libfuse2</code> gerekir.</li>
-        </ul>
-        <p class="muted">Pencereyi kapatınca Igrek, sunucusu ve başlattığı her şey durur. Tepsi ikonu pencereyi gizleyebilir; herhangi bir programdayken Ctrl+Space hızlı soru açar.</p>
-        <h3>Linux ve macOS</h3>
-        <pre>curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh</pre>
-        <h3>Windows (PowerShell)</h3>
-        <pre>irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex</pre>
-        <p class="muted">Windows'ta önce <a href="https://git-scm.com/download/win">Git for Windows</a> kur: Claude Code onunla gelen bash'i kullanır. Gömülü terminal Windows'ta henüz çalışmıyor; sohbetler çalışır.</p>
-        <h3>Docker ile</h3>
-        <pre>git clone https://github.com/Mohamedattiadev/igrek.git && cd igrek
-docker compose up -d</pre>
-        <p>Sonra <code>http://localhost:7777</code> adresini aç. Ayarlar'daki <em>Igrek'i uygulama olarak kullan</em> ile kendi penceresinde açılır.</p>
-      </section>
-      <section id="ilk-acilis">
-        <h2>İlk açılış</h2>
-        <p>Dilini, sonra proje klasörlerini seç: tek bir proje ya da birkaç proje içeren bir klasör. Igrek sadece eklediğin klasörleri gösterir; Claude'un daha önce çalıştığı klasörler tek tıkla eklenir.</p>
-      </section>
-      <section id="sohbetler">
-        <h2>Sohbetler</h2>
-        <p>Kutuda her mesajın ihtiyacı olanlar var: yazı, resim, hazır prompt'lar ve uzmanlar. Onay modu, model ve ayrıntı <em>Ayarlar</em> düğmesinde. Kutunun üstünde: ajanın planı, sohbetin yapılacaklar listesi ve sohbetin değiştirdiği dosyalar (fark ve tek tıkla geri alma). Başlık son turun limitinden ne kadar yediğini söyler. Model çağıran her şeyde küçük bir gösterge işareti var.</p>
-      </section>
-      <section id="neden">
-        <h2>Neden?</h2>
-        <p>Değişen her dosyanın bir <em>Neden?</em> düğmesi var: değişikliğe yol açan istek, ait olduğu plan adımı ve aynı turda sorulan uzman. Sohbetin kendisinden okunur; hiçbir şey tahmin edilmez.</p>
-      </section>
-      <section id="uzmanlar">
-        <h2>Uzmanlar</h2>
-        <p>Igrek'te güvenlikten veritabanına, üründen finansa otuz kadar uzman var; her biri alanına hâkim (standartlar, sayılar, nasıl karar verdiği). Sohbette <code>@</code> ile birini çağır, bir projeyi hepsine sor, ya da Ayarlar'dan <em>Hassas değişikliklere uzman incelemesi</em>ni aç: bir tur giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman farkı okur. Her inceleme bir model çağrısıdır, bu yüzden varsayılan olarak kapalı.</p>
-      </section>
-      <section id="paketler">
-        <h2>Paketler</h2>
-        <p>Uzmanlar, Paketler: Igrek'in incelenmiş kataloğunu, bir dosyayı ya da https adresini aç. Bir şey kaydedilmeden önce paketin içinde ne olduğunu görürsün ve parçaları sen seçersin. Paketten gelen uzmanlar salt okunur ve web'e kapalı başlar, seninkilerin yerine geçmez; kabuk komutu çalıştıran akışlar alınmaz; akışlar reponda değil Igrek'in klasöründe tutulur. Kendi uzmanlarından paket yapıp paylaşabilirsin.</p>
-      </section>
-      <section id="takim">
-        <h2>Takım</h2>
-        <p>İsteğe bağlı bir hub, kendi kurduğun bir sunucuda, seçtiğin projeleri uçtan uca şifreli paylaşır. Herkes kendi AI hesabını kullanır; hesaplar asla paylaşılmaz. Hub kurulumu README'de.</p>
-      </section>
-      <section id="tasima">
-        <h2>Başka bilgisayara taşıma</h2>
-        <p>Ayarlar, <em>Başka bilgisayara taşı</em>: şifreyle kilitli tek bir dosya Igrek'in tuttuğu her şeyi taşır. Diğer bilgisayarda Igrek'te aç ve yeniden başlat. AI girişleri dosyada yok; orada yeniden giriş yap.</p>
-      </section>
-      <section id="gizlilik">
-        <h2>Gizlilik</h2>
-        <p>Her şey senin bilgisayarında çalışır. Telemetri yok, ücretli API çağrılmaz; Igrek'in internette açtığı her adres Ayarlar'da listelenir. Güvenlik açıkları: <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">SECURITY.md</a>.</p>
-      </section>
-      <section id="guncelleme">
-        <h2>Güncelleme ve kaldırma</h2>
-        <p>Güncellemek için kurulum komutunu yeniden çalıştır. Kaldırmak için klasörünü (<code>~/.local/share/igrek-app</code>, Windows'ta <code>%LOCALAPPDATA%\igrek-app</code>), <code>igrek</code> başlatıcısını ve <code>~/.igrek</code> içindeki verisini sil.</p>
-      </section>
+    <main class="wrap docs">
+      <aside>
+          <p>Başlangıç</p>
+          <a href="#install">Kurulum</a>
+          <a href="#first">İlk açılış</a>
+          <a href="#start">İşe başlamak</a>
+          <p>Çalışırken</p>
+          <a href="#chats">Sohbetler</a>
+          <a href="#why">Neden?</a>
+          <a href="#health">Sağlık ve Düzelt</a>
+          <a href="#experts">Uzmanlar</a>
+          <a href="#memory">Hafıza</a>
+          <p>Daha fazla</p>
+          <a href="#extension">Tarayıcı eklentisi</a>
+          <a href="#privacy">Gizlilik</a>
+          <a href="#team">Takım</a>
+          <a href="#move">Başka bilgisayara taşıma</a>
+          <a href="#update">Güncelleme ve kaldırma</a>
+      </aside>
+      <article class="doc">
+        <h1>Igrek belgeleri</h1>
+        <p class="lead">Igrek'i kurmak, ilk işini başlatmak ve verinle ne yaptığını bilmek için gereken her şey.</p>
+        <div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="../../img/tr-home.webp" width="1440" height="900" alt="" loading="lazy" /></div>
+        <section id="install" style="padding:0"><h2>Kurulum</h2>
+<h3>Masaüstü uygulaması</h3>
+<p>Bilgisayarına uygun paketi <a href="https://github.com/Mohamedattiadev/igrek/releases/latest">son sürümden</a> indir: Windows için <code>.msi</code>, macOS için <code>.dmg</code> (Apple işlemci için <code>aarch64</code>, Intel için <code>x64</code>), Linux için <code>AppImage</code> ya da <code>.deb</code>. Her biri yaklaşık 17 MB (AppImage kendi WebKit'ini taşıdığı için daha büyük).</p>
+<div class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><div>Uygulama ilk açılışta Igrek'in sunucusunu çalıştıran Bun'ı indirir: Bun'ın resmî sürümü (yaklaşık 35 MB), Bun'ın yayımladığı SHA-256 ile doğrulanarak, bir kez. Yükleme ekranı ne kadar indiğini gösterir. İnternet yalnızca ilk seferde gerekir.</div></div>
+<p>Paketler ücretli bir sertifikayla imzalanmadığı için sistem bir kez sorar:</p>
+<ul><li><b>Windows:</b> "Windows bilgisayarınızı korudu" çıkar. <i>Ek bilgi</i>'ye, sonra <i>Yine de çalıştır</i>'a tıkla.</li><li><b>macOS:</b> "Igrek açılamıyor" çıkar. Kapat, Sistem Ayarları &gt; Gizlilik ve Güvenlik'i aç, aşağı kaydırıp <i>Yine de Aç</i>'a tıkla.</li><li><b>Linux (AppImage):</b> çalıştırılabilir yap (<code>chmod +x Igrek_*.AppImage</code>), sonra aç. Bazı sistemlerde önce <code>libfuse2</code> gerekir.</li></ul>
+<p>Claude Code ya da Codex içinde değildir: Igrek ilk açılışta onlara bakar, istersen tek tıkla kurar. Bir kez giriş yapman yeter.</p>
+<h3>Terminalden</h3>
+<p>Linux ve macOS:</p>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh</code></pre>
+<p>Windows (PowerShell). Önce Git for Windows'u kur; Claude Code onun bash'ini kullanır.</p>
+<pre><code>irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex</code></pre>
+<h3>Docker ile</h3>
+<pre><code>git clone https://github.com/Mohamedattiadev/igrek.git &amp;&amp; cd igrek
+docker compose up -d</code></pre>
+<p>Sonra <code>http://localhost:7777</code> adresini aç.</p>
+        </section>
+        <section id="first" style="padding:0"><h2>İlk açılış</h2>
+<p>Dilini seç, kod yazıp yazmadığını söyle, sonra proje klasörlerini ekle: tek bir proje ya da birkaç proje içeren bir klasör. Igrek yalnızca eklediğin klasörleri gösterir; Claude'un daha önce çalıştığı klasörler tek tıkla eklenir.</p>
+<ul><li><b>Basit</b> (kod yazmıyorsan): bir proje genel bakışını, sohbetlerini ve dosyalarını sade dille gösterir.</li><li><b>Geliştirici</b>: kod, pano, sağlık, kurulum ve araçlar da. Ayarlar &gt; Mod'dan istediğin zaman değişir; hiçbir şey silinmez.</li></ul>
+        </section>
+        <section id="start" style="padding:0"><h2>İşe başlamak</h2>
+<p>Başlangıç yeri ana sayfadaki <b>Ne yapmak istiyorsun?</b> kutusu. <i>Igrek seçsin</i>'de bırakırsan her projeyi bilen şef işi doğru projeye verir; projeyi kendin seçebilirsin; ya da <i>Birden çok proje</i> ile bir işi birkaç projeye gönderirsin, her biri kendi kopyasında, sonuçlar yan yana.</p>
+<p>Bir projeye giden iş, türüne göre bir çalışma yoluyla gider: hata önce yeniden üretilir, yavaşlık önce ve sonra ölçülür, yeniden düzenlemede davranış aynı kalır, yeni özellik önce veriyle ve en küçük sürümle başlar. Kutu hangisi olduğunu söyler; <i>çıkar</i> dersen yazdığın gibi gider.</p>
+<p>Proje içinde <b>Yeni sohbet</b> bir sohbet açar; okunda terminaller (Claude Code, Codex, kabuk) ve diğer hesapların var.</p>
+        </section>
+        <section id="chats" style="padding:0"><h2>Sohbetler</h2>
+<p>Kutuda her mesajın ihtiyacı olanlar var: yazı, resim, kayıtlı prompt'lar ve uzmanlar. Onay modu, model ve ayrıntı <i>Sohbet ayarları</i>'nda. Kutunun üstünde: ajanın planı, sohbetin yapılacaklar listesi ve sohbetin değiştirdiği dosyalar (fark ve tek tıkla geri alma).</p>
+<p>Başlık son turun 5 saatlik limitinden ne kadar yediğini, göndermeden önce de burada bir mesajın genelde ne harcadığını ve ne kaldığını gösterir. Model çağıran her şeyde küçük bir işaret var.</p>
+        </section>
+        <section id="why" style="padding:0"><h2>Neden?</h2>
+<p>Değişen her dosyanın bir <b>Neden?</b> düğmesi var: değişikliğe yol açan istek, ait olduğu plan adımı ve aynı turda sorulan uzman. Sohbetin kendisinden okunur; hiçbir şey tahmin edilmez.</p>
+        </section>
+        <section id="health" style="padding:0"><h2>Sağlık ve Düzelt</h2>
+<p>Sağlık sekmesi mimariyi, güvenliği, testleri, belgeleri, bağımlılıkları ve daha fazlasını puanlar, neyin iyileşeceğini listeler. Basit olanlarda (eksik lockfile, git'teki .env) <b>Düzelt</b> bilinen bir komutu, çalıştırmadan önce göstererek çalıştırır; diğerlerini bölümün uzmanı kendi kopyasında yapar, birleştirmeden önce sen bakarsın. Birleştirmeden önce Igrek değişeni kullanan dosyaları ve testleri gösterir.</p>
+        </section>
+        <section id="experts" style="padding:0"><h2>Uzmanlar</h2>
+<p>Güvenlikten veritabanına, üründen finansa otuz kadar uzman; her biri alanının standartları ve sayılarıyla. Sohbette <kbd>@</kbd> ile birini çağır, bir projeyi hepsine sor ya da hassas değişikliklerde uzman incelemesini aç. Her inceleme bir model çağrısıdır, bu yüzden varsayılan olarak kapalı. Uzmanlar paket olarak paylaşılabilir.</p>
+        </section>
+        <section id="memory" style="padding:0"><h2>Hafıza</h2>
+<p>Kararlar, kurallar ve hatalar proje başına saklanır ve her sohbetin başında AI'ın önüne konur. Claude Code <code>CLAUDE.md</code>, Codex <code>AGENTS.md</code> okur; Hafıza sekmesi yalnızca birinde olan kuralları gösterir ve birleştirir, iki ajan da aynı kurallara uyar.</p>
+        </section>
+        <section id="extension" style="padding:0"><h2>Tarayıcı eklentisi</h2>
+<p>Chrome, Brave ve Edge için. Formları özel bilgilerinle, AI onları görmeden doldurur; bir alanın metnini yazar ve sayfada seninle birlikte iş yapar: sayfa ya da seçtiğin bir öğe hakkında sor, en çok beş adım (tıkla, yaz, seç) önersin. Her adım sayfada çerçevelenir ve ancak <i>Yap</i>'a basınca yapılır; gönderen, ödeyen ya da silen adım iki kez sorar, şifre alanına hiç yazılmaz.</p>
+<p>Bağlamak için panelinde <i>Bağlan</i>'a bas, ikisinde de aynı kod görünürken Igrek'te <i>İzin ver</i>'e bas.</p>
+        </section>
+        <section id="privacy" style="padding:0"><h2>Gizlilik</h2>
+<p>Her şey senin bilgisayarında çalışır. Telemetri yok, ücretli API yok; Igrek'in internette açtığı her adres Ayarlar'da listelenir. Kaydettiğin özel bilgiler ve projelerinin .env sırları, mesaj çıkmadan <code>[[private:iban]]</code> gibi yer tutuculara dönüşür, gerçek değerler senin tarafında geri konur. Maaş, IBAN, kart ve kimlik numaraları şekillerinden de tanınır.</p>
+<p>AI'ın okuduğu bir dosya AI araçlarına yardım etmemesini söylüyorsa (bir ödev kuralı, bir politika), Igrek o satırı sana bir kez gösterir, devam edip etmeyeceğine sen karar verirsin. Modelden hiçbir şey gizlenmez.</p>
+        </section>
+        <section id="team" style="padding:0"><h2>Takım</h2>
+<p>İsteğe bağlı bir hub, senin kurduğun bir sunucuda, seçtiğin projeleri uçtan uca şifreli paylaşır. Herkes kendi AI hesabını kullanır; hesaplar asla paylaşılmaz. Hub kurulumu README'de.</p>
+        </section>
+        <section id="move" style="padding:0"><h2>Başka bilgisayara taşıma</h2>
+<p>Ayarlar, Başka bilgisayara taşı: şifreyle kilitli tek bir dosya Igrek'in tuttuğu her şeyi taşır. Diğer bilgisayarda Igrek'te aç ve yeniden başlat. AI girişleri dosyada yok; orada yeniden giriş yap.</p>
+        </section>
+        <section id="update" style="padding:0"><h2>Güncelleme ve kaldırma</h2>
+<p>Masaüstü uygulaması açılırken ve günde bir kez yeni sürüme bakar, sen onaylayınca kurar. Terminalden kurduysan kurulum komutunu yeniden çalıştır.</p>
+<p>Kaldırmak için uygulamayı kaldır (ya da AppImage'ı sil), verisini <code>~/.igrek</code>, çalışma ortamını <code>~/.local/share/igrek-runtime</code> (Windows: <code>%LOCALAPPDATA%\igrek-runtime</code>) içinden sil. Güvenlik açıkları: <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+        </section>
+      </article>
     </main>
-    <footer><div class="wrap">© 2026 Mohamed Attia. <a href="https://github.com/Mohamedattiadev/igrek/blob/main/LICENSE">Igrek Use License</a>.</div></footer>
+    <footer>
+      <div class="wrap">
+        <span>© 2026 Mohamed Attia. Igrek adı ve logosu Mohamed Attia'ya aittir.</span>
+        <span><a href="https://github.com/Mohamedattiadev/igrek">GitHub</a> · <a href="https://github.com/Mohamedattiadev/igrek/blob/main/LICENSE">Lisans</a> · <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">Güvenlik</a></span>
+      </div>
+    </footer>
+    <script>
+      // A copy button on every command, so nothing has to be selected by hand.
+      for (const pre of document.querySelectorAll("pre")) {
+        const b = document.createElement("button");
+        b.className = "copy";
+        b.type = "button";
+        b.textContent = "Kopyala";
+        b.onclick = () => navigator.clipboard.writeText(pre.querySelector("code").innerText).then(() => {
+          b.textContent = "Kopyalandı";
+          setTimeout(() => (b.textContent = "Kopyala"), 1500);
+        });
+        pre.append(b);
+      }
+      // The section on screen is marked in the side menu.
+      const links = [...document.querySelectorAll(".docs aside a")];
+      const mark = () => {
+        let on = links[0];
+        for (const a of links) {
+          const s = document.querySelector(a.getAttribute("href"));
+          if (s && s.getBoundingClientRect().top < 120) on = a;
+        }
+        for (const a of links) a.classList.toggle("on", a === on);
+      };
+      if (links.length) { addEventListener("scroll", mark, { passive: true }); mark(); }
+    </script>
   </body>
 </html>

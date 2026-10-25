@@ -4,90 +4,142 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Igrek docs</title>
-    <meta name="description" content="Install Igrek, start your first chat, and use Why?, experts, packages and teams." />
+    <meta name="description" content="Everything to install Igrek, start your first task and know what it does with your data." />
+    <meta property="og:title" content="Igrek docs" />
+    <meta property="og:description" content="Everything to install Igrek, start your first task and know what it does with your data." />
+    <meta property="og:image" content="https://mohamedattiadev.github.io/igrek/img/en-health.webp" />
     <link rel="icon" href="../logo.svg" />
     <link rel="alternate" hreflang="tr" href="../tr/docs/" />
     <link rel="stylesheet" href="../style.css" />
   </head>
-  <body class="docs">
+  <body>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../"><img src="../logo.svg" width="22" height="22" alt="" /> Igrek</a>
+        <a class="brand" href="../"><img src="../logo.svg" width="24" height="24" alt="" /> Igrek</a>
         <nav>
+          <a href="../#features">Features</a>
           <a href="./">Docs</a>
           <a href="https://github.com/Mohamedattiadev/igrek">GitHub</a>
-          <a href="../tr/docs/">Türkçe</a>
+          <a class="lang" href="../tr/">Türkçe</a>
+          <a class="cta" href="../#download">Download</a>
         </nav>
       </div>
     </header>
-    <main class="wrap">
-      <div class="hero" style="padding-bottom: 16px">
-        <h1>Docs</h1>
-        <nav class="toc">
-          <a href="#install">Install</a><a href="#first-run">First run</a><a href="#chats">Chats</a><a href="#why">Why?</a>
-          <a href="#experts">Experts</a><a href="#packages">Packages</a><a href="#teams">Teams</a><a href="#move">Moving</a>
-          <a href="#privacy">Privacy</a><a href="#update">Update and remove</a>
-        </nav>
-      </div>
-      <section id="install">
-        <h2>Install</h2>
-        <p>You need <a href="https://git-scm.com">Git</a> and Claude Code (run <code>claude</code> once to log in). The script installs Bun when it is missing.</p>
-        <h3>Desktop app</h3>
-        <p>Igrek in a window of its own, with nothing else to install: download the package for your computer from the <a href="https://github.com/Mohamedattiadev/igrek/releases">Releases page</a>. AppImage or .deb for Linux, .msi for Windows, .dmg for macOS (Apple silicon: <em>aarch64</em>, Intel: <em>x64</em>). Claude Code and Codex are not inside it; on first run Igrek shows how to install them.</p>
-        <p>The packages are not signed with a paid certificate, so the first start asks once:</p>
-        <ul>
-          <li><strong>Windows:</strong> "Windows protected your PC" appears. Click <em>More info</em>, then <em>Run anyway</em>.</li>
-          <li><strong>macOS:</strong> "Igrek cannot be opened" appears. Close it, open <em>System Settings &gt; Privacy &amp; Security</em>, scroll down and click <em>Open Anyway</em> next to Igrek, then <em>Open</em>.</li>
-          <li><strong>Linux (AppImage):</strong> make it runnable (<code>chmod +x Igrek_*.AppImage</code>, or Properties &gt; Allow executing), then open it. Some systems need <code>libfuse2</code> first.</li>
-        </ul>
-        <p class="muted">Closing the window stops Igrek, its server and everything it started. The tray icon can hide the window instead; Ctrl+Space from any program opens a quick question.</p>
-        <h3>Linux and macOS</h3>
-        <pre>curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh</pre>
-        <h3>Windows (PowerShell)</h3>
-        <pre>irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex</pre>
-        <p class="muted">On Windows install <a href="https://git-scm.com/download/win">Git for Windows</a> first: Claude Code uses the bash it brings. The built-in terminal does not work on Windows yet; chats do.</p>
-        <h3>With Docker</h3>
-        <pre>git clone https://github.com/Mohamedattiadev/igrek.git && cd igrek
-docker compose up -d</pre>
-        <p>Then open <code>http://localhost:7777</code>. Settings, <em>Igrek as an app</em>, gives it a window of its own.</p>
-      </section>
-      <section id="first-run">
-        <h2>First run</h2>
-        <p>Pick your language, then your project folders: one project, or a folder that holds several. Igrek shows only the folders you add; folders where Claude already worked are one click away.</p>
-      </section>
-      <section id="chats">
-        <h2>Chats</h2>
-        <p>The box holds what every message needs: text, images, ready-made prompts and experts. Approvals, model and detail sit behind <em>Settings</em>. Above the box: the agent's plan, your own to-do list for the chat, and the files the chat changed, each with its diff and a one-click undo. The header says what the last turn took from your limit. Everything that calls a model carries a small gauge mark.</p>
-      </section>
-      <section id="why">
-        <h2>Why?</h2>
-        <p>Every changed file has a <em>Why?</em> button: the request that led to the change, the plan step it belonged to, and the expert asked in the same turn. It is read from the chat itself; nothing is guessed.</p>
-      </section>
-      <section id="experts">
-        <h2>Experts</h2>
-        <p>Igrek ships about thirty experts, from security and databases to product and finance. Each masters its field (standards, numbers, how it decides). Mention one with <code>@</code> in a chat, ask all of them about a project, or turn on <em>Expert review of sensitive changes</em> in Settings: when a turn touches login, payment or database code, the matching expert reads the diff. Each review is one model call, so it is off by default.</p>
-      </section>
-      <section id="packages">
-        <h2>Packages</h2>
-        <p>Experts, Packages: open Igrek's reviewed catalog, a file, or an https address. You always see what a package holds before anything is saved, and you pick the parts. Experts from a package start read-only and off the web and never replace yours; flows that run shell commands are refused; flows are kept in Igrek's folder, not your repository. Make a package from your own experts to share them.</p>
-      </section>
-      <section id="teams">
-        <h2>Teams</h2>
-        <p>An optional hub, on a server you run, shares the projects you choose, end to end encrypted. Everyone uses their own AI account; accounts are never shared. See the README for setting up a hub.</p>
-      </section>
-      <section id="move">
-        <h2>Moving to another computer</h2>
-        <p>Settings, <em>Move to another computer</em>: one file locked with a password holds everything Igrek keeps. Open it in Igrek on the other computer and restart. AI logins are not in it; log in again there.</p>
-      </section>
-      <section id="privacy">
-        <h2>Privacy</h2>
-        <p>Everything runs on your computer. Igrek has no telemetry and calls no paid API; every address it opens on the internet is listed in Settings. Security problems: see <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">SECURITY.md</a>.</p>
-      </section>
-      <section id="update">
-        <h2>Update and remove</h2>
-        <p>Run the install command again to update. To remove Igrek, delete its folder (<code>~/.local/share/igrek-app</code>, or <code>%LOCALAPPDATA%\igrek-app</code> on Windows), the launcher <code>igrek</code>, and its data in <code>~/.igrek</code>.</p>
-      </section>
+    <main class="wrap docs">
+      <aside>
+          <p>Start</p>
+          <a href="#install">Install</a>
+          <a href="#first">First start</a>
+          <a href="#start">Start a task</a>
+          <p>Working</p>
+          <a href="#chats">Chats</a>
+          <a href="#why">Why?</a>
+          <a href="#health">Health and Fix</a>
+          <a href="#experts">Experts</a>
+          <a href="#memory">Memory</a>
+          <p>More</p>
+          <a href="#extension">Browser extension</a>
+          <a href="#privacy">Privacy</a>
+          <a href="#team">Team</a>
+          <a href="#move">Move to another computer</a>
+          <a href="#update">Update and remove</a>
+      </aside>
+      <article class="doc">
+        <h1>Igrek docs</h1>
+        <p class="lead">Everything to install Igrek, start your first task and know what it does with your data.</p>
+        <div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="../img/en-home.webp" width="1440" height="900" alt="" loading="lazy" /></div>
+        <section id="install" style="padding:0"><h2>Install</h2>
+<h3>The desktop app</h3>
+<p>Download the package for your computer from the <a href="https://github.com/Mohamedattiadev/igrek/releases/latest">latest release</a>: <code>.msi</code> for Windows, <code>.dmg</code> for macOS (<code>aarch64</code> for Apple silicon, <code>x64</code> for Intel), an <code>AppImage</code> or <code>.deb</code> for Linux. Each is about 17 MB (the AppImage carries its own WebKit and is larger).</p>
+<div class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><div>On its first start the app downloads Bun, which runs Igrek's server: Bun's official release (about 35 MB), checked against Bun's published SHA-256, once. The loading page shows how far it is. This needs the internet the first time only.</div></div>
+<p>The packages are not signed with a paid certificate, so the system asks once:</p>
+<ul><li><b>Windows:</b> "Windows protected your PC". Click <i>More info</i>, then <i>Run anyway</i>.</li><li><b>macOS:</b> "Igrek cannot be opened". Close it, open System Settings, Privacy &amp; Security, scroll down and click <i>Open Anyway</i>.</li><li><b>Linux (AppImage):</b> make it executable (<code>chmod +x Igrek_*.AppImage</code>), then open it. Some systems need <code>libfuse2</code> first.</li></ul>
+<p>Claude Code or Codex is not inside: on the first start Igrek checks for them and installs one in a click if you like. Sign in to it once.</p>
+<h3>From a terminal</h3>
+<p>Linux and macOS:</p>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh</code></pre>
+<p>Windows (PowerShell). Install Git for Windows first; Claude Code uses its bash.</p>
+<pre><code>irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex</code></pre>
+<h3>With Docker</h3>
+<pre><code>git clone https://github.com/Mohamedattiadev/igrek.git &amp;&amp; cd igrek
+docker compose up -d</code></pre>
+<p>Then open <code>http://localhost:7777</code>.</p>
+        </section>
+        <section id="first" style="padding:0"><h2>First start</h2>
+<p>Pick your language, say whether you write code, then add your project folders: one project, or a folder that holds several. Igrek shows only the folders you add; the ones Claude already worked in are one click away.</p>
+<ul><li><b>Simple</b> (you do not write code): a project shows its overview, chats and files, in plain words.</li><li><b>Developer</b>: code, board, health, setup and tools too. Settings, Mode changes it any time; nothing is removed either way.</li></ul>
+        </section>
+        <section id="start" style="padding:0"><h2>Start a task</h2>
+<p>The <b>What do you want to do?</b> box on the home page is the place to start. Leave it on <i>Igrek picks</i> and the chief, who knows every project, hands the work to the right one; pick a project yourself; or pick <i>Several projects</i> to send one task to many, each in its own copy, side by side.</p>
+<p>A task for a project gets a way of working for its kind: a bug is reproduced before it is fixed, a slowness measured before and after, a refactor keeps the behaviour, a feature starts with its data and its smallest version. The box says which one; <i>leave out</i> sends your text as written.</p>
+<p>Inside a project, <b>New chat</b> starts a chat; its arrow has terminals (Claude Code, Codex, a shell) and your other accounts.</p>
+        </section>
+        <section id="chats" style="padding:0"><h2>Chats</h2>
+<p>The box has what each message needs: text, pictures, saved prompts and experts. Approval mode, model and detail are under <i>Chat settings</i>. Above the box: the agent's plan, the chat's to-do list and the files the chat changed, with a diff and one-click undo.</p>
+<p>The header shows what the last turn took of your 5-hour limit, and before you send, what a message here usually takes and what is left. Anything that asks a model has a small mark.</p>
+        </section>
+        <section id="why" style="padding:0"><h2>Why?</h2>
+<p>Every changed file has a <b>Why?</b> button: the request that led to the change, the plan step it belongs to and the expert asked in the same turn. It is read from the chat itself; nothing is guessed.</p>
+        </section>
+        <section id="health" style="padding:0"><h2>Health and Fix</h2>
+<p>The Health tab scores architecture, security, tests, documentation, dependencies and more, and lists what to improve. <b>Fix</b> runs a known command for the simple ones (a missing lockfile, an .env file in git), shown before it runs; the others are done by the part's expert in its own copy, which you review before anything is merged. Before merging, Igrek shows the files and tests that use what changed.</p>
+        </section>
+        <section id="experts" style="padding:0"><h2>Experts</h2>
+<p>About thirty experts, from security and databases to product and finance, each with its field's standards and numbers. Call one with <kbd>@</kbd> in a chat, ask all of them about a project, or turn on expert review of sensitive changes. Each review is one model call, so it is off by default. Experts can be shared as packs.</p>
+        </section>
+        <section id="memory" style="padding:0"><h2>Memory</h2>
+<p>Decisions, conventions and mistakes are kept per project and put in front of the AI at the start of each chat. Claude Code reads <code>CLAUDE.md</code> and Codex reads <code>AGENTS.md</code>; the Memory tab shows rules only one of them has and joins them, so both agents follow the same.</p>
+        </section>
+        <section id="extension" style="padding:0"><h2>Browser extension</h2>
+<p>For Chrome, Brave and Edge. It fills forms with your private details without the AI seeing them, writes a field's text, and acts on a page with you: ask about the page or an element you pick, and let it propose up to five steps (click, type, choose). Each step is outlined on the page and done only when you click <i>Do it</i>; one that sends, pays or deletes asks twice, and password fields are never typed into.</p>
+<p>To connect it, press <i>Connect</i> in its panel and <i>Allow</i> in Igrek when the same code shows in both.</p>
+        </section>
+        <section id="privacy" style="padding:0"><h2>Privacy</h2>
+<p>Everything runs on your computer. No telemetry, no paid API; every address Igrek opens on the internet is listed in Settings. Your saved private details and your projects' .env secrets become placeholders such as <code>[[private:iban]]</code> before a message leaves, and the real values are put back on your side. Salaries, IBANs, card and ID numbers are recognised by their shape too.</p>
+<p>When a file the AI reads tells AI tools not to help (a homework rule, a policy), Igrek shows you the line once and you decide whether it goes on. Nothing is hidden from the model.</p>
+        </section>
+        <section id="team" style="padding:0"><h2>Team</h2>
+<p>An optional hub, on a server you run, shares the projects you choose end-to-end encrypted. Everyone uses their own AI account; accounts are never shared. Setting up a hub is in the README.</p>
+        </section>
+        <section id="move" style="padding:0"><h2>Move to another computer</h2>
+<p>Settings, Move to another computer: one file, locked with a password, carries everything Igrek keeps. Open it in Igrek on the other computer and restart. AI logins are not in it; sign in again there.</p>
+        </section>
+        <section id="update" style="padding:0"><h2>Update and remove</h2>
+<p>The desktop app looks for a new version when it opens and once a day, and installs it after you agree. From a terminal install, run the install command again.</p>
+<p>To remove Igrek, uninstall the app (or delete the AppImage), and delete its data in <code>~/.igrek</code> and its runtime in <code>~/.local/share/igrek-runtime</code> (Windows: <code>%LOCALAPPDATA%\igrek-runtime</code>). Security issues: <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+        </section>
+      </article>
     </main>
-    <footer><div class="wrap">© 2026 Mohamed Attia. <a href="https://github.com/Mohamedattiadev/igrek/blob/main/LICENSE">Igrek Use License</a>.</div></footer>
+    <footer>
+      <div class="wrap">
+        <span>© 2026 Mohamed Attia. The Igrek name and logo belong to Mohamed Attia.</span>
+        <span><a href="https://github.com/Mohamedattiadev/igrek">GitHub</a> · <a href="https://github.com/Mohamedattiadev/igrek/blob/main/LICENSE">License</a> · <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">Security</a></span>
+      </div>
+    </footer>
+    <script>
+      // A copy button on every command, so nothing has to be selected by hand.
+      for (const pre of document.querySelectorAll("pre")) {
+        const b = document.createElement("button");
+        b.className = "copy";
+        b.type = "button";
+        b.textContent = "Copy";
+        b.onclick = () => navigator.clipboard.writeText(pre.querySelector("code").innerText).then(() => {
+          b.textContent = "Copied";
+          setTimeout(() => (b.textContent = "Copy"), 1500);
+        });
+        pre.append(b);
+      }
+      // The section on screen is marked in the side menu.
+      const links = [...document.querySelectorAll(".docs aside a")];
+      const mark = () => {
+        let on = links[0];
+        for (const a of links) {
+          const s = document.querySelector(a.getAttribute("href"));
+          if (s && s.getBoundingClientRect().top < 120) on = a;
+        }
+        for (const a of links) a.classList.toggle("on", a === on);
+      };
+      if (links.length) { addEventListener("scroll", mark, { passive: true }); mark(); }
+    </script>
   </body>
 </html>
