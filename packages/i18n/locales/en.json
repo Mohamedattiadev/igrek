@@ -3064,7 +3064,10 @@
     "waitingLimit": "The AI plan's limit is full. Nothing is lost: the team goes on by itself at {{time}}, when the limit resets. Igrek never switches accounts on its own.",
     "name_careful": "Careful change (explore, plan, critique, work, review)",
     "name_cleanup": "Safe cleanup (dead code, checks before and after)",
-    "desc_cleanup": "The checks must pass first; dead code is listed with evidence, you pick what goes, it is removed in a copy with one commit per removal, the same checks pass again and QA confirms nothing changed for users."
+    "desc_cleanup": "The checks must pass first; dead code is listed with evidence, you pick what goes, it is removed in a copy with one commit per removal, the same checks pass again and QA confirms nothing changed for users.",
+    "blast_one": "{{count}} file uses what changed ({{tests}} tests among them): worth checking before you merge",
+    "blast_other": "{{count}} files use what changed ({{tests}} tests among them): worth checking before you merge",
+    "blastUses": "Uses {{file}}"
   },
   "schedules": {
     "title": "Scheduled work",
@@ -4944,7 +4947,15 @@
     "manyNote_one": "{{count}} project: one run, in its own copy. Nothing reaches your folders until you approve each one.",
     "manyNote_other": "{{count}} projects: one run each, in its own copy, and each uses your Claude limit. Nothing reaches your folders until you approve each one.",
     "manyCount_one": "{{count}} project",
-    "manyCount_other": "{{count}} projects"
+    "manyCount_other": "{{count}} projects",
+    "playbook_bug": "Sent with the bug-fix steps: reproduce first, root cause, smallest fix.",
+    "playbook_perf": "Sent with the speed steps: measure before, one change at a time, measure after.",
+    "playbook_refactor": "Sent with the restructuring steps: the behaviour stays the same, tests before and after.",
+    "playbook_feature": "Sent with the new-feature steps: the data first, the smallest version, tests.",
+    "playbookOff": "Sent as you wrote it.",
+    "playbookRemove": "leave out",
+    "playbookAdd": "add the steps",
+    "playbookTip": "Igrek recognised the kind of task and adds a way of working: the AI first says the goal back, follows the steps, and ends with the decisions it made."
   },
   "fix": {
     "tip": "Igrek shows the command first and runs it only when you say so. No AI model is used.",

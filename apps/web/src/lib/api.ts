@@ -519,6 +519,7 @@ export const api = {
     request<FlowRun>(`/api/flows/${id}/${action}`, { method: "POST" }),
   reviseFlow: (id: string, text: string) =>
     request<FlowRun>(`/api/flows/${id}/revise`, { method: "POST", body: JSON.stringify({ text }) }),
+  flowBlast: (id: string) => request<{ path: string; uses: string; test: boolean }[]>(`/api/flows/${id}/blast`),
   flowDiff: (id: string) =>
     request<{ files: { path: string; added: number; removed: number }[]; patch: string }>(`/api/flows/${id}/diff`),
   board: (projectId: string) => request<BoardTask[]>(`/api/projects/${projectId}/board`),

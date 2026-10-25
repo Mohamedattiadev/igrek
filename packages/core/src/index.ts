@@ -13,6 +13,7 @@ export * from "./ops";
 export * from "./persona";
 export * from "./persona-knowledge";
 export * from "./personas";
+export * from "./playbooks";
 export * from "./preview";
 export * from "./private";
 export * from "./prompt";

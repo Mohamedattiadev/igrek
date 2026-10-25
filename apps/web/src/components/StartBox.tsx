@@ -1,5 +1,5 @@
-import type { ProjectListItem, TerminalTool } from "@igrek/core";
-import { Bot, ChevronDown, MessageSquare, Send, SquareTerminal } from "lucide-react";
+import { type ProjectListItem, playbookFor, playbookText, type TerminalTool } from "@igrek/core";
+import { Bot, ChevronDown, ListChecks, MessageSquare, Send, SquareTerminal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -117,6 +117,9 @@ function OtherWays({ projectId, onError }: { projectId: string; onError: (messag
   );
 }
 
+/** What the user typed, without the way of working added to it: that is what the history shows. */
+const typed = (text: string) => text.split("\n\n## How to work\n")[0] ?? text;
+
 /** The target that sends one task to several projects at once. */
 const MANY = "*many";
 
@@ -129,7 +132,7 @@ async function startMany(text: string, projectIds: string[]): Promise<string> {
     projectIds.map((projectId) => api.startFlow({ projectId, flow: "task", request: text })),
   );
   const ids = runs.map((r) => r.id);
-  await api.addStarted({ text, runs: ids }).catch(() => undefined);
+  await api.addStarted({ text: typed(text), runs: ids }).catch(() => undefined);
   return `/batch?runs=${ids.join(",")}`;
 }
 
@@ -138,7 +141,9 @@ async function startFrom(text: string, projectId: string): Promise<string> {
   const draft = encodeURIComponent(text);
   const chat = projectId ? await api.startChat({ projectId }) : await api.chief();
   // The chief's page lists what was started here; a failed note must not stop the work.
-  await api.addStarted({ text, chatId: chat.id, projectId: projectId || undefined }).catch(() => undefined);
+  await api
+    .addStarted({ text: typed(text), chatId: chat.id, projectId: projectId || undefined })
+    .catch(() => undefined);
   return projectId ? `/c/${chat.id}?draft=${draft}&send=1` : `/chief?draft=${draft}&send=1`;
 }
 
@@ -157,6 +162,9 @@ export function StartBox({ projectId: fixed }: { projectId?: string }) {
   const [error, setError] = useState<string>();
   const [picked, setPicked] = useState<string[]>([]);
   const many = target === MANY;
+  // A task for a project gets its way of working (after pstack); the chief plans its own hand-offs.
+  const [withPlaybook, setWithPlaybook] = useState(true);
+  const kind = target ? playbookFor(text) : undefined;
   useEffect(() => {
     let current = true;
     api
@@ -175,9 +183,10 @@ export function StartBox({ projectId: fixed }: { projectId?: string }) {
   const send = () => {
     const value = text.trim();
     if (!value || busy || (many && picked.length === 0)) return;
+    const task = kind && withPlaybook ? `${value}\n\n${playbookText(kind)}` : value;
     setBusy(true);
     setError(undefined);
-    (many ? startMany(value, picked) : startFrom(value, target))
+    (many ? startMany(task, picked) : startFrom(task, target))
       .then((path) => {
         keepDraft("");
         void navigate(path);
@@ -229,6 +238,21 @@ export function StartBox({ projectId: fixed }: { projectId?: string }) {
         </button>
         {target && !many && <OtherWays projectId={target} onError={setError} />}
       </form>
+      {kind && (
+        <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-fg-muted">
+          <ListChecks size={12} className="text-accent" aria-hidden="true" />
+          {withPlaybook ? t(`start.playbook_${kind}`) : t("start.playbookOff")}
+          <button
+            type="button"
+            onClick={() => setWithPlaybook((v) => !v)}
+            className="inline-flex items-center gap-0.5 text-accent hover:underline"
+            data-tip={t("start.playbookTip")}
+          >
+            {withPlaybook && <X size={11} aria-hidden="true" />}
+            {withPlaybook ? t("start.playbookRemove") : t("start.playbookAdd")}
+          </button>
+        </p>
+      )}
       {many && (
         <fieldset className="mt-2 rounded-ui border border-border p-2 text-[12.5px]">
           <legend className="px-1 text-[11.5px] text-fg-muted">{t("start.manyPick")}</legend>

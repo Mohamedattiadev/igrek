@@ -1,7 +1,9 @@
+import { existsSync } from "node:fs";
 import { CATEGORIES, type Category, type TaskStatus } from "@igrek/core";
 import type { Hono } from "hono";
 import { archonBin, archonWorkflows, startArchon } from "./archon";
 import { arenaModels } from "./arena";
+import { blastRadius } from "./blast";
 import type { Board } from "./board";
 import type { Flows } from "./flows";
 import type { Store } from "./store";
@@ -111,6 +113,18 @@ export function registerFlowRoutes(
     const run = flows.get(c.req.param("id"));
     if (!run?.worktree) return c.json({ files: [], patch: "" });
     return c.json(worktreeDiff({ ...run.worktree, sub: "" }));
+  });
+
+  /** What else the change could break: files and tests that import a changed file. */
+  app.get("/api/flows/:id/blast", (c) => {
+    const run = flows.get(c.req.param("id"));
+    if (!run?.worktree || !existsSync(run.worktree.path)) return c.json([]);
+    return c.json(
+      blastRadius(
+        run.worktree.path,
+        (run.changes ?? []).map((ch) => ch.path),
+      ).slice(0, 60),
+    );
   });
 
   // ---- the board ----------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { openDb } from "./db";
@@ -37,6 +37,33 @@ describe("retention and network log", () => {
       ),
     ).toEqual(["new", "old-nosummary"]);
     expect(sqlite.query("SELECT summary FROM sessions WHERE id = 'old'").get()).toEqual({ summary: "{}" });
+  });
+
+  test("a failed or stopped copy is kept two weeks, one waiting for review is always kept", () => {
+    const dir = mkdtempSync(join(tmpdir(), "igrek-ret-"));
+    const { sqlite } = openDb(":memory:");
+    const now = Date.now();
+    const day = 86_400_000;
+    for (const name of ["flow-failed-old", "flow-failed-new", "flow-ready-old"])
+      mkdirSync(join(dir, "worktrees", name), { recursive: true });
+    writeFileSync(join(dir, "igrek.db"), "");
+    const run = (name: string, status: string, age: number) => ({
+      status,
+      updatedAt: now - age * day,
+      worktree: { path: join(dir, "worktrees", name) },
+    });
+    const flows = {
+      list: () => [
+        run("flow-failed-old", "failed", 20),
+        run("flow-failed-new", "stopped", 3),
+        run("flow-ready-old", "ready", 60),
+      ],
+    } as never;
+    const out = new Retention(sqlite, dir, flows, () => now + 2 * day).prune(30);
+    expect(out.worktrees).toBe(1);
+    expect(existsSync(join(dir, "worktrees", "flow-failed-old"))).toBe(false);
+    expect(existsSync(join(dir, "worktrees", "flow-failed-new"))).toBe(true);
+    expect(existsSync(join(dir, "worktrees", "flow-ready-old"))).toBe(true);
   });
 
   test("internet addresses are counted without queries or tokens; local ones are not", () => {

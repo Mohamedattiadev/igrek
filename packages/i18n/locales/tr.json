@@ -3064,7 +3064,10 @@
     "waitingLimit": "AI planının limiti doldu. Hiçbir şey kaybolmadı: limit sıfırlanınca, {{time}} civarında takım kendiliğinden devam eder. Igrek hesapları kendiliğinden değiştirmez.",
     "name_careful": "Dikkatli değişiklik (keşif, plan, eleştiri, iş, inceleme)",
     "name_cleanup": "Güvenli temizlik (ölü kod, önce ve sonra kontroller)",
-    "desc_cleanup": "Önce kontroller geçmeli; ölü kod kanıtıyla listelenir, neyin gideceğini sen seçersin, bir kopyada her silme ayrı commit olarak yapılır, aynı kontroller yeniden geçer ve QA kullanıcı için hiçbir şeyin değişmediğini doğrular."
+    "desc_cleanup": "Önce kontroller geçmeli; ölü kod kanıtıyla listelenir, neyin gideceğini sen seçersin, bir kopyada her silme ayrı commit olarak yapılır, aynı kontroller yeniden geçer ve QA kullanıcı için hiçbir şeyin değişmediğini doğrular.",
+    "blast_one": "Değişeni {{count}} dosya kullanıyor (aralarında {{tests}} test): birleştirmeden önce bakmaya değer",
+    "blast_other": "Değişeni {{count}} dosya kullanıyor (aralarında {{tests}} test): birleştirmeden önce bakmaya değer",
+    "blastUses": "{{file}} dosyasını kullanıyor"
   },
   "schedules": {
     "title": "Zamanlanmış işler",
@@ -4944,7 +4947,15 @@
     "manyNote_one": "{{count}} proje: kendi kopyasında bir iş. Her birini sen onaylamadan klasörlerine hiçbir şey gelmez.",
     "manyNote_other": "{{count}} proje: her biri kendi kopyasında bir iş ve her biri Claude limitinden harcar. Her birini sen onaylamadan klasörlerine hiçbir şey gelmez.",
     "manyCount_one": "{{count}} proje",
-    "manyCount_other": "{{count}} proje"
+    "manyCount_other": "{{count}} proje",
+    "playbook_bug": "Hata düzeltme adımlarıyla gider: önce yeniden üret, kök neden, en küçük düzeltme.",
+    "playbook_perf": "Hız adımlarıyla gider: önce ölç, her seferde tek değişiklik, sonra yine ölç.",
+    "playbook_refactor": "Yeniden düzenleme adımlarıyla gider: davranış aynı kalır, önce ve sonra testler.",
+    "playbook_feature": "Yeni özellik adımlarıyla gider: önce veri, en küçük sürüm, testler.",
+    "playbookOff": "Yazdığın gibi gider.",
+    "playbookRemove": "çıkar",
+    "playbookAdd": "adımları ekle",
+    "playbookTip": "Igrek işin türünü tanıdı ve bir çalışma yolu ekler: yapay zekâ önce hedefi kendi cümlesiyle söyler, adımları izler ve sonunda aldığı kararları yazar."
   },
   "fix": {
     "tip": "Igrek komutu önce gösterir, ancak sen deyince çalıştırır. Yapay zekâ modeli kullanılmaz.",

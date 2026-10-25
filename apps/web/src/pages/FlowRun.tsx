@@ -156,6 +156,43 @@ function NodeCard({ run, node }: { run: FlowRun; node: FlowNodeState }) {
   );
 }
 
+/**
+ * Before merging: the files that use what this copy changed, tests first (after pstack's
+ * blast-radius), so the user knows what to run or read. Read from import lines; no model is asked.
+ */
+function BlastRadius({ runId }: { runId: string }) {
+  const { t } = useTranslation();
+  const [affected, setAffected] = useState<{ path: string; uses: string; test: boolean }[]>();
+  useEffect(() => {
+    let current = true;
+    api
+      .flowBlast(runId)
+      .then((list) => current && setAffected(list))
+      .catch(() => current && setAffected([]));
+    return () => {
+      current = false;
+    };
+  }, [runId]);
+  if (!affected?.length) return null;
+  const tests = affected.filter((a) => a.test).length;
+  return (
+    <details className="text-[12.5px]">
+      <summary className="cursor-pointer text-fg-muted">{t("flows.blast", { count: affected.length, tests })}</summary>
+      <ul className="mt-1 max-h-40 space-y-0.5 overflow-y-auto font-mono text-[11.5px]">
+        {affected.map((a) => (
+          <li
+            key={a.path}
+            className={a.test ? "text-accent" : "text-fg-muted"}
+            data-tip={t("flows.blastUses", { file: a.uses })}
+          >
+            {a.path}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 function Approval({ run }: { run: FlowRun }) {
   const { t } = useTranslation();
   const [diff, setDiff] = useState<{ files: { path: string; added: number; removed: number }[]; patch: string }>();
@@ -204,6 +241,7 @@ function Approval({ run }: { run: FlowRun }) {
           </ul>
         </div>
       )}
+      <BlastRadius runId={run.id} />
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}

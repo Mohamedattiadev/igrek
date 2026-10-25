@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { Flows } from "./flows";
 
 const DAY = 86_400_000;
+const KEEP_FAILED = 14 * DAY;
 
 /** Bytes of a folder, without following links. */
 function folderSize(path: string): number {
@@ -98,11 +99,16 @@ export class Retention {
       })();
       sessions = ids.length;
     }
-    // Copies of team runs that are finished (merged, thrown away, done) are no longer needed.
+    // Copies of team runs that are finished (merged, thrown away, done) are no longer needed; a failed
+    // or stopped one is kept two weeks to look at or retry, then it goes too (they filled the disk).
     const live = new Set(
       this.flows
         .list()
-        .filter((r) => ["running", "needs_you", "ready", "waiting_limit", "failed", "stopped"].includes(r.status))
+        .filter(
+          (r) =>
+            ["running", "needs_you", "ready", "waiting_limit"].includes(r.status) ||
+            (["failed", "stopped"].includes(r.status) && this.now() - r.updatedAt < KEEP_FAILED),
+        )
         .map((r) => r.worktree?.path.split("/").pop() ?? ""),
     );
     let worktrees = 0;
