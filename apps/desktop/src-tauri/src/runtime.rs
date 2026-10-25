@@ -50,14 +50,18 @@ pub fn bun_path() -> PathBuf {
 /// or wget; `progress` is told how many bytes have arrived.
 fn download(url: &str, to: &Path, progress: &dyn Fn(u64)) -> Result<(), String> {
     let target = to.to_string_lossy().to_string();
-    let mut child = Command::new(if cfg!(windows) { "curl.exe" } else { "curl" })
-        .args(["-fsSL", "--retry", "3", "-o", &target, url])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .or_else(|_| {
-            Command::new("wget").args(["-q", "-O", &target, url]).stdout(Stdio::null()).stderr(Stdio::null()).spawn()
-        })
+    // The system's own curl, with the system's own libraries: inside an AppImage the app's library
+    // path points at the libraries it carries, and the system curl crashed on them (seen in 0.1.5).
+    let tool = |program: &str, args: &[&str]| {
+        let mut command = Command::new(program);
+        command.args(args).stdout(Stdio::null()).stderr(Stdio::null());
+        crate::server::outside_appimage(&mut command);
+        crate::server::hide_console(&mut command);
+        command.spawn()
+    };
+    let curl = if cfg!(windows) { "curl.exe" } else { "curl" };
+    let mut child = tool(curl, &["-fsSL", "--retry", "3", "-o", &target, url])
+        .or_else(|_| tool("wget", &["-q", "-O", &target, url]))
         .map_err(|_| "Neither curl nor wget is installed".to_string())?;
     loop {
         if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {

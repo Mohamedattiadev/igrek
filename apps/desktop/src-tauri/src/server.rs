@@ -33,7 +33,7 @@ fn launcher() -> std::io::Result<PathBuf> {
     }
 }
 
-fn hide_console(command: &mut Command) {
+pub fn hide_console(command: &mut Command) {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -101,7 +101,7 @@ fn outside(list: &str, dir: &str) -> String {
 /// and broke the ones built for the system's libraries (Codex stopped with "symbol lookup error").
 /// Those that point into the mount are dropped; a list keeps its entries outside it. PATH is left
 /// to with_user_path.
-fn outside_appimage(command: &mut Command) {
+pub fn outside_appimage(command: &mut Command) {
     let Some(dir) = appimage_dir() else { return };
     for (name, value) in std::env::vars() {
         if name == "PATH" || !value.contains(&dir) {
