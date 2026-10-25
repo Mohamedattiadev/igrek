@@ -10,7 +10,7 @@ publish = false
 tauri-build = { version = "=2.7.1", features = [] }
 
 [dependencies]
-tauri = { version = "=2.12.1", features = ["tray-icon", "macos-private-api"] }
+tauri = { version = "=2.12.1", features = ["tray-icon"] }
 tauri-plugin-autostart = "=2.7.0"
 tauri-plugin-global-shortcut = "=2.4.0"
 tauri-plugin-notification = "=2.5.1"
@@ -22,10 +22,6 @@ serde_json = "=1.0.151"
 # with the updater, at these versions.
 sha2 = "=0.10.9"
 zip = { version = "=4.6.1", default-features = false, features = ["deflate-flate2"] }
-
-# The screen helper's picture through the desktop portal (Wayland asks the compositor, not X11).
-[target.'cfg(target_os = "linux")'.dependencies]
-zbus = "=5.19.0"
 
 [profile.release]
 # Smaller download; the app itself does little work, the server does.

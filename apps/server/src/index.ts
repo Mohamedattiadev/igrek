@@ -137,7 +137,6 @@ import { Retention } from "./retention";
 import { Routines } from "./routines";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
-import { registerScreenRoutes } from "./screen";
 import { Sealer } from "./seal";
 import {
   hasValidSession,
@@ -674,13 +673,6 @@ const app = createApp({
     });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
-    registerScreenRoutes(hono, {
-      secret: gatewayValues,
-      ask: (prompt, image) =>
-        runClaude(prompt, join(config.dataDir, "runner"), stops, "sonnet", [], undefined, [
-          { mediaType: "image/png", data: image },
-        ]),
-    });
     registerFixRoutes(hono, {
       projectPath: (id) => store.projectRow(id)?.path,
       evidence: (id, check) => {

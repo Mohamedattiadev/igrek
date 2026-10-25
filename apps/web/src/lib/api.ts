@@ -133,17 +133,6 @@ export interface AgentFiles {
   onlyAgents: string[];
 }
 
-/** A desktop step the screen helper proposes (apps/server/src/screen.ts). */
-export interface ScreenStep {
-  action: "click" | "type" | "key";
-  x?: number;
-  y?: number;
-  text?: string;
-  label: string;
-  why: string;
-  risky?: boolean;
-}
-
 export interface PackStatus {
   code: string;
   bundled: boolean;
@@ -766,23 +755,10 @@ export const api = {
   agentFiles: (projectId: string) => request<AgentFiles>(`/api/projects/${projectId}/agent-files`),
   joinAgentFiles: (projectId: string) =>
     request<AgentFiles>(`/api/projects/${projectId}/agent-files/join`, { method: "POST", body: "{}" }),
-  /** Reads the text on a screen picture on this computer and says where private details are. */
-  screenScan: (image: string) =>
-    request<{ ocr: boolean; boxes: { x: number; y: number; w: number; h: number }[] }>("/api/screen/scan", {
-      method: "POST",
-      body: JSON.stringify({ image }),
-    }),
-  screenAsk: (body: { image: string; question: string; width: number; height: number }) =>
-    request<{ answer: string; point?: { x: number; y: number; label: string } }>("/api/screen/ask", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
   /** The browser extension's waiting requests to pair, each with the code it shows. */
   extensionRequests: () => request<{ id: string; code: string; at: number }[]>("/api/extension/requests"),
   decideExtension: (id: string, allow: boolean) =>
     request<{ ok: boolean }>(`/api/extension/requests/${id}`, { method: "POST", body: JSON.stringify({ allow }) }),
-  screenAct: (body: { image: string; goal: string; width: number; height: number; done: string[] }) =>
-    request<{ answer: string; steps: ScreenStep[] }>("/api/screen/act", { method: "POST", body: JSON.stringify(body) }),
   fixPlan: (id: FixId, projectId?: string) =>
     request<{ command: string; cwd: string }>(
       `/api/fixes/${id}${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`,

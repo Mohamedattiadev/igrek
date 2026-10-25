@@ -6,11 +6,9 @@
 // No console window next to the app on Windows.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod capture;
-mod overlay;
-mod runtime;
 #[cfg(target_os = "linux")]
 mod launcher;
+mod runtime;
 mod server;
 mod texts;
 
@@ -30,10 +28,6 @@ use tauri_plugin_updater::UpdaterExt;
 const MAIN: &str = "main";
 const QUICK_ASK: &str = "ctrl+space";
 const QUICK_ASK_ARG: &str = "--quick-ask";
-/// The screen helper: a question about what is on the screen, with a picture taken only on request.
-const SCREEN_ASK: &str = "ctrl+shift+space";
-/// For the user's own shortcut where the system has no global ones (Wayland), like `--quick-ask`.
-const SCREEN_ASK_ARG: &str = "--screen-ask";
 
 /// The public half of Igrek's update key, set when the release build is made (docs/desktop.md).
 /// Without it the app is built without updates.
@@ -66,84 +60,6 @@ fn quick_ask(app: &AppHandle) {
     if let Some(window) = main_window(app) {
         let _ = window.eval("window.dispatchEvent(new CustomEvent('igrek:quick-ask'))");
     }
-}
-
-/// Ctrl+Shift+Space from another program: Igrek comes forward with the screen helper open. No picture
-/// is taken yet; the helper takes one only when the user presses its button.
-fn screen_ask(app: &AppHandle) {
-    // The screen is taken before Igrek comes forward (as Clicky does), so it shows what the user was
-    // looking at when they pressed the key. Nothing is sent: the helper shows it and waits for "Send".
-    let handle = app.clone();
-    std::thread::spawn(move || {
-        let picture = capture::screen_png().ok();
-        if let Some(state) = handle.try_state::<PendingShot>() {
-            *state.0.lock().unwrap_or_else(|e| e.into_inner()) = picture;
-        }
-        show(&handle);
-        if let Some(window) = main_window(&handle) {
-            let _ = window.eval("window.dispatchEvent(new CustomEvent('igrek:screen-ask'))");
-        }
-    });
-}
-
-/// The picture taken when the screen helper's key was pressed, until the page takes it (once).
-#[derive(Default)]
-struct PendingShot(Mutex<Option<String>>);
-
-#[tauri::command]
-fn take_pending_shot(state: State<PendingShot>) -> Option<String> {
-    state.0.lock().unwrap_or_else(|e| e.into_inner()).take()
-}
-
-/// The screen helper's picture: Igrek's window steps aside while it is taken, then comes back.
-#[tauri::command]
-async fn capture_screen(app: AppHandle) -> Result<String, String> {
-    let window = main_window(&app).ok_or("No window")?;
-    tauri::async_runtime::spawn_blocking(move || {
-        let aside = overlay::step_aside(&window);
-        let picture = capture::screen_png();
-        overlay::come_back(&window, &aside);
-        picture
-    })
-    .await
-    .map_err(|e| e.to_string())?
-}
-
-/// The pointer on the real screen where an answer points (a place on the screen helper's picture).
-#[tauri::command]
-fn show_pointer(app: AppHandle, x: f64, y: f64, width: f64, height: f64, label: String) -> Result<(), String> {
-    let (sx, sy) = overlay::to_screen(&app, x, y, width, height);
-    overlay::show_pointer(&app, sx, sy, &label)
-}
-
-/// The answer read out loud with the system's own voice.
-#[tauri::command]
-fn speak(text: String, language: String) -> Result<(), String> {
-    overlay::speak(&text, &language)
-}
-
-/// One step the user allowed on the desktop: a click on a place of the picture, typing, or a key.
-/// Igrek's window steps aside while it happens, so it lands on what the user saw.
-#[tauri::command]
-async fn screen_step(
-    app: AppHandle,
-    action: String,
-    x: f64,
-    y: f64,
-    width: f64,
-    height: f64,
-    text: String,
-) -> Result<(), String> {
-    let (sx, sy) = overlay::to_screen(&app, x, y, width, height);
-    let window = main_window(&app).ok_or("No window")?;
-    tauri::async_runtime::spawn_blocking(move || {
-        let aside = overlay::step_aside(&window);
-        let done = overlay::input_step(&action, sx, sy, &text);
-        overlay::come_back(&window, &aside);
-        done
-    })
-    .await
-    .map_err(|e| e.to_string())?
 }
 
 fn quick_ask_at_start() -> bool {
@@ -309,22 +225,11 @@ fn start_server(app: &AppHandle) {
                         .permission("allow-update-check")
                         .permission("allow-update-install")
                         .permission("allow-update-progress")
-                        .permission("allow-tray-texts")
-                        .permission("allow-capture-screen")
-                        .permission("allow-take-pending-shot")
-                        .permission("allow-show-pointer")
-                        .permission("allow-speak")
-                        .permission("allow-screen-step"),
+                        .permission("allow-tray-texts"),
                 );
                 // Started by the user's quick-question shortcut while Igrek was closed: the page
                 // opens with it (takeQuickAskFromStart in the web app).
-                let start = if quick_ask_at_start() {
-                    format!("{origin}/?quick-ask")
-                } else if std::env::args().any(|a| a == SCREEN_ASK_ARG) {
-                    format!("{origin}/?screen-ask")
-                } else {
-                    origin.clone()
-                };
+                let start = if quick_ask_at_start() { format!("{origin}/?quick-ask") } else { origin.clone() };
                 if let Ok(url) = start.parse() {
                     let _ = window.navigate(url);
                 }
@@ -365,8 +270,6 @@ fn main() {
         .plugin(tauri_plugin_single_instance::init(|app, args, _| {
             if args.iter().any(|a| a == QUICK_ASK_ARG) {
                 quick_ask(app)
-            } else if args.iter().any(|a| a == SCREEN_ASK_ARG) {
-                screen_ask(app)
             } else {
                 show(app)
             }
@@ -376,13 +279,8 @@ fn main() {
         .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, None))
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, shortcut, event| {
-                    if event.state != ShortcutState::Pressed {
-                        return;
-                    }
-                    if SCREEN_ASK.parse::<Shortcut>().is_ok_and(|screen| &screen == shortcut) {
-                        screen_ask(app);
-                    } else {
+                .with_handler(|app, _, event| {
+                    if event.state == ShortcutState::Pressed {
                         quick_ask(app);
                     }
                 })
@@ -390,7 +288,6 @@ fn main() {
         )
         .manage(Server(Default::default()))
         .manage(UpdateProgress::default())
-        .manage(PendingShot::default())
         .invoke_handler(tauri::generate_handler![
             notify,
             autostart,
@@ -398,12 +295,7 @@ fn main() {
             update_check,
             update_install,
             update_progress,
-            tray_texts,
-            capture_screen,
-            take_pending_shot,
-            show_pointer,
-            speak,
-            screen_step
+            tray_texts
         ]);
     if let Some(key) = UPDATER_KEY.filter(|_| updates_enabled()) {
         builder = builder.plugin(tauri_plugin_updater::Builder::new().pubkey(key).build());
@@ -416,22 +308,18 @@ fn main() {
             launcher::register();
             tray(handle)?;
             let window = window(handle)?;
-            for key in [QUICK_ASK, SCREEN_ASK] {
-                if let Ok(shortcut) = key.parse::<Shortcut>() {
-                    // Until the window first has the focus.
-                    let _ = handle.global_shortcut().register(shortcut);
-                }
+            if let Ok(shortcut) = QUICK_ASK.parse::<Shortcut>() {
+                // Until the window first has the focus.
+                let _ = handle.global_shortcut().register(shortcut);
             }
             let focus = handle.clone();
             window.on_window_event(move |event| {
                 if let WindowEvent::Focused(focused) = event {
                     let shortcuts = focus.global_shortcut();
-                    for key in [QUICK_ASK, SCREEN_ASK] {
-                        if let Ok(shortcut) = key.parse::<Shortcut>() {
-                            // Taken by another program (some input methods use Ctrl+Space): Igrek's own
-                            // shortcuts still work inside its window.
-                            let _ = if *focused { shortcuts.unregister(shortcut) } else { shortcuts.register(shortcut) };
-                        }
+                    if let Ok(shortcut) = QUICK_ASK.parse::<Shortcut>() {
+                        // Taken by another program (some input methods use Ctrl+Space): Igrek's own
+                        // Ctrl+Space still works inside its window.
+                        let _ = if *focused { shortcuts.unregister(shortcut) } else { shortcuts.register(shortcut) };
                     }
                 }
             });

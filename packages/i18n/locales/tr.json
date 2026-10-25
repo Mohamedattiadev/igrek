@@ -4735,38 +4735,7 @@
     "overflow": "Ekrandan geniş: yana kayıyor",
     "console": "Tarayıcı hatası: {{error}}",
     "images_one": "{{count}} resim yüklenmiyor",
-    "images_other": "{{count}} resim yüklenmiyor",
-    "ask": {
-      "title": "Ekranın hakkında sor",
-      "body": "Igrek ekranının görüntüsünü yalnızca düğmeye bastığında alır. Üzerinde bulduğu özel bilgiler burada karartılır ve görüntüyü gönderilmeden önce görürsün. Ekranında bir yeri gösterebilir; \"Benimle yap\"ta tıklama ve yazma önerir, bunlar ancak \"Yap\"a basınca olur.",
-      "placeholder": "Ne öğrenmek istiyorsun? Örneğin: yazı tipini nereden değiştiririm?",
-      "take": "Ekranı al",
-      "again": "Yeniden al",
-      "send": "Gönder",
-      "taking": "Görüntü alınıyor…",
-      "asking": "Soruluyor…",
-      "hidden_one": "{{count}} özel bilgi karartıldı.",
-      "hidden_other": "{{count}} özel bilgi karartıldı.",
-      "noOcr": "Igrek görüntüdeki yazıyı okuyamadı (tesseract kurulu değil); bu yüzden kendiliğinden hiçbir şey karartılmadı.",
-      "drag": "Başka bir yeri karartmak için üzerinden sürükle.",
-      "previewAlt": "Ekranın, gönderileceği hâliyle",
-      "privacy": "Yalnızca karartılmış görüntü, Claude planının kullandığı modele gönderilir. Diskte hiçbir şey saklanmaz.",
-      "mode": "Ne yapılsın",
-      "modeAsk": "Sor",
-      "modeDo": "Benimle yap",
-      "voice": "Cevabı sesli oku",
-      "next": "Adımlardan sonra görüntüyü yeniden alıp gönder; sonraki adımlar gelsin.",
-      "open": "Ekranın hakkında sor (Ctrl+Shift+Space; Wayland'de bir tuşu igrek-desktop --screen-ask komutuna bağla)"
-    },
-    "step": {
-      "click": "Tıkla: {{label}}",
-      "type": "Yaz: {{text}}",
-      "key": "{{key}} tuşuna bas",
-      "show": "Göster",
-      "do": "Yap",
-      "done": "Yapıldı",
-      "risky": "Bu adım bir şey gönderir, öder, siler ya da kurar: {{what}}. Yapılsın mı?"
-    }
+    "images_other": "{{count}} resim yüklenmiyor"
   },
   "private": {
     "title": "Özel bilgilerim",

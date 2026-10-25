@@ -12,8 +12,7 @@
     "security": {
       "csp": null,
       "capabilities": []
-    },
-    "macOSPrivateApi": true
+    }
   },
   "bundle": {
     "active": true,
