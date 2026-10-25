@@ -74,6 +74,7 @@ import { registerFixRoutes } from "./fixes";
 import { registerArenaRoutes, registerFlowRoutes, registerImportRoutes } from "./flow-routes";
 import { Flows } from "./flows";
 import { startGateway } from "./gateway";
+import { Handoffs, registerHandoffRoutes } from "./handoff-routes";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
 import { registerI18nRoutes } from "./i18n-routes";
@@ -272,6 +273,9 @@ const files = new Files(
 );
 // Team hub: only active once the user connects from the Team page.
 const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
+// Chats handed over from another computer (handoff.ts) arrive through the hub in parts.
+const handoffs = new Handoffs(join(config.dataDir, "handoffs"), bus);
+sync.onHandoff = (projectId, part) => handoffs.receivePart(projectId, part);
 const translator = new Translator(sqlite, () => readSettings(db), join(config.dataDir, "runner"));
 const languagePacks = new LanguagePacks(join(config.dataDir, "i18n"), bus, join(config.dataDir, "runner"));
 // The chosen language's pack fills itself in: now (a pack cut short, new texts after an update) and
@@ -678,6 +682,13 @@ const app = createApp({
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
     registerReportRoutes(hono, gatewayValues);
+    registerHandoffRoutes(hono, {
+      db: sqlite,
+      handoffs,
+      projectPath: (id) => store.projectRow(id)?.path,
+      send: (projectId, id, parts, sum) => sync.sendHandoff(projectId, id, parts, sum),
+      claudeProjects: () => accounts.claudeProjectDirs().map((a) => a.dir),
+    });
     registerFixRoutes(hono, {
       projectPath: (id) => store.projectRow(id)?.path,
       evidence: (id, check) => {

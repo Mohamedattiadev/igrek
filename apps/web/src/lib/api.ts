@@ -133,6 +133,26 @@ export interface AgentFiles {
   onlyAgents: string[];
 }
 
+/** A chat handed over from another computer, waiting here (apps/server/src/handoff-routes.ts). */
+export interface HandoffItem {
+  id: string;
+  title: string;
+  from: string;
+  at: number;
+  branch: string;
+  changes: number;
+  projectId?: string;
+  folder: string;
+}
+
+export type HandoffProblem =
+  | { code: "not-git" }
+  | { code: "not-shared" }
+  | { code: "dirty"; files: string[] }
+  | { code: "missing-commit"; head: string }
+  | { code: "apply-failed"; detail: string }
+  | { code: "file-exists"; path: string };
+
 export interface PackStatus {
   code: string;
   bundled: boolean;
@@ -199,6 +219,21 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(friendly(res.status, body.error));
   }
   return res.json() as Promise<T>;
+}
+
+/** A POST whose expected "no" (a problem the page explains and offers a way out of) is a value, not an error. */
+async function requestOrProblem<T>(path: string, body: unknown): Promise<T | { problem: HandoffProblem }> {
+  const res = await fetch(path, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  }).catch(() => undefined);
+  if (!res) throw new Error(friendly(undefined));
+  const data = (await res.json().catch(() => ({}))) as { problem?: HandoffProblem; error?: string };
+  if (data.problem) return { problem: data.problem };
+  if (!res.ok) throw new Error(friendly(res.status, data.error));
+  return data as T;
 }
 
 export const api = {
@@ -761,6 +796,17 @@ export const api = {
     request<{ ok: boolean }>(`/api/extension/requests/${id}`, { method: "POST", body: JSON.stringify({ allow }) }),
   /** "Report a problem": version, system and recent log lines, private details taken out. */
   report: () => request<{ text: string }>("/api/report"),
+  /** Sends a chat to the user's other computers through the hub, or returns it as a file's content. */
+  sendHandoff: (sessionId: string, via: "team" | "file") =>
+    requestOrProblem<{ id: string; parts?: number; version?: number }>(`/api/sessions/${sessionId}/elsewhere`, { via }),
+  handoffs: () => request<HandoffItem[]>("/api/handoffs"),
+  importHandoff: (bundle: unknown) =>
+    request<HandoffItem>("/api/handoffs", { method: "POST", body: JSON.stringify(bundle) }),
+  checkHandoff: (id: string, projectId: string) =>
+    requestOrProblem<{ ok: true }>(`/api/handoffs/${id}/check`, { projectId }),
+  continueHandoff: (id: string, projectId: string, stash: boolean) =>
+    requestOrProblem<{ sessionId: string; branch: string }>(`/api/handoffs/${id}/continue`, { projectId, stash }),
+  removeHandoff: (id: string) => request<{ ok: boolean }>(`/api/handoffs/${id}`, { method: "DELETE" }),
   fixPlan: (id: FixId, projectId?: string) =>
     request<{ command: string; cwd: string }>(
       `/api/fixes/${id}${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`,

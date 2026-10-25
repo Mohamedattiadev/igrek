@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { Comments } from "../components/Comments";
+import { ElsewhereButton } from "../components/Handoff";
 import { Replay } from "../components/Replay";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { TeamText } from "../components/TeamText";
@@ -99,6 +100,7 @@ function ResumeButtons({ session }: { session: SessionDetail }) {
   return (
     <div className="flex items-center gap-1">
       {error && <span className="me-2 text-xs text-danger">{error}</span>}
+      <ElsewhereButton session={session} />
       <Button
         size="sm"
         variant="ghost"

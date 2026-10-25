@@ -4977,5 +4977,32 @@
     "join": "Birleştir",
     "joinTip": "Her kural AGENTS.md'ye gider, CLAUDE.md onu yalnızca içeri alır (@AGENTS.md); iki ajan aynı kuralları okur. Önce bir anlık kopya alınır. Yapay zekâ modeli kullanılmaz.",
     "joined": "Claude ve Codex aynı kuralları okuyor (CLAUDE.md, AGENTS.md'yi içeri alıyor)."
+  },
+  "handoff": {
+    "button": "Başka bilgisayarda",
+    "tip": "Bu sohbete başka bir bilgisayarda devam et: aynı oturum ve aynı kod, kaydedilmemiş değişiklikler dahil, yeni prompt yazmadan.",
+    "viaTeam": "Diğer bilgisayarlarıma ve takıma gönder",
+    "viaTeamHint": "Takım hub'ın üzerinden, şifreli. Orada Projeler sayfasında bekler.",
+    "viaFile": "Dosya olarak kaydet",
+    "viaFileHint": "Kendin taşı, orada Projeler sayfasında aç.",
+    "sent": "Gönderildi. Diğer bilgisayarlarında Projeler sayfasında bekliyor.",
+    "saved": "Kaydedildi. Diğer bilgisayarda Projeler sayfasında aç.",
+    "waiting": "Burada devam edilecek sohbetler",
+    "untitled": "Bir sohbet",
+    "meta_one": "{{from}} bilgisayarından · {{branch}} · {{count}} kaydedilmemiş değişiklik",
+    "meta_other": "{{from}} bilgisayarından · {{branch}} · {{count}} kaydedilmemiş değişiklik",
+    "which": "Hangi proje?",
+    "continue": "Burada devam et",
+    "remove": "Kaldır",
+    "stashAndContinue": "Değişikliklerimi kenara koy ve devam et",
+    "open": "Devir dosyası aç",
+    "openTip": "Başka bir bilgisayarda \"Başka bilgisayarda\" ile kaydedilmiş bir sohbet.",
+    "badFile": "Bu bir devir dosyası değil.",
+    "problem_not-git": "Proje burada bir git deposu değil; kod aynı duruma getirilemez.",
+    "problem_not-shared": "Bu proje takım hub'ınla paylaşılmıyor. Kurulum'dan paylaşımı aç ya da sohbeti dosya olarak kaydet.",
+    "problem_dirty": "Bu bilgisayarda projede kaydedilmemiş değişiklikler var. Igrek onları kenara koyabilir (git stash), hiçbir şey kaybolmaz; git stash pop geri getirir.",
+    "problem_missing-commit": "Sohbetin üzerinde olduğu commit, çektikten sonra bile burada bulunamadı. Diğer bilgisayarda push et ve tekrar dene.",
+    "problem_apply-failed": "Değişiklikler uygulanamadı; seninkilerden hiçbiri ezilmedi.",
+    "problem_file-exists": "Diğer bilgisayardan gelen yeni bir dosya burada zaten var."
   }
 }

@@ -849,6 +849,26 @@ export class Sync {
   }
 
   /** Shared projects, plus local ones a teammate shares that we only receive. */
+  /** A received hand-off part (handoff-routes.ts keeps them until the bundle is whole). */
+  onHandoff: (projectId: string, part: { id: string; i: number; n: number; sum: string; data: string }) => void = () =>
+    undefined;
+
+  /**
+   * Sends a hand-off bundle (handoff.ts) to the project's other computers, the user's own and their
+   * teammates', in parts that fit the hub's events, encrypted like everything else. False when the
+   * project is not linked to the team.
+   */
+  async sendHandoff(projectId: string, id: string, parts: string[], sum: string): Promise<boolean> {
+    if (!this.idKey) return false;
+    const project = this.linkedProjects().find((p) => p.id === projectId);
+    if (!project) return false;
+    const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
+    for (let i = 0; i < parts.length; i++)
+      if (!(await this.publish(key, "handoff", `h-${id}-${i}`, { id, i, n: parts.length, sum, data: parts[i] })))
+        return false;
+    return true;
+  }
+
   private linkedProjects(): { id: string; name: string; identity: string | null; path: string; share: ShareLevel }[] {
     return this.db
       .query("SELECT id, name, identity, path, share FROM projects WHERE share != 'off' OR team_linked = 1")
@@ -1396,6 +1416,8 @@ export class Sync {
         if (event.kind === "session") this.applySession(projectId, value, author);
         else if (event.kind === "messages") this.applyMessages(value);
         else if (event.kind === "memory") this.applyMemory(projectId, value, author);
+        else if (event.kind === "handoff")
+          this.onHandoff(projectId, value as { id: string; i: number; n: number; sum: string; data: string });
         else if (event.kind === "wiki" || event.kind === "board")
           this.docs?.apply(event.kind, projectId, value, author.name);
         else if (event.kind === "task") this.board?.applyRemote(projectId, value, author.name);

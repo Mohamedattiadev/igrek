@@ -918,6 +918,8 @@ export type ServerMessage =
   | { type: "lessons-changed" }
   | { type: "knowledge-changed" }
   | { type: "flows-changed"; runId?: string }
+  /** A chat handed over from another computer arrived, or one was taken (handoff.ts). */
+  | { type: "handoffs-changed" }
   /** The browser extension asks to pair; Igrek shows its code for the user to allow. */
   | { type: "extension-pair" }
   | { type: "board-changed"; projectId: string }

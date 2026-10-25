@@ -4977,5 +4977,32 @@
     "join": "Join them",
     "joinTip": "Every rule goes into AGENTS.md and CLAUDE.md just brings it in (@AGENTS.md), so both agents read the same rules. A snapshot is taken first. No AI model is used.",
     "joined": "Claude and Codex read the same rules (CLAUDE.md brings in AGENTS.md)."
+  },
+  "handoff": {
+    "button": "Go on elsewhere",
+    "tip": "Go on with this chat on another computer: the same session and the same code, unsaved changes included, without a new prompt.",
+    "viaTeam": "Send to my other computers and the team",
+    "viaTeamHint": "Through your team hub, encrypted. It waits on the Projects page there.",
+    "viaFile": "Save as a file",
+    "viaFileHint": "Carry it over yourself and open it on the Projects page there.",
+    "sent": "Sent. It waits on the Projects page of your other computers.",
+    "saved": "Saved. Open it on the other computer's Projects page.",
+    "waiting": "Chats to go on with here",
+    "untitled": "A chat",
+    "meta_one": "From {{from}} · {{branch}} · {{count}} unsaved change",
+    "meta_other": "From {{from}} · {{branch}} · {{count}} unsaved changes",
+    "which": "Which project?",
+    "continue": "Go on here",
+    "remove": "Remove",
+    "stashAndContinue": "Put my changes aside and go on",
+    "open": "Open a hand-off file",
+    "openTip": "A chat saved on another computer with \"Go on elsewhere\".",
+    "badFile": "That is not a hand-off file.",
+    "problem_not-git": "The project is not a git repository here, so the code cannot be brought to the same state.",
+    "problem_not-shared": "This project is not shared with your team hub. Turn sharing on in its Setup, or save the chat as a file.",
+    "problem_dirty": "This computer has unsaved changes in the project. Igrek can put them aside (git stash) so nothing is lost; git stash pop brings them back.",
+    "problem_missing-commit": "The commit this chat was on could not be found here, even after fetching. Push it on the other computer, then try again.",
+    "problem_apply-failed": "The changes could not be applied; nothing of yours was overwritten.",
+    "problem_file-exists": "A new file from the other computer already exists here with different content."
   }
 }

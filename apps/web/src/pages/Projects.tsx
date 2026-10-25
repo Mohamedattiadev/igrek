@@ -15,6 +15,7 @@ import { lazy, type ReactNode, Suspense, useEffect, useMemo, useState } from "re
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { AddProjectForm } from "../components/AddProjectForm";
+import { HandoffsPanel } from "../components/Handoff";
 import { LoadError } from "../components/LoadError";
 import { StartBox } from "../components/StartBox";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
@@ -526,6 +527,7 @@ export function ProjectsPage() {
         actions={
           projects && projects.length > 0 ? (
             <div className="flex items-center gap-2">
+              <HandoffsPanel />
               <NewProject />
               <AddProject />
               <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2">
