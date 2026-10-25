@@ -7,6 +7,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod capture;
+mod overlay;
 #[cfg(target_os = "linux")]
 mod launcher;
 mod server;
@@ -88,6 +89,45 @@ async fn capture_screen(app: AppHandle) -> Result<String, String> {
     .map_err(|e| e.to_string());
     show(&app);
     picture?
+}
+
+/// The pointer on the real screen where an answer points (a place on the screen helper's picture).
+#[tauri::command]
+fn show_pointer(app: AppHandle, x: f64, y: f64, width: f64, height: f64, label: String) -> Result<(), String> {
+    let (sx, sy) = overlay::to_screen(&app, x, y, width, height);
+    overlay::show_pointer(&app, sx, sy, &label)
+}
+
+/// The answer read out loud with the system's own voice.
+#[tauri::command]
+fn speak(text: String, language: String) -> Result<(), String> {
+    overlay::speak(&text, &language)
+}
+
+/// One step the user allowed on the desktop: a click on a place of the picture, typing, or a key.
+/// Igrek's window steps aside while it happens, so it lands on what the user saw.
+#[tauri::command]
+async fn screen_step(
+    app: AppHandle,
+    action: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+    text: String,
+) -> Result<(), String> {
+    let (sx, sy) = overlay::to_screen(&app, x, y, width, height);
+    if let Some(window) = main_window(&app) {
+        let _ = window.hide();
+    }
+    let done = tauri::async_runtime::spawn_blocking(move || {
+        std::thread::sleep(std::time::Duration::from_millis(350));
+        overlay::input_step(&action, sx, sy, &text)
+    })
+    .await
+    .map_err(|e| e.to_string());
+    show(&app);
+    done?
 }
 
 fn quick_ask_at_start() -> bool {
@@ -247,7 +287,10 @@ fn start_server(app: &AppHandle) {
                         .permission("allow-update-install")
                         .permission("allow-update-progress")
                         .permission("allow-tray-texts")
-                        .permission("allow-capture-screen"),
+                        .permission("allow-capture-screen")
+                        .permission("allow-show-pointer")
+                        .permission("allow-speak")
+                        .permission("allow-screen-step"),
                 );
                 // Started by the user's quick-question shortcut while Igrek was closed: the page
                 // opens with it (takeQuickAskFromStart in the web app).
@@ -323,7 +366,10 @@ fn main() {
             update_install,
             update_progress,
             tray_texts,
-            capture_screen
+            capture_screen,
+            show_pointer,
+            speak,
+            screen_step
         ]);
     if let Some(key) = UPDATER_KEY.filter(|_| updates_enabled()) {
         builder = builder.plugin(tauri_plugin_updater::Builder::new().pubkey(key).build());

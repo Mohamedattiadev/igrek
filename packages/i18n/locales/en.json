@@ -4737,7 +4737,7 @@
     "images_other": "{{count}} pictures do not load",
     "ask": {
       "title": "Ask about your screen",
-      "body": "Igrek takes a picture of your screen only when you press the button. Private details it finds on it are blacked out here, and you see the picture before it is sent.",
+      "body": "Igrek takes a picture of your screen only when you press the button. Private details it finds on it are blacked out here, and you see the picture before it is sent. It can point at things on your screen, and in \"Do it with me\" it proposes clicks and typing that happen only when you press \"Do it\".",
       "placeholder": "What do you want to know? For example: where do I change the font?",
       "take": "Take a picture",
       "again": "Take it again",
@@ -4749,7 +4749,21 @@
       "noOcr": "Igrek could not read the text on the picture (tesseract is not installed), so nothing was blacked out by itself.",
       "drag": "Drag over anything else to black it out.",
       "previewAlt": "Your screen, as it will be sent",
-      "privacy": "Only the blacked-out picture is sent, to the model your Claude plan uses. Nothing is kept on disk."
+      "privacy": "Only the blacked-out picture is sent, to the model your Claude plan uses. Nothing is kept on disk.",
+      "mode": "What to do",
+      "modeAsk": "Ask",
+      "modeDo": "Do it with me",
+      "voice": "Read the answer aloud",
+      "next": "After the steps, take the picture again and send to get the next ones."
+    },
+    "step": {
+      "click": "Click: {{label}}",
+      "type": "Type: {{text}}",
+      "key": "Press {{key}}",
+      "show": "Show",
+      "do": "Do it",
+      "done": "Done",
+      "risky": "This step sends, pays, deletes or installs something: {{what}}. Do it?"
     }
   },
   "private": {

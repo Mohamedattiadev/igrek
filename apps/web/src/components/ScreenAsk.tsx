@@ -1,9 +1,28 @@
 import { Camera, MousePointer2, Send } from "lucide-react";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { api } from "../lib/api";
+import { api, type ScreenStep } from "../lib/api";
 import { desktop, inDesktopApp } from "../lib/desktop";
-import { Button, Dialog } from "./ui";
+import { ScreenSteps } from "./ScreenSteps";
+import { Button, Dialog, Segmented } from "./ui";
+
+const VOICE = "igrek.screen.voice";
+
+function readVoice(): boolean {
+  try {
+    return localStorage.getItem(VOICE) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function keepVoice(on: boolean): void {
+  try {
+    localStorage.setItem(VOICE, on ? "1" : "0");
+  } catch {
+    // Remembering the choice is only a convenience.
+  }
+}
 
 interface Box {
   x: number;
@@ -52,8 +71,13 @@ async function blackedOut(shot: Shot): Promise<string> {
  * blacked-out picture is sent, after "Send". The answer can point at a place on the picture.
  */
 export function ScreenAsk() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  /** Ask about the screen, or have something done on it step by step. */
+  const [mode, setMode] = useState<"ask" | "do">("ask");
+  const [voice, setVoice] = useState(readVoice);
+  const [steps, setSteps] = useState<ScreenStep[]>([]);
+  const [done, setDone] = useState<string[]>([]);
   const [question, setQuestion] = useState("");
   const [shot, setShot] = useState<Shot>();
   const [preview, setPreview] = useState<string>();
@@ -98,9 +122,19 @@ export function ScreenAsk() {
     setBusy("ask");
     setError(undefined);
     try {
-      setAnswer(
-        await api.screenAsk({ image: await blackedOut(shot), question, width: shot.width, height: shot.height }),
-      );
+      const image = await blackedOut(shot);
+      const size = { width: shot.width, height: shot.height };
+      const reply =
+        mode === "ask"
+          ? await api.screenAsk({ image, question, ...size })
+          : await api.screenAct({ image, goal: question, ...size, done });
+      setAnswer(reply);
+      setSteps("steps" in reply ? reply.steps : []);
+      if (voice && reply.answer)
+        void desktop("speak", { text: reply.answer, language: i18n.language }).catch(() => undefined);
+      // Where the answer points shows on the real screen too, for a few seconds.
+      if ("point" in reply && reply.point)
+        void desktop("show_pointer", { ...reply.point, ...size }).catch(() => undefined);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -120,6 +154,8 @@ export function ScreenAsk() {
     setOpen(false);
     setShot(undefined);
     setAnswer(undefined);
+    setSteps([]);
+    setDone([]);
   };
 
   return (
@@ -127,6 +163,32 @@ export function ScreenAsk() {
       <div className="space-y-3 p-5 text-[13px]">
         <h2 className="text-[15px] font-semibold">{t("screen.ask.title")}</h2>
         <p className="text-fg-muted">{t("screen.ask.body")}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Segmented
+            label={t("screen.ask.mode")}
+            value={mode}
+            onChange={(m) => {
+              setMode(m);
+              setSteps([]);
+              setDone([]);
+            }}
+            options={[
+              { value: "ask", label: t("screen.ask.modeAsk") },
+              { value: "do", label: t("screen.ask.modeDo") },
+            ]}
+          />
+          <label className="flex items-center gap-1.5 text-[12.5px] text-fg-muted">
+            <input
+              type="checkbox"
+              checked={voice}
+              onChange={(e) => {
+                setVoice(e.target.checked);
+                keepVoice(e.target.checked);
+              }}
+            />
+            {t("screen.ask.voice")}
+          </label>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <input
             value={question}
@@ -163,6 +225,15 @@ export function ScreenAsk() {
             <p className="whitespace-pre-wrap">{answer.answer}</p>
           </div>
         )}
+        {shot && steps.length > 0 && (
+          <ScreenSteps
+            key={steps.map((x) => `${x.action}${x.x}${x.text}`).join("|")}
+            steps={steps}
+            size={{ width: shot.width, height: shot.height }}
+            onDone={(what) => setDone((list) => [...list, what])}
+          />
+        )}
+        {mode === "do" && done.length > 0 && <p className="text-[12px] text-fg-subtle">{t("screen.ask.next")}</p>}
         {preview && shot && (
           <div className="relative overflow-hidden rounded-ui border border-border">
             <img

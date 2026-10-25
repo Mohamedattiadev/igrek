@@ -10,7 +10,7 @@ publish = false
 tauri-build = { version = "=2.7.1", features = [] }
 
 [dependencies]
-tauri = { version = "=2.12.1", features = ["tray-icon"] }
+tauri = { version = "=2.12.1", features = ["tray-icon", "macos-private-api"] }
 tauri-plugin-autostart = "=2.7.0"
 tauri-plugin-global-shortcut = "=2.4.0"
 tauri-plugin-notification = "=2.5.1"

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>igrek-pointer</title>
+    <!-- The screen helper's pointer: drawn over the screen where an answer points (src-tauri/src/overlay.rs). -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: transparent;
+        overflow: hidden;
+        font: 600 13px system-ui, sans-serif;
+      }
+      .p {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+        animation: in 0.25s ease-out;
+      }
+      .l {
+        margin-top: 18px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #2267ef;
+        color: #fff;
+        white-space: nowrap;
+      }
+      @keyframes in {
+        from {
+          transform: translate(-14px, -14px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="p">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="#2267ef" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4.04 2.72a.9.9 0 0 0-1.32 1.32l7.43 17.96a.9.9 0 0 0 1.68-.06l2.35-7.11 7.11-2.35a.9.9 0 0 0 .06-1.68z" />
+      </svg>
+      <span class="l" id="l"></span>
+    </div>
+    <script>
+      const text = decodeURIComponent(location.hash.slice(1).replace(/\+/g, " "));
+      const l = document.getElementById("l");
+      if (text) l.textContent = text;
+      else l.remove();
+    </script>
+  </body>
+</html>

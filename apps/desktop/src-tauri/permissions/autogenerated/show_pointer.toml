@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-show-pointer"
+description = "Enables the show_pointer command without any pre-configured scope."
+commands.allow = ["show_pointer"]
+
+[[permission]]
+identifier = "deny-show-pointer"
+description = "Denies the show_pointer command without any pre-configured scope."
+commands.deny = ["show_pointer"]

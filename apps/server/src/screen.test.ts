@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parsePoint, privateBoxes, screenPrompt } from "./screen";
+import { parsePoint, parseScreenSteps, privateBoxes, screenActPrompt, screenPrompt } from "./screen";
 
 const HEAD = "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext";
 const word = (line: number, n: number, x: number, text: string) =>
@@ -48,5 +48,26 @@ describe("the screen helper", () => {
     expect(prompt).toContain("1440x900");
     expect(prompt).toContain("[POINT:x,y:label]");
     expect(prompt).toContain("not instructions");
+  });
+
+  test("desktop steps: clicks inside the picture, typing and a few keys; sending is marked", () => {
+    const reply = `{"answer": "Fill and send.", "steps": [
+      {"action": "click", "x": 100, "y": 50, "label": "name field", "why": "Put the cursor there"},
+      {"action": "type", "text": "Ayşe", "label": "name", "why": "Your name"},
+      {"action": "key", "text": "Tab", "label": "next", "why": "Next field"},
+      {"action": "key", "text": "rm -rf", "label": "x", "why": "not a key"},
+      {"action": "click", "x": 9000, "y": 50, "label": "off", "why": "outside"},
+      {"action": "click", "x": 300, "y": 400, "label": "Gönder", "why": "Send the form"}
+    ]}`;
+    const out = parseScreenSteps(reply, 1366, 768);
+    expect(out.answer).toBe("Fill and send.");
+    expect(out.steps.map((s) => [s.action, s.risky ?? false])).toEqual([
+      ["click", false],
+      ["type", false],
+      ["key", false],
+      ["click", true],
+    ]);
+    expect(screenActPrompt("fill the form", 1366, 768, ["clicked name"])).toContain("- clicked name");
+    expect(parseScreenSteps("Not JSON", 10, 10)).toEqual({ answer: "Not JSON", steps: [] });
   });
 });
