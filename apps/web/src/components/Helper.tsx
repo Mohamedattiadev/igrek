@@ -1,5 +1,16 @@
 import { type ChatInfo, capabilitiesOf, HELP_TOPICS, type ProjectListItem, type SessionListItem } from "@igrek/core";
-import { ArrowRight, BookOpen, CircleHelp, Compass, MessageSquarePlus, Play, Send, X } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Bug,
+  CircleHelp,
+  Compass,
+  LifeBuoy,
+  MessageSquarePlus,
+  Play,
+  Send,
+  X,
+} from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
@@ -9,6 +20,7 @@ import { relativeTime } from "../lib/format";
 import { CHAT, findProject, fold, GUIDE, has, LAST, NEW, TERMINAL, TOUR, WHERE_TYPE } from "../lib/helper-match";
 import { startTour } from "../lib/tour";
 import { LazyMarkdown as Markdown } from "./LazyMarkdown";
+import { ReportProblem } from "./ReportProblem";
 
 /** Something the helper offers: a page to open or a thing to do. */
 interface Action {
@@ -36,6 +48,7 @@ export function Helper() {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -256,6 +269,25 @@ export function Helper() {
             <h2 className="text-[13.5px] font-semibold">{t("helper.title")}</h2>
             <p className="truncate text-[11px] text-fg-subtle">{t("helper.subtitle")}</p>
           </div>
+          <a
+            href="https://github.com/Mohamedattiadev/igrek/discussions"
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("report.community")}
+            data-tip={t("report.community")}
+            className="rounded-md p-1 text-fg-subtle hover:bg-bg-hover hover:text-fg"
+          >
+            <LifeBuoy size={15} aria-hidden="true" />
+          </a>
+          <button
+            type="button"
+            onClick={() => setReporting(true)}
+            aria-label={t("report.title")}
+            data-tip={t("report.title")}
+            className="rounded-md p-1 text-fg-subtle hover:bg-bg-hover hover:text-fg"
+          >
+            <Bug size={15} aria-hidden="true" />
+          </button>
           <button
             type="button"
             onClick={close}
@@ -353,6 +385,7 @@ export function Helper() {
   return (
     <>
       {panel}
+      <ReportProblem open={reporting} onClose={() => setReporting(false)} />
       <button
         ref={toggle}
         type="button"

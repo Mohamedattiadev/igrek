@@ -620,3 +620,241 @@ footer a {
     padding-top: 64px;
   }
 }
+
+/* Docs, laid out like the documentation people already know: menu, page, "on this page". */
+.search {
+  margin-left: 8px;
+  position: relative;
+}
+.search input {
+  width: 220px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--fg);
+  padding: 0 10px 0 32px;
+  font: inherit;
+  font-size: 14px;
+}
+.search input:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+.search .icon {
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  width: 16px;
+  height: 16px;
+  color: var(--subtle);
+}
+.results {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 360px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: none;
+}
+.results.open {
+  display: block;
+}
+.results a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 7px;
+  color: var(--fg);
+}
+.results a:hover,
+.results a:focus {
+  background: var(--bg-2);
+  text-decoration: none;
+}
+.results small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+.docs3 {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr) 200px;
+  gap: 48px;
+  padding-top: 32px;
+}
+.docs3 aside.menu,
+.docs3 aside.toc {
+  position: sticky;
+  top: 84px;
+  align-self: start;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  font-size: 14.5px;
+}
+.docs3 aside p {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  margin: 20px 0 6px;
+}
+.docs3 aside.menu a {
+  display: block;
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 7px;
+}
+.docs3 aside.menu a:hover {
+  color: var(--fg);
+  background: var(--bg-2);
+  text-decoration: none;
+}
+.docs3 aside.menu a.on {
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+.docs3 aside.toc a {
+  display: block;
+  color: var(--muted);
+  padding: 3px 0 3px 12px;
+  border-left: 1px solid var(--border);
+}
+.docs3 aside.toc a:hover {
+  color: var(--fg);
+  border-left-color: var(--fg);
+  text-decoration: none;
+}
+.crumbs {
+  font-size: 14px;
+  color: var(--subtle);
+  margin-bottom: 10px;
+}
+.crumbs a {
+  color: var(--muted);
+}
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 56px;
+}
+.pager a {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--fg);
+}
+.pager a:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+.pager a small {
+  display: block;
+  color: var(--subtle);
+  font-size: 13px;
+}
+.pager a.next {
+  text-align: right;
+  grid-column: 2;
+}
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  margin: 16px 0;
+}
+.doc th,
+.doc td {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding: 9px 10px;
+  vertical-align: top;
+}
+.doc th {
+  color: var(--muted);
+  font-weight: 600;
+}
+.docs-home {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+.docs-home .card a {
+  display: block;
+  padding: 3px 0;
+}
+.docs-home .card h3 {
+  margin-bottom: 10px;
+}
+
+/* The download box on the home page: the right package for this computer first. */
+.dlbox {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.dlbox .version {
+  font-size: 13.5px;
+  color: var(--subtle);
+}
+.dlbox .others {
+  font-size: 14px;
+  color: var(--muted);
+}
+.dlbox .others a {
+  margin: 0 6px;
+}
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.roadmap h3 .badge {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+@media (max-width: 1100px) {
+  .docs3 {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .docs3 aside.toc {
+    display: none;
+  }
+}
+@media (max-width: 820px) {
+  .docs3 {
+    grid-template-columns: 1fr;
+  }
+  .docs3 aside.menu {
+    position: static;
+    max-height: none;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2px 12px 12px;
+  }
+  .search input {
+    width: 150px;
+  }
+  .results {
+    width: min(360px, 92vw);
+  }
+}
+.doc a,
+.doc code {
+  overflow-wrap: anywhere;
+}

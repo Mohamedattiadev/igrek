@@ -133,6 +133,7 @@ import { registerPreviewRoutes } from "./preview-routes";
 import { PrivateValues, registerPrivateRoutes } from "./private-values";
 import { isoWeek, Product } from "./product";
 import { registerReaRoutes } from "./rea";
+import { keepRecentLog, registerReportRoutes } from "./report";
 import { Retention } from "./retention";
 import { Routines } from "./routines";
 import { registerScheduleRoutes } from "./schedule-routes";
@@ -169,6 +170,9 @@ import { DependencyWatcher, SecretScanner } from "./watchers";
 import { Writeups } from "./writeups";
 
 // A restart from inside Igrek waits here until the old process has let go of the port and the data.
+
+// "Report a problem" shows the last lines the server printed (report.ts); kept in memory only.
+keepRecentLog();
 const startDelay = Number(process.env.IGREK_START_DELAY_MS ?? 0);
 if (startDelay > 0) await Bun.sleep(Math.min(startDelay, 10_000));
 delete process.env.IGREK_START_DELAY_MS;
@@ -673,6 +677,7 @@ const app = createApp({
     });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
+    registerReportRoutes(hono, gatewayValues);
     registerFixRoutes(hono, {
       projectPath: (id) => store.projectRow(id)?.path,
       evidence: (id, check) => {

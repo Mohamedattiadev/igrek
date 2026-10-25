@@ -100,6 +100,49 @@ function ProjectStep({ onDone }: { onDone: () => void }) {
   );
 }
 
+/** First tasks people try, each a prompt that waits in a new chat (nothing is sent before Send). */
+const FIRST = ["explain", "next", "readme"] as const;
+
+/**
+ * The last step offers a first task in the project just added (plan.md 7.2, the first five minutes):
+ * a real answer about the user's own code within a minute, instead of an empty screen to figure out.
+ */
+function FirstTask() {
+  const { t } = useTranslation();
+  const { update } = useSettings();
+  const [project, setProject] = useState<ProjectListItem>();
+  useEffect(() => {
+    api
+      .projects()
+      .then((list) => setProject(list.find((p) => !p.hidden)))
+      .catch(() => undefined);
+  }, []);
+  if (!project) return null;
+  const start = (key: (typeof FIRST)[number]) => {
+    const draft = encodeURIComponent(t(`onboarding.first_${key}`));
+    void update({ onboarded: true }).then(() =>
+      window.location.assign(`/c/new?project=${encodeURIComponent(project.id)}&draft=${draft}`),
+    );
+  };
+  return (
+    <div className="mt-4 space-y-2 rounded-ui border border-border p-3 text-[13px]">
+      <p className="font-medium">{t("onboarding.firstTitle", { project: project.name })}</p>
+      <div className="flex flex-col gap-1.5">
+        {FIRST.map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => start(key)}
+            className="rounded-ui border border-border px-2.5 py-1.5 text-start text-[12.5px] hover:border-accent"
+          >
+            {t(`onboarding.first_${key}`)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /**
  * First-run wizard: the language (plan.md 7.4), then the project folders, then a word on privacy
  * with what to install if Claude Code or Codex is missing (Igrek does not bring them).
@@ -159,6 +202,7 @@ export function Onboarding() {
               <div className="mt-4">
                 <AiToolsCheck />
               </div>
+              <FirstTask />
               <div className="mt-6 flex flex-wrap justify-end gap-2">
                 <Button variant="ghost" onClick={() => void update({ onboarded: true })}>
                   {t("onboarding.startNoTour")}

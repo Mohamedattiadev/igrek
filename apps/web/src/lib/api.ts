@@ -759,6 +759,8 @@ export const api = {
   extensionRequests: () => request<{ id: string; code: string; at: number }[]>("/api/extension/requests"),
   decideExtension: (id: string, allow: boolean) =>
     request<{ ok: boolean }>(`/api/extension/requests/${id}`, { method: "POST", body: JSON.stringify({ allow }) }),
+  /** "Report a problem": version, system and recent log lines, private details taken out. */
+  report: () => request<{ text: string }>("/api/report"),
   fixPlan: (id: FixId, projectId?: string) =>
     request<{ command: string; cwd: string }>(
       `/api/fixes/${id}${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`,

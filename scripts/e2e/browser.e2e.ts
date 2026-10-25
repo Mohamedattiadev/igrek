@@ -128,6 +128,23 @@ describe.skipIf(!ready)("the app in a browser", () => {
     await ctx.close();
   }, 30_000);
 
+  test("a problem report is prepared from the version and the log, and shown before anything is sent", async () => {
+    const { page, ctx } = await open("light", "/");
+    await page.getByRole("button", { name: "Helper", exact: true }).click();
+    await page.getByRole("button", { name: "Report a problem" }).click();
+    const report = page.getByRole("textbox", { name: "Report a problem" });
+    await page.waitForFunction(
+      () =>
+        document.querySelector("dialog textarea")?.textContent?.includes("**System:** Igrek") ||
+        (document.querySelector("dialog textarea") as HTMLTextAreaElement | null)?.value.includes("**System:** Igrek"),
+    );
+    expect(await report.inputValue()).toContain("**System:** Igrek");
+    // Nothing goes anywhere by itself: the only way out is the link the user opens.
+    const link = page.getByRole("link", { name: "Open on GitHub" });
+    expect(await link.getAttribute("href")).toStartWith("https://github.com/Mohamedattiadev/igrek/issues/new?");
+    await ctx.close();
+  }, 30_000);
+
   test("the Simple view shows a project's overview, chats and files; the Developer view every tab", async () => {
     await settings({ mode: "simple" });
     const simple = await open("light", `/p/${project}`);

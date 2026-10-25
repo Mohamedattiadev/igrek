@@ -273,7 +273,11 @@
     "toolsFound": "{{tool}} is installed",
     "toolsMissing": "{{tool}} is not installed. In a terminal:",
     "toolsMore": "How to install {{tool}}",
-    "toolsRecheck": "Check again"
+    "toolsRecheck": "Check again",
+    "firstTitle": "A first task in {{project}} (it waits in a new chat until you press Send):",
+    "first_explain": "Explain this project to me: what it does, how it is built and where to start.",
+    "first_next": "Look at the project and suggest the three most useful next steps, smallest first.",
+    "first_readme": "Write or improve the README: what the project is, how to install and run it."
   },
   "help": {
     "t_projects": "Projects",
@@ -4415,11 +4419,13 @@
     "trustShort": "Trust"
   },
   "report": {
-    "htmlTitle": "HTML page from the AI (sandboxed, no network)",
-    "htmlCode": "Code",
-    "htmlPage": "Page",
-    "htmlFull": "Full screen",
-    "htmlSmall": "Back to the chat"
+    "title": "Report a problem",
+    "body": "Igrek prepared this from your version, your system and its last log lines, with private details taken out. Read it, add what happened, change anything you like. Nothing is sent until you open it on GitHub.",
+    "titlePlaceholder": "In a few words: what went wrong?",
+    "defaultTitle": "Something does not work",
+    "public": "A GitHub issue is public. Check the text for anything you would not post.",
+    "open": "Open on GitHub",
+    "community": "Ask the community (Discussions)"
   },
   "agentAsk": {
     "secretTitle": "A secret an AI asked for",

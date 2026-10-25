@@ -102,6 +102,13 @@ jobs:
       - name: The server starts and stops
         working-directory: apps/desktop
         run: bun scripts/smoke.ts --target ${{ matrix.target }}
+      # The AppImage as a user first opens it: runtime download, server up, the right version. On a tag
+      # only, where the version is the release's (docs/release.md).
+      - name: The AppImage's first start
+        if: matrix.target == 'x86_64-unknown-linux-gnu' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          sudo apt-get install -y xvfb
+          bash apps/desktop/scripts/first-start.sh "$(ls desktop-packages/*.AppImage)" "${GITHUB_REF_NAME#v}"
 
   # What the app asks to learn of a new version (latest.json), made from the signatures above. It is
   # uploaded with the packages to the release; the app reads it from the newest release.

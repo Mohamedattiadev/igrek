@@ -273,7 +273,11 @@
     "toolsFound": "{{tool}} kurulu",
     "toolsMissing": "{{tool}} kurulu değil. Bir terminalde:",
     "toolsMore": "{{tool}} nasıl kurulur",
-    "toolsRecheck": "Yeniden kontrol et"
+    "toolsRecheck": "Yeniden kontrol et",
+    "firstTitle": "{{project}} için ilk iş (Gönder'e basana kadar yeni bir sohbette bekler):",
+    "first_explain": "Bu projeyi bana anlat: ne yapıyor, nasıl kurulmuş ve nereden başlamalıyım?",
+    "first_next": "Projeye bak ve en faydalı üç sonraki adımı öner, en küçüğünden başla.",
+    "first_readme": "README'yi yaz ya da iyileştir: proje ne, nasıl kurulur ve çalıştırılır."
   },
   "help": {
     "t_projects": "Projeler",
@@ -4415,11 +4419,13 @@
     "trustShort": "Güven"
   },
   "report": {
-    "htmlTitle": "AI'ın yazdığı HTML sayfası (yalıtılmış, ağa çıkamaz)",
-    "htmlCode": "Kod",
-    "htmlPage": "Sayfa",
-    "htmlFull": "Tam ekran",
-    "htmlSmall": "Sohbete dön"
+    "title": "Sorun bildir",
+    "body": "Igrek bunu sürümünden, sisteminden ve son kayıt satırlarından hazırladı; özel bilgiler çıkarıldı. Oku, ne olduğunu ekle, istediğini değiştir. GitHub'da açana kadar hiçbir şey gönderilmez.",
+    "titlePlaceholder": "Birkaç kelimeyle: ne ters gitti?",
+    "defaultTitle": "Bir şey çalışmıyor",
+    "public": "GitHub'daki bir issue herkese açıktır. Paylaşmak istemeyeceğin bir şey var mı, metne bak.",
+    "open": "GitHub'da aç",
+    "community": "Topluluğa sor (Discussions)"
   },
   "agentAsk": {
     "secretTitle": "Bir AI'ın istediği sır",

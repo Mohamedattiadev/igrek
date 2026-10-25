@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Browser extension · Igrek docs</title>
+    <meta name="description" content="For Chrome, Brave and Edge. It fills forms with your private details without the AI seeing them, writes a field&#x27;s text, and acts on a page with you: a" />
+    <meta property="og:title" content="Browser extension · Igrek docs" />
+    <meta property="og:description" content="For Chrome, Brave and Edge. It fills forms with your private details without the AI seeing them, writes a field&#x27;s text, and acts on a page with you: a" />
+    <meta property="og:image" content="https://mohamedattiadev.github.io/igrek/img/en-health.webp" />
+    <link rel="icon" href="../../logo.svg" />
+    <link rel="stylesheet" href="../../style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="../../"><img src="../../logo.svg" width="24" height="24" alt="" /> Igrek</a>
+        <div class="search"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs" autocomplete="off" /><div class="results" id="results"></div></div>
+        <nav>
+          <a href="../../docs/" class=on>Docs</a>
+          <a href="../../roadmap/">Roadmap</a>
+          <a href="../../community/">Community</a>
+          <a href="https://github.com/Mohamedattiadev/igrek">GitHub</a>
+          <a href="../../tr/docs/extension/">Türkçe</a>
+          <a class="cta" href="../../#download">Download</a>
+        </nav>
+      </div>
+    </header>
+    <main class="wrap docs3">
+      <aside class="menu">
+          <a href="../">Overview</a>
+          <p>Start</p>
+          <a href="../install/">Install</a>
+          <a href="../first/">First start</a>
+          <a href="../start/">Start a task</a>
+          <p>Working</p>
+          <a href="../chats/">Chats</a>
+          <a href="../why/">Why?</a>
+          <a href="../health/">Health and Fix</a>
+          <a href="../experts/">Experts</a>
+          <a href="../memory/">Memory</a>
+          <p>More</p>
+          <a href="../extension/" class=on>Browser extension</a>
+          <a href="../privacy/">Privacy</a>
+          <a href="../team/">Team</a>
+          <a href="../move/">Move to another computer</a>
+          <a href="../update/">Update and remove</a>
+      </aside>
+      <article class="doc">
+        <div class="crumbs"><a href="../">Docs</a> / More</div>
+        <h1>Browser extension</h1>
+<p>For Chrome, Brave and Edge. It fills forms with your private details without the AI seeing them, writes a field's text, and acts on a page with you: ask about the page or an element you pick, and let it propose up to five steps (click, type, choose). Each step is outlined on the page and done only when you click <i>Do it</i>; one that sends, pays or deletes asks twice, and password fields are never typed into.</p>
+<p>To connect it, press <i>Connect</i> in its panel and <i>Allow</i> in Igrek when the same code shows in both.</p>
+        <div class="pager"><a href="../memory/"><small>Previous</small>Memory</a><a class="next" href="../privacy/"><small>Next</small>Privacy</a></div>
+      </article>
+      <aside class="toc"></aside>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>© 2026 Mohamed Attia. The Igrek name and logo belong to Mohamed Attia.</span>
+        <span><a href="../../docs/">Docs</a> · <a href="../../roadmap/">Roadmap</a> · <a href="../../community/">Community</a> · <a href="../../privacy/">Privacy</a> · <a href="../../terms/">Terms</a> · <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">Security</a></span>
+      </div>
+    </footer>
+    <script>
+      // Search the docs here in the page: titles first, then text; nothing is sent anywhere.
+      const pages = [{"title": "Install", "href": "docs/install/", "text": "The desktop app Download the package for your computer from the latest release : .msi for Windows, .dmg for macOS ( aarch64 for Apple silicon, x64 for Intel), an AppImage or .deb for Linux. Each is about 17 MB (the AppImage carries its own WebKit and is larger). On its first start the app downloads Bun, which runs Igrek's server: Bun's official release (about 35 MB), checked against Bun's published SHA-256, once. The loading page shows how far it is. This needs the internet the first time only. The packages are not signed with a paid certificate, so the system asks once: Windows: \"Windows prot"}, {"title": "First start", "href": "docs/first/", "text": "Pick your language, say whether you write code, then add your project folders: one project, or a folder that holds several. Igrek shows only the folders you add; the ones Claude already worked in are one click away. Simple (you do not write code): a project shows its overview, chats and files, in plain words. Developer : code, board, health, setup and tools too. Settings, Mode changes it any time; nothing is removed either way."}, {"title": "Start a task", "href": "docs/start/", "text": "The What do you want to do? box on the home page is the place to start. Leave it on Igrek picks and the chief, who knows every project, hands the work to the right one; pick a project yourself; or pick Several projects to send one task to many, each in its own copy, side by side. A task for a project gets a way of working for its kind: a bug is reproduced before it is fixed, a slowness measured before and after, a refactor keeps the behaviour, a feature starts with its data and its smallest version. The box says which one; leave out sends your text as written. Inside a project, New chat starts"}, {"title": "Chats", "href": "docs/chats/", "text": "The box has what each message needs: text, pictures, saved prompts and experts. Approval mode, model and detail are under Chat settings . Above the box: the agent's plan, the chat's to-do list and the files the chat changed, with a diff and one-click undo. The header shows what the last turn took of your 5-hour limit, and before you send, what a message here usually takes and what is left. Anything that asks a model has a small mark."}, {"title": "Why?", "href": "docs/why/", "text": "Every changed file has a Why? button: the request that led to the change, the plan step it belongs to and the expert asked in the same turn. It is read from the chat itself; nothing is guessed."}, {"title": "Health and Fix", "href": "docs/health/", "text": "The Health tab scores architecture, security, tests, documentation, dependencies and more, and lists what to improve. Fix runs a known command for the simple ones (a missing lockfile, an .env file in git), shown before it runs; the others are done by the part's expert in its own copy, which you review before anything is merged. Before merging, Igrek shows the files and tests that use what changed."}, {"title": "Experts", "href": "docs/experts/", "text": "About thirty experts, from security and databases to product and finance, each with its field's standards and numbers. Call one with @ in a chat, ask all of them about a project, or turn on expert review of sensitive changes. Each review is one model call, so it is off by default. Experts can be shared as packs."}, {"title": "Memory", "href": "docs/memory/", "text": "Decisions, conventions and mistakes are kept per project and put in front of the AI at the start of each chat. Claude Code reads CLAUDE.md and Codex reads AGENTS.md ; the Memory tab shows rules only one of them has and joins them, so both agents follow the same."}, {"title": "Browser extension", "href": "docs/extension/", "text": "For Chrome, Brave and Edge. It fills forms with your private details without the AI seeing them, writes a field's text, and acts on a page with you: ask about the page or an element you pick, and let it propose up to five steps (click, type, choose). Each step is outlined on the page and done only when you click Do it ; one that sends, pays or deletes asks twice, and password fields are never typed into. To connect it, press Connect in its panel and Allow in Igrek when the same code shows in both."}, {"title": "Privacy", "href": "docs/privacy/", "text": "Everything runs on your computer. No telemetry, no paid API; every address Igrek opens on the internet is listed in Settings. Your saved private details and your projects' .env secrets become placeholders such as [[private:iban]] before a message leaves, and the real values are put back on your side. Salaries, IBANs, card and ID numbers are recognised by their shape too. When a file the AI reads tells AI tools not to help (a homework rule, a policy), Igrek shows you the line once and you decide whether it goes on. Nothing is hidden from the model."}, {"title": "Team", "href": "docs/team/", "text": "An optional hub, on a server you run, shares the projects you choose end-to-end encrypted. Everyone uses their own AI account; accounts are never shared. Setting up a hub is in the README."}, {"title": "Move to another computer", "href": "docs/move/", "text": "Settings, Move to another computer: one file, locked with a password, carries everything Igrek keeps. Open it in Igrek on the other computer and restart. AI logins are not in it; sign in again there."}, {"title": "Update and remove", "href": "docs/update/", "text": "The desktop app looks for a new version when it opens and once a day, and installs it after you agree. From a terminal install, run the install command again. To remove Igrek, uninstall the app (or delete the AppImage), and delete its data in ~/.igrek and its runtime in ~/.local/share/igrek-runtime (Windows: %LOCALAPPDATA%\\igrek-runtime ). Security issues: SECURITY.md ."}];
+      const q = document.getElementById("q"), box = document.getElementById("results");
+      const show = () => {
+        const words = q.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+        if (!words.length) return box.classList.remove("open");
+        const hits = pages.map((p) => {
+          const t = p.title.toLocaleLowerCase(), b = p.text.toLocaleLowerCase();
+          if (!words.every((w) => t.includes(w) || b.includes(w))) return null;
+          const score = words.filter((w) => t.includes(w)).length * 10 + 1;
+          const at = b.indexOf(words[0]);
+          return { ...p, score, snip: at < 0 ? p.text.slice(0, 90) : `…${p.text.slice(Math.max(0, at - 30), at + 70)}…` };
+        }).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 8);
+        box.innerHTML = hits.length ? "" : "<small style='padding:8px 10px'>Nothing found</small>";
+        for (const h of hits) {
+          const a = document.createElement("a");
+          a.href = `../../${h.href}`;
+          a.textContent = h.title;
+          const s = document.createElement("small");
+          s.textContent = h.snip;
+          a.append(s);
+          box.append(a);
+        }
+        box.classList.add("open");
+      };
+      q.addEventListener("input", show);
+      q.addEventListener("keydown", (e) => e.key === "Enter" && box.querySelector("a")?.click());
+      document.addEventListener("keydown", (e) => { if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); } });
+      document.addEventListener("click", (e) => { if (!e.target.closest(".search")) box.classList.remove("open"); });
+      for (const pre of document.querySelectorAll("pre")) {
+        const b = document.createElement("button");
+        b.className = "copy"; b.type = "button"; b.textContent = "Copy";
+        b.onclick = () => navigator.clipboard.writeText(pre.querySelector("code").innerText).then(() => {
+          b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500);
+        });
+        pre.append(b);
+      }
+    </script>
+  </body>
+</html>
