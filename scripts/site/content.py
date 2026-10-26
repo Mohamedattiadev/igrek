@@ -6,21 +6,27 @@ REL = "https://github.com/Mohamedattiadev/igrek/releases/latest"
 GH = "https://github.com/Mohamedattiadev/igrek"
 
 I = {
-    "chat": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-    "shield": '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
-    "users": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    "gauge": '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
-    "wrench": '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
-    "lock": '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
-    "layers": '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
-    "bot": '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
-    "globe": '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
-    "book": '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
     "search": '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
     "download": '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
     "check": '<path d="M20 6 9 17l-5-5"/>',
     "info": '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    "folder": '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+    "chat": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    "users": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    "gauge": '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+    "wrench": '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    "lock": '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    "bot": '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
+    "globe": '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    "send": '<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+    "branch": '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+    "back": '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+    "file": '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
+    "pointer": '<path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/>',
+    "play": '<polygon points="6 3 20 12 6 21 6 3"/>',
+    "book": '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
     "arrow": '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    "eye": '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
 }
 
 
@@ -30,247 +36,165 @@ def icon(name):
 
 T = {
     "en": {
-        "lang": "en", "other": "tr/", "other_name": "Türkçe", "base": "", "docs": "docs/",
-        "title": "Igrek: know why", "desc": "Igrek is a control room for AI coding agents. It runs on your computer, follows every Claude Code and Codex chat, and tells you what changed, why, and what it cost.",
-        "nav": ["Features", "Docs", "Download"],
-        "pill": "<b>New</b> 0.1.6: 17 MB installers, one start box, one-click fixes",
-        "h1": "Your AI agents, <span>explained</span>.",
-        "lead": "Igrek sits on top of Claude Code and Codex on your own computer. It remembers your projects, keeps private details out of the AI's reach, and shows why every file changed.",
-        "cta": "Download Igrek", "cta2": "Read the docs",
-        "free": "Free. No account, no API keys, no telemetry. Linux, macOS and Windows.",
-        "shot": "img/en-health.webp", "shot_alt": "Igrek showing a project's health",
-        "f_eyebrow": "What it does", "f_h": "What one agent alone does not do",
-        "f_sub": "Claude Code and Codex write the code. Igrek is the layer around them: memory, privacy, many projects at once, and a clear picture of what happened.",
+        "title": "Igrek, a desktop app for Claude Code and Codex",
+        "desc": "Igrek runs on your computer next to Claude Code and Codex. It keeps your projects and chats in one window, shows which request changed which file, and replaces saved secrets before anything is sent to the model.",
+        "h1": "One window for your Claude Code and Codex work",
+        "lead": "Igrek is a desktop app that runs next to the agents you already use. It lists the chats of all your projects, shows which request changed which file, and replaces your saved secrets with placeholders before a message is sent.",
+        "announce": "Igrek 0.1.6 is out", "docs_btn": "Read the docs",
+        "works": "Works with", "works_list": ["Claude Code", "Codex", "Linux", "macOS", "Windows"],
+        "f_sub": "Claude Code and Codex write the code. Igrek keeps track of what they did, why, and what it cost.",
+        "s_sub": "From download to your first task in a few minutes.",
+        "p_sub": "The part people ask about first.",
+        "cta_h": "Try it on your own projects", "cta_p": "Free, no account, no API keys. About 17 MB.",
+        "f_h": "What it does",
         "features": [
-            ("search", "Why did this change?", "Next to every changed file: the request that led to it, the plan step it belongs to, and the expert's note."),
-            ("bot", "One place to start", "\"What do you want to do?\" goes to the right project, or to several at once, each in its own copy."),
-            ("gauge", "Health, with a fix button", "Architecture, security, tests and dependencies scored; most findings fixed in one click, the rest by the right expert."),
-            ("lock", "Private by design", "Salaries, IBANs, IDs and .env secrets become placeholders before anything reaches the model."),
-            ("users", "Thirty experts on call", "Security, database, architecture and more: read-only reviewers that know their field."),
-            ("layers", "Memory that lasts", "Decisions and mistakes are kept per project and put in front of the AI before similar work. Claude and Codex read the same rules."),
+            ("Where a change came from", "Each changed file has a Why? button: the message that asked for it, the plan step it belongs to, and any expert asked in the same turn. It is read from the chat, not guessed."),
+            ("One box for every project", "Type a task on the home page. Igrek sends it to the right project, or to several at once, each working in its own copy."),
+            ("Health checks", "Architecture, security, tests and dependencies get a score. Simple findings, like a missing lockfile, have a Fix button that shows the command before it runs."),
+            ("Secrets stay on your side", "Saved details such as IBANs and ID numbers, and the values in your .env files, are swapped for placeholders before a message goes out and put back when the answer comes in."),
+            ("Reviewers for one field each", "About thirty read-only reviewers, from security and databases to finance. Call one with @ in a chat. Each review is a model call, so none run unless you ask."),
+            ("Notes per project", "Decisions and past mistakes are saved per project and given to the agent at the start of a chat. Rules that are only in CLAUDE.md or only in AGENTS.md are shown so you can merge them."),
         ],
-        "s_eyebrow": "How it works", "s_h": "Three steps, then it just runs",
-        "steps": [("Install", "Download the app for your computer (about 17 MB). The first start fetches its runtime once."), ("Add your projects", "Pick the folders you work in. Igrek finds the ones Claude already worked in."), ("Ask", "Type what you want. Igrek picks the project, a way of working, and shows every step.")],
-        "p_eyebrow": "Yours", "p_h": "It runs on your computer",
-        "p_text": "Igrek uses the AI logins you already have, so there is nothing new to pay for. Nothing is sent to us: no telemetry, no account, and every address Igrek opens on the internet is listed in its Settings.",
-        "p_list": ["Your Claude and Codex subscriptions, no API keys", "Private details hidden from the model, filled back in on your side", "A file that tells AI to stop is shown to you, and you decide", "Pushing, deploying and publishing always wait for your OK"],
-        "p_shot": "img/en-experts.webp", "p_alt": "Igrek's experts",
-        "stats": [("17 MB", "installer"), ("0", "telemetry"), ("30", "experts"), ("EN + TR", "checked by hand; other languages translated on request")],
-        "d_eyebrow": "Download", "d_h": "Get Igrek",
-        "d_sub": "Signed updates, installed by Igrek itself. Claude Code or Codex is needed too; Igrek shows how to install them on its first start.",
-        "dl": [("Windows", ".msi, 64-bit", "Windows 10 or later."), ("macOS", ".dmg, Apple silicon and Intel", "macOS 11 or later."), ("Linux", "AppImage or .deb", "The AppImage updates itself.")],
-        "dl_btn": "Download",
+        "s_h": "Getting started",
+        "steps": [("Install the app", "About 17 MB. On the first start it downloads its runtime once (about 35 MB)."), ("Add your project folders", "Folders Claude has already worked in are listed, one click each."), ("Type a task", "Pick a project or let Igrek pick one. You see every step it takes.")],
+        "p_h": "What leaves your computer",
+        "p_text": "Your code goes to Claude or Codex the same way it does without Igrek, through your own subscription. Nothing is sent to us: there is no account, no telemetry and no server of ours. Settings lists every address Igrek connects to.",
+        "p_list": ["No API keys: it uses the Claude and Codex logins you have", "Pushing, deploying and publishing wait for your OK", "If a file asks AI tools not to help, Igrek shows you the line and you decide"],
         "faq_h": "Questions",
         "faq": [
-            ("Is it free?", "Yes. Igrek is free to install and use, for people and companies. It uses your own Claude or Codex plan, and the ones that call a model are marked so you see what uses your limit."),
-            ("Does my code leave my computer?", "Only to the AI you already use, the way Claude Code and Codex send it. Igrek adds nothing on top: no telemetry, no server of ours. Private details are replaced by placeholders first."),
+            ("Is it free?", "Yes, for people and companies. It runs on your own Claude or Codex plan, and anything that calls a model is marked so you can see what uses your limit."),
+            ("Does my code leave my computer?", "Only to the AI you already use, the same way Claude Code and Codex send it. Igrek adds no telemetry and has no server. Private details are replaced by placeholders first."),
             ("Why does the first start download something?", "Igrek's server runs on Bun. To keep the installer small, the app downloads Bun's official release once (about 35 MB), checks it against Bun's published checksum and keeps it."),
             ("Is it open source?", "The source is open to read, but it is not open source: the Igrek Use License lets anyone use it for free, while selling it, redistributing it or offering it as a service needs written permission."),
         ],
         "foot": "© 2026 Mohamed Attia. The Igrek name and logo belong to Mohamed Attia.",
-        "license": "License", "sec": "Security",
+        "sec": "Security",
     },
     "tr": {
-        "lang": "tr", "other": "../", "other_name": "English", "base": "../", "docs": "docs/",
-        "title": "Igrek: nedenini bil", "desc": "Igrek, AI kodlama ajanları için bir kontrol merkezi. Kendi bilgisayarında çalışır, her Claude Code ve Codex sohbetini izler; neyin, neden değiştiğini ve neye mal olduğunu söyler.",
-        "nav": ["Özellikler", "Belgeler", "İndir"],
-        "pill": "<b>Yeni</b> 0.1.6: 17 MB kurulum, tek başlangıç kutusu, tek tıkla düzeltme",
-        "h1": "AI ajanların, <span>anlaşılır</span>.",
-        "lead": "Igrek, kendi bilgisayarında Claude Code ve Codex'in üstünde çalışır. Projelerini hatırlar, özel bilgilerini yapay zekâdan uzak tutar ve her dosyanın neden değiştiğini gösterir.",
-        "cta": "Igrek'i indir", "cta2": "Belgeleri oku",
-        "free": "Ücretsiz. Hesap yok, API anahtarı yok, telemetri yok. Linux, macOS ve Windows.",
-        "shot": "img/tr-health.webp", "shot_alt": "Igrek bir projenin sağlığını gösteriyor",
-        "f_eyebrow": "Ne yapar", "f_h": "Tek bir ajanın kendi başına yapmadıkları",
-        "f_sub": "Kodu Claude Code ve Codex yazar. Igrek onların etrafındaki katmandır: hafıza, gizlilik, aynı anda birçok proje ve ne olduğunun net resmi.",
+        "title": "Igrek, Claude Code ve Codex için masaüstü uygulaması",
+        "desc": "Igrek bilgisayarında Claude Code ve Codex'in yanında çalışır. Projelerini ve sohbetlerini tek pencerede toplar, hangi isteğin hangi dosyayı değiştirdiğini gösterir ve kayıtlı sırlarını modele gitmeden önce değiştirir.",
+        "h1": "Claude Code ve Codex işlerin için tek pencere",
+        "lead": "Igrek, zaten kullandığın ajanların yanında çalışan bir masaüstü uygulaması. Tüm projelerinin sohbetlerini listeler, hangi isteğin hangi dosyayı değiştirdiğini gösterir ve kayıtlı sırlarını mesaj gönderilmeden önce yer tutucuyla değiştirir.",
+        "announce": "Igrek 0.1.6 çıktı", "docs_btn": "Belgeleri oku",
+        "works": "Birlikte çalışır", "works_list": ["Claude Code", "Codex", "Linux", "macOS", "Windows"],
+        "f_sub": "Kodu Claude Code ve Codex yazar. Igrek ne yaptıklarını, nedenini ve neye mal olduğunu takip eder.",
+        "s_sub": "İndirmeden ilk işine birkaç dakikada.",
+        "p_sub": "İnsanların ilk sorduğu kısım.",
+        "cta_h": "Kendi projelerinde dene", "cta_p": "Ücretsiz, hesap yok, API anahtarı yok. Yaklaşık 17 MB.",
+        "f_h": "Ne yapar",
         "features": [
-            ("search", "Bu neden değişti?", "Değişen her dosyanın yanında: ona yol açan istek, ait olduğu plan adımı ve uzmanın notu."),
-            ("bot", "Tek başlangıç", "\"Ne yapmak istiyorsun?\" işi doğru projeye ya da aynı anda birkaçına götürür; her biri kendi kopyasında."),
-            ("gauge", "Sağlık ve Düzelt düğmesi", "Mimari, güvenlik, testler ve bağımlılıklar puanlanır; çoğu bulgu tek tıkla, gerisi doğru uzmanla düzelir."),
-            ("lock", "Baştan gizli", "Maaş, IBAN, kimlik numarası ve .env sırları modele ulaşmadan yer tutucuya dönüşür."),
-            ("users", "Otuz uzman", "Güvenlik, veritabanı, mimari ve daha fazlası: alanını bilen, salt okunur inceleyiciler."),
-            ("layers", "Kalıcı hafıza", "Kararlar ve hatalar proje başına saklanır, benzer işten önce AI'ın önüne konur. Claude ve Codex aynı kuralları okur."),
+            ("Değişiklik nereden geldi", "Değişen her dosyanın bir Neden? düğmesi var: onu isteyen mesaj, ait olduğu plan adımı ve aynı turda sorulan uzman. Sohbetten okunur, tahmin edilmez."),
+            ("Her proje için tek kutu", "Ana sayfaya bir iş yaz. Igrek onu doğru projeye ya da aynı anda birkaçına gönderir; her biri kendi kopyasında çalışır."),
+            ("Sağlık kontrolleri", "Mimari, güvenlik, testler ve bağımlılıklar puanlanır. Eksik lockfile gibi basit bulgularda bir Düzelt düğmesi var; komutu çalıştırmadan önce gösterir."),
+            ("Sırlar senin tarafında kalır", "IBAN ve kimlik numarası gibi kayıtlı bilgiler ve .env dosyalarındaki değerler, mesaj çıkmadan yer tutucuyla değiştirilir, cevap gelince geri konur."),
+            ("Her biri tek alana bakan inceleyiciler", "Güvenlikten veritabanına, finansa kadar otuz kadar salt okunur inceleyici. Sohbette @ ile birini çağır. Her inceleme bir model çağrısı olduğu için sen istemedikçe hiçbiri çalışmaz."),
+            ("Proje başına notlar", "Kararlar ve geçmiş hatalar proje başına saklanır, sohbetin başında ajana verilir. Yalnızca CLAUDE.md'de ya da yalnızca AGENTS.md'de olan kurallar gösterilir, birleştirebilirsin."),
         ],
-        "s_eyebrow": "Nasıl çalışır", "s_h": "Üç adım, sonra kendi işler",
-        "steps": [("Kur", "Bilgisayarına uygun uygulamayı indir (yaklaşık 17 MB). İlk açılışta çalışma ortamını bir kez indirir."), ("Projelerini ekle", "Çalıştığın klasörleri seç. Claude'un daha önce çalıştığı klasörleri Igrek kendisi bulur."), ("Sor", "Ne istediğini yaz. Igrek projeyi ve çalışma yolunu seçer, her adımı gösterir.")],
-        "p_eyebrow": "Senin", "p_h": "Senin bilgisayarında çalışır",
-        "p_text": "Igrek zaten sahip olduğun AI girişlerini kullanır; ödeyeceğin yeni bir şey yok. Bize hiçbir şey gönderilmez: telemetri yok, hesap yok; Igrek'in internette açtığı her adres Ayarlar'da listelenir.",
-        "p_list": ["Claude ve Codex aboneliklerin, API anahtarı yok", "Özel bilgiler modelden gizlenir, senin tarafında geri doldurulur", "AI'a dur diyen bir dosya sana gösterilir, kararı sen verirsin", "Push, yayına alma ve yayımlama her zaman senin onayını bekler"],
-        "p_shot": "img/tr-experts.webp", "p_alt": "Igrek'in uzmanları",
-        "stats": [("17 MB", "kurulum"), ("0", "telemetri"), ("30", "uzman"), ("TR + EN", "elle kontrol edildi; diğer diller istenince çevrilir")],
-        "d_eyebrow": "İndir", "d_h": "Igrek'i edin",
-        "d_sub": "İmzalı güncellemeler, Igrek'in kendisi kurar. Claude Code ya da Codex de gerekir; Igrek ilk açılışta nasıl kurulacaklarını gösterir.",
-        "dl": [("Windows", ".msi, 64-bit", "Windows 10 ve sonrası."), ("macOS", ".dmg, Apple işlemci ve Intel", "macOS 11 ve sonrası."), ("Linux", "AppImage ya da .deb", "AppImage kendi kendine güncellenir.")],
-        "dl_btn": "İndir",
+        "s_h": "Başlarken",
+        "steps": [("Uygulamayı kur", "Yaklaşık 17 MB. İlk açılışta çalışma ortamını bir kez indirir (yaklaşık 35 MB)."), ("Proje klasörlerini ekle", "Claude'un daha önce çalıştığı klasörler listelenir, her biri tek tık."), ("Bir iş yaz", "Projeyi sen seç ya da Igrek seçsin. Attığı her adımı görürsün.")],
+        "p_h": "Bilgisayarından ne çıkar",
+        "p_text": "Kodun Claude'a ya da Codex'e, Igrek olmadan nasıl gidiyorsa öyle, kendi aboneliğinle gider. Bize hiçbir şey gelmez: hesap yok, telemetri yok, bizim bir sunucumuz yok. Igrek'in bağlandığı her adres Ayarlar'da listelenir.",
+        "p_list": ["API anahtarı yok: zaten olan Claude ve Codex girişlerini kullanır", "Push, yayına alma ve yayımlama senin onayını bekler", "Bir dosya AI araçlarından yardım etmemesini istiyorsa Igrek o satırı gösterir, kararı sen verirsin"],
         "faq_h": "Sorular",
         "faq": [
-            ("Ücretsiz mi?", "Evet. Igrek'i kurmak ve kullanmak kişiler ve şirketler için ücretsizdir. Kendi Claude ya da Codex planını kullanır; model çağıran her şey işaretlidir, limitinden neyin harcadığını görürsün."),
-            ("Kodum bilgisayarımdan çıkıyor mu?", "Yalnızca zaten kullandığın yapay zekâya, Claude Code ve Codex'in gönderdiği şekilde. Igrek üstüne bir şey eklemez: telemetri yok, bizim bir sunucumuz yok. Özel bilgiler önce yer tutucuya çevrilir."),
+            ("Ücretsiz mi?", "Evet, kişiler ve şirketler için. Kendi Claude ya da Codex planınla çalışır; model çağıran her şey işaretlidir, limitinden neyin harcadığını görürsün."),
+            ("Kodum bilgisayarımdan çıkıyor mu?", "Yalnızca zaten kullandığın yapay zekâya, Claude Code ve Codex'in gönderdiği şekilde. Igrek telemetri eklemez, sunucusu yoktur. Özel bilgiler önce yer tutucuya çevrilir."),
             ("İlk açılışta neden bir şey indiriyor?", "Igrek'in sunucusu Bun ile çalışır. Kurulumu küçük tutmak için uygulama Bun'ın resmî sürümünü bir kez indirir (yaklaşık 35 MB), Bun'ın yayımladığı sağlama değeriyle doğrular ve saklar."),
             ("Açık kaynak mı?", "Kaynak kodu okunabilir, ama açık kaynak değildir: Igrek Use License herkesin ücretsiz kullanmasına izin verir; satmak, yeniden dağıtmak ya da servis olarak sunmak yazılı izne bağlıdır."),
         ],
         "foot": "© 2026 Mohamed Attia. Igrek adı ve logosu Mohamed Attia'ya aittir.",
-        "license": "Lisans", "sec": "Güvenlik",
+        "sec": "Güvenlik",
     },
 }
 
-HEAD = """<!doctype html>
-<html lang="{lang}">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <meta name="description" content="{desc}" />
-    <meta property="og:title" content="{title}" />
-    <meta property="og:description" content="{desc}" />
-    <meta property="og:image" content="https://mohamedattiadev.github.io/igrek/{ogimg}" />
-    <link rel="icon" href="{base}logo.svg" />
-    <link rel="alternate" hreflang="{otherlang}" href="{other}" />
-    <link rel="stylesheet" href="{base}style.css" />
-  </head>
-  <body>
-    <header class="top">
-      <div class="wrap">
-        <a class="brand" href="{home}"><img src="{base}logo.svg" width="24" height="24" alt="" /> Igrek</a>
-        <nav>
-{nav}
-        </nav>
-      </div>
-    </header>
-"""
-
-COPY = """    <script>
-      // A copy button on every command, so nothing has to be selected by hand.
-      for (const pre of document.querySelectorAll("pre")) {{
-        const b = document.createElement("button");
-        b.className = "copy";
-        b.type = "button";
-        b.textContent = "{copy}";
-        b.onclick = () => navigator.clipboard.writeText(pre.querySelector("code").innerText).then(() => {{
-          b.textContent = "{copied}";
-          setTimeout(() => (b.textContent = "{copy}"), 1500);
-        }});
-        pre.append(b);
-      }}
-      // The section on screen is marked in the side menu.
-      const links = [...document.querySelectorAll(".docs aside a")];
-      const mark = () => {{
-        let on = links[0];
-        for (const a of links) {{
-          const s = document.querySelector(a.getAttribute("href"));
-          if (s && s.getBoundingClientRect().top < 120) on = a;
-        }}
-        for (const a of links) a.classList.toggle("on", a === on);
-      }};
-      if (links.length) {{ addEventListener("scroll", mark, {{ passive: true }}); mark(); }}
-    </script>
-"""
-
-
-def foot(t):
-    return f"""    <footer>
-      <div class="wrap">
-        <span>{t["foot"]}</span>
-        <span><a href="{GH}">GitHub</a> · <a href="{GH}/blob/main/LICENSE">{t["license"]}</a> · <a href="{GH}/blob/main/SECURITY.md">{t["sec"]}</a></span>
-      </div>
-    </footer>
-"""
-
-
-def nav(t, docs):
-    home = t["base"] + ("" if t["lang"] == "en" else "tr/") if docs else "./"
-    pre = "../" if docs else ""
-    links = [
-        f'          <a href="{pre}#features">{t["nav"][0]}</a>',
-        f'          <a href="{"./" if docs else t["docs"]}">{t["nav"][1]}</a>',
-        f'          <a href="{GH}">GitHub</a>',
-        f'          <a class="lang" href="{("../" if docs else "") + t["other"]}">{t["other_name"]}</a>',
-        f'          <a class="cta" href="{pre}#download">{t["nav"][2]}</a>',
-    ]
-    return "\n".join(links), home
-
-
-def landing(t):
-    n, home = nav(t, False)
-    h = HEAD.format(lang=t["lang"], title=t["title"], desc=t["desc"], base=t["base"], other=t["other"],
-                    otherlang="tr" if t["lang"] == "en" else "en", nav=n, home=home, ogimg=t["shot"].replace("img/", "img/"))
-    feats = "\n".join(
-        f'          <div class="card"><span class="ic">{icon(i)}</span><h3>{a}</h3><p>{b}</p></div>' for i, a, b in t["features"])
-    steps = "\n".join(f'          <div class="card"><h3>{a}</h3><p>{b}</p></div>' for a, b in t["steps"])
-    plist = "\n".join(f"            <li>{icon('check')}<span>{x}</span></li>" for x in t["p_list"])
-    stats = "\n".join(f'          <div class="stat"><b>{a}</b><span>{b}</span></div>' for a, b in t["stats"])
-    dls = "\n".join(
-        f'          <div class="card"><h3>{a}</h3><span>{b}</span><small>{c}</small><a class="button" href="{REL}">{icon("download")}{t["dl_btn"]}</a></div>'
-        for a, b, c in t["dl"])
-    faq = "\n".join(f"        <details><summary>{q}</summary><p>{a}</p></details>" for q, a in t["faq"])
-    body = f"""    <main>
-      <div class="hero wrap">
-        <span class="pill">{t["pill"]}</span>
-        <h1>{t["h1"]}</h1>
-        <p class="lead">{t["lead"]}</p>
-        <div class="actions">
-          <a class="button" href="#download">{icon("download")}{t["cta"]}</a>
-          <a class="button ghost" href="{t["docs"]}">{t["cta2"]}{icon("arrow")}</a>
-        </div>
-        <p class="note">{t["free"]}</p>
-        <div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="{t["base"]}{t["shot"]}" width="1440" height="900" alt="{t["shot_alt"]}" /></div>
-      </div>
-      <section id="features">
-        <div class="wrap">
-          <p class="eyebrow">{t["f_eyebrow"]}</p>
-          <h2>{t["f_h"]}</h2>
-          <p class="sub">{t["f_sub"]}</p>
-          <div class="grid">
-{feats}
-          </div>
-        </div>
-      </section>
-      <section>
-        <div class="wrap">
-          <p class="eyebrow">{t["s_eyebrow"]}</p>
-          <h2>{t["s_h"]}</h2>
-          <div class="steps" style="margin-top:32px">
-{steps}
-          </div>
-        </div>
-      </section>
-      <div class="band">
-        <section>
-          <div class="wrap split">
-            <div>
-              <p class="eyebrow">{t["p_eyebrow"]}</p>
-              <h2>{t["p_h"]}</h2>
-              <p style="color:var(--muted)">{t["p_text"]}</p>
-              <ul>
-{plist}
-              </ul>
-            </div>
-            <div class="shot" style="margin:0"><div class="bar"><i></i><i></i><i></i></div><img src="{t["base"]}{t["p_shot"]}" width="1440" height="900" alt="{t["p_alt"]}" loading="lazy" /></div>
-          </div>
-          <div class="wrap stats">
-{stats}
-          </div>
-        </section>
-      </div>
-      <section id="download">
-        <div class="wrap">
-          <p class="eyebrow">{t["d_eyebrow"]}</p>
-          <h2>{t["d_h"]}</h2>
-          <p class="sub">{t["d_sub"]}</p>
-          <div class="downloads">
-{dls}
-          </div>
-        </div>
-      </section>
-      <section>
-        <div class="wrap" style="max-width:820px">
-          <h2>{t["faq_h"]}</h2>
-{faq}
-        </div>
-      </section>
-    </main>
-"""
-    return h + body + foot(t) + "  </body>\n</html>\n"
-
+# The working copies of the app on the home page (mock.py draws them). The projects, files and numbers are the
+# same demo the screenshots use, so the site and the app tell one story.
+M = {
+    "en": {
+        "label": "Watch the demo, or take over: click anywhere in the window.",
+        "replay": "Play the demo again",
+        "b_task": "Fix the coupon in shop and invoice-api",
+        "b_experts": ["Security", "Database", "Architecture", "Frontend", "Finance", "+25"],
+        "b_rules": "2 rules only in CLAUDE.md", "b_merge": "Merge",
+        "side": ["Projects", "Chats", "Experts", "Private details"],
+        "search": "Search pages, projects, commands...",
+        "projects": "Projects",
+        "ask": "What do you want to do?",
+        "ask_example": "Add a cart page to the shop",
+        "picks": "Igrek picks",
+        "picked": "Igrek picked <b>shop</b>: the cart code is there. A chat started in its own copy.",
+        "cards": [("S", "#b5643c", "shop", "Added the checkout page: address form, shipping choice and order summary", "29 min ago"),
+                  ("I", "#9a9a2c", "invoice-api", "Invoices can be downloaded as PDF", "2 hours ago"),
+                  ("M", "#b08a3a", "mobile-app", "The cart screen shows the last cart offline", "yesterday"),
+                  ("A", "#3a9a52", "admin-panel", "Added status and date filters to the orders table", "yesterday"),
+                  ("B", "#b0427a", "blog", "Wrote a post about free shipping", "3 days ago"),
+                  ("L", "#6a45b8", "landing-page", "Lighthouse performance went from 71 to 96", "5 days ago")],
+        "fresh": "Fresh",
+        "tabs": ["Overview", "Changes", "Health"],
+        "latest": "Latest session", "session": "Checkout page", "goal": "<b>Goal:</b> so customers can pay after the cart.",
+        "done": "What was done", "done_list": ["Added the checkout page: address form, shipping choice and order summary", "The orders API checks the address"],
+        "open": "Still open", "open_list": ["Connect the payment provider's form"],
+        "why": "Why?",
+        "files": [
+            ("src/checkout/AddressForm.tsx", "+84", "", "Add a checkout page: address, shipping and a summary", "2 of 4: the address form", "Frontend: every field has a label you can click"),
+            ("api/orders.ts", "+12", "-3", "Add a checkout page: address, shipping and a summary", "3 of 4: check the address on the server too", "Security: the server never trusts what the browser sends"),
+            ("src/cart/coupon.ts", "+6", "-2", "The coupon breaks free shipping", "1 of 1: take the coupon off before the shipping limit", "Tests: a test for 49.90 with a 10% coupon"),
+        ],
+        "w_req": "Request", "w_step": "Plan step", "w_exp": "Expert",
+        "health": "Project health", "health_sub": "The average of the parts below; security and tests count a bit more.",
+        "parts": [("Architecture", 100), ("Security", 96), ("Tests", 88)],
+        "finding": "No lockfile in git", "finding_sub": "Installs can pick up different versions on another computer.",
+        "fix": "Fix", "fix_cmd": "bun install && git add bun.lock", "run": "Run", "fixed": "Fixed: bun.lock is in git.",
+        "status": "Connected", "saved": "Everything saved locally",
+        "p_you": "What you see", "p_model": "What the model gets",
+        "p_msg": "Send the March salary, {amount}, to {iban}. The payment key is {key}.",
+        "p_real": {"amount": "85.000 TL", "iban": "TR33 0006 1005 1978 6457 8413 26", "key": "sk_live_51Hx9f2..."},
+        "p_note_you": "This is your message as you typed it.",
+        "p_note_model": "This is what leaves your computer. The answer comes back with the real values put in again.",
+    },
+    "tr": {
+        "label": "Demoyu izle ya da kendin dene: pencerede herhangi bir yere tıkla.",
+        "replay": "Demoyu yeniden oynat",
+        "b_task": "Kuponu shop ve invoice-api'de düzelt",
+        "b_experts": ["Güvenlik", "Veritabanı", "Mimari", "Frontend", "Finans", "+25"],
+        "b_rules": "2 kural yalnızca CLAUDE.md'de", "b_merge": "Birleştir",
+        "side": ["Projeler", "Sohbetler", "Uzmanlar", "Özel bilgiler"],
+        "search": "Sayfa, proje, komut ara...",
+        "projects": "Projeler",
+        "ask": "Ne yapmak istiyorsun?",
+        "ask_example": "Mağazaya bir sepet sayfası ekle",
+        "picks": "Igrek seçsin",
+        "picked": "Igrek <b>shop</b>'u seçti: sepet kodu orada. Kendi kopyasında bir sohbet başladı.",
+        "cards": [("S", "#b5643c", "shop", "Ödeme sayfası eklendi: adres formu, kargo seçimi ve sipariş özeti", "29 dk önce"),
+                  ("I", "#9a9a2c", "invoice-api", "Faturalar PDF olarak indirilebiliyor", "2 saat önce"),
+                  ("M", "#b08a3a", "mobile-app", "Sepet ekranı son sepeti çevrimdışı gösteriyor", "dün"),
+                  ("A", "#3a9a52", "admin-panel", "Sipariş tablosuna durum ve tarih filtreleri eklendi", "dün"),
+                  ("B", "#b0427a", "blog", "Ücretsiz kargo hakkında bir yazı yazıldı", "3 gün önce"),
+                  ("L", "#6a45b8", "landing-page", "Lighthouse performansı 71'den 96'ya çıktı", "5 gün önce")],
+        "fresh": "Güncel",
+        "tabs": ["Genel bakış", "Değişiklikler", "Sağlık"],
+        "latest": "Son oturum", "session": "Ödeme sayfası", "goal": "<b>Amaç:</b> müşteriler sepetten sonra ödeyebilsin.",
+        "done": "Yapılanlar", "done_list": ["Ödeme sayfası eklendi: adres formu, kargo seçimi ve sipariş özeti", "Sipariş API'si adresi kontrol ediyor"],
+        "open": "Açık kalan", "open_list": ["Ödeme sağlayıcısının formunu bağla"],
+        "why": "Neden?",
+        "files": [
+            ("src/checkout/AddressForm.tsx", "+84", "", "Ödeme sayfası ekle: adres, kargo ve özet", "4 adımdan 2.si: adres formu", "Frontend: her alanın tıklanabilir bir etiketi var"),
+            ("api/orders.ts", "+12", "-3", "Ödeme sayfası ekle: adres, kargo ve özet", "4 adımdan 3.sü: adresi sunucuda da kontrol et", "Güvenlik: sunucu tarayıcının gönderdiğine asla güvenmez"),
+            ("src/cart/coupon.ts", "+6", "-2", "Kupon ücretsiz kargoyu bozuyor", "1 adımdan 1.si: kuponu kargo limitinden önce düş", "Testler: %10 kuponla 49,90 için bir test"),
+        ],
+        "w_req": "İstek", "w_step": "Plan adımı", "w_exp": "Uzman",
+        "health": "Proje sağlığı", "health_sub": "Aşağıdaki bölümlerin ortalaması; güvenlik ve testler biraz daha ağır sayılır.",
+        "parts": [("Mimari", 100), ("Güvenlik", 96), ("Testler", 88)],
+        "finding": "Git'te lockfile yok", "finding_sub": "Başka bir bilgisayarda kurulum farklı sürümler çekebilir.",
+        "fix": "Düzelt", "fix_cmd": "bun install && git add bun.lock", "run": "Çalıştır", "fixed": "Düzeldi: bun.lock git'te.",
+        "status": "Bağlı", "saved": "Her şey yerelde kayıtlı",
+        "p_you": "Senin gördüğün", "p_model": "Modelin aldığı",
+        "p_msg": "Mart maaşını, {amount}, {iban} hesabına gönder. Ödeme anahtarı {key}.",
+        "p_real": {"amount": "85.000 TL", "iban": "TR33 0006 1005 1978 6457 8413 26", "key": "sk_live_51Hx9f2..."},
+        "p_note_you": "Mesajın, yazdığın gibi.",
+        "p_note_model": "Bilgisayarından çıkan bu. Cevap gelince gerçek değerler yeniden yerine konur.",
+    },
+}
 
 DOCS = {
     "en": {
@@ -357,28 +281,3 @@ docker compose up -d</code></pre>
     },
 }
 
-
-def docs(t, d):
-    n, home = nav(t, True)
-    h = HEAD.format(lang=t["lang"], title=d["title"], desc=d["lead"], base="../" + t["base"], other="../" + t["other"] + "docs/",
-                    otherlang="tr" if t["lang"] == "en" else "en", nav=n, home="../", ogimg=t["shot"])
-    side = []
-    for g, keys in d["groups"]:
-        side.append(f"          <p>{g}</p>")
-        side += [f'          <a href="#{k}">{d["sections"][k][0]}</a>' for k in keys]
-    body_sections = "\n".join(f'        <section id="{k}" style="padding:0"><h2>{d["sections"][k][0]}</h2>\n{d["sections"][k][1]}\n        </section>'
-                              for _, keys in d["groups"] for k in keys)
-    shot = f'<div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="../{t["base"]}img/{t["lang"]}-home.webp" width="1440" height="900" alt="" loading="lazy" /></div>'
-    body = f"""    <main class="wrap docs">
-      <aside>
-{chr(10).join(side)}
-      </aside>
-      <article class="doc">
-        <h1>{d["h1"]}</h1>
-        <p class="lead">{d["lead"]}</p>
-        {shot}
-{body_sections}
-      </article>
-    </main>
-"""
-    return h + body + foot(t) + COPY.format(copy=d["copy"], copied=d["copied"]) + "  </body>\n</html>\n"

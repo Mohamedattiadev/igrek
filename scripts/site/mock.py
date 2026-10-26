@@ -1,0 +1,322 @@
+"""Working copies of the app for the home page, drawn in HTML instead of screenshots so a visitor can click
+through them: the projects, a project's changes with their Why?, health with a Fix, and what the model receives.
+A cursor plays the tour on its own until the visitor clicks in the window. The small pictures in the feature
+grid are drawn here too. The texts are M in content.py; build.py execs this after content.py."""
+
+
+def ring(score, cls="ring"):
+    return f'<span class="{cls}" style="--p:{score}"><b>{score}</b></span>'
+
+
+# A plain arrow, the shape every system draws, so the demo cursor reads as a pointer at once.
+CURSOR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17.2l4.6-4.3 2.9 6.6 2.7-1.2-2.9-6.5 6.3-.3z"/></svg>'
+
+
+def app_mock(lang):
+    m = M[lang]
+    side_icons = ["folder", "chat", "users", "lock"]
+    side = "".join(
+        f'<span class="item{" on" if i == 0 else ""}">{icon(ic)}{name}</span>' for i, (ic, name) in enumerate(zip(side_icons, m["side"])))
+    cards = "".join(
+        f'<button type="button" class="pcard{" go" if name == "shop" else ""}"{" data-go=shop" if name == "shop" else ""}>'
+        f'<span class="phead"><span class="avatar" style="background:{color}">{letter}</span><span><b>{name}</b><code>~/code/{name}</code></span>'
+        f'<span class="tag ok">{m["fresh"]}</span></span><span class="pdesc">{desc}</span>'
+        f'<span class="pfoot">{icon("branch")}main<span>{when}</span></span></button>'
+        for letter, color, name, desc, when in m["cards"])
+    tabs = "".join(
+        f'<button type="button" class="tab{" on" if i == 0 else ""}" data-tab="{i}">{name}</button>' for i, name in enumerate(m["tabs"]))
+    done = "".join(f"<li>{x}</li>" for x in m["done_list"])
+    still = "".join(f"<li>{x}</li>" for x in m["open_list"])
+    files = "".join(file_row(m, f) for f in m["files"])
+    parts = "".join(f'<div class="part">{ring(n)}<span>{name}</span></div>' for name, n in m["parts"])
+    return f"""<div class="stage">
+          <div class="app">
+            <div class="aside">
+              <span class="abrand"><img src="{{base}}logo.svg" width="18" height="18" alt="" /> Igrek</span>
+              {side}
+            </div>
+            <div class="amain">
+              <div class="atop"><span class="asearch">{icon("search")}{m["search"]}<kbd>Ctrl K</kbd></span></div>
+              <div class="view" data-view="projects">
+                <div class="ahead"><b>{m["projects"]}</b></div>
+                <form class="ask">{icon("bot")}<input aria-label="{m["ask"]}" placeholder="{m["ask"]} &quot;{m["ask_example"]}&quot;" data-example="{m["ask_example"]}" /><span class="pick">{m["picks"]}</span><button type="submit" aria-label="{m["ask"]}">{icon("send")}</button></form>
+                <p class="reply" hidden>{m["picked"]}</p>
+                <div class="pgrid">{cards}</div>
+              </div>
+              <div class="view" data-view="shop" hidden>
+                <div class="ahead"><button type="button" class="back" data-go="projects" aria-label="{m["projects"]}">{icon("back")}</button><b>shop</b><span class="tag ok">{m["fresh"]}</span></div>
+                <div class="tabs">{tabs}</div>
+                <div class="panel" data-panel="0">
+                  <div class="box"><small>{m["latest"]}</small><h4>{m["session"]}</h4><p>{m["goal"]}</p>
+                    <h5>{m["done"]}</h5><ul>{done}</ul><h5>{m["open"]}</h5><ul>{still}</ul></div>
+                </div>
+                <div class="panel" data-panel="1" hidden><div class="box flist">{files}</div></div>
+                <div class="panel" data-panel="2" hidden>
+                  <div class="box hbox">{ring(92, "ring big").replace('class="ring big"', 'class="ring big" id="score"')}<div><h4>{m["health"]}</h4><p>{m["health_sub"]}</p></div></div>
+                  <div class="parts">{parts}</div>
+                  <div class="box finding" id="finding"><div><b>{m["finding"]}</b><p>{m["finding_sub"]}</p>
+                    <div class="fixcmd" hidden><code>{m["fix_cmd"]}</code><button type="button" class="abtn" id="run">{m["run"]}</button></div>
+                    <p class="fixed" hidden>{icon("check")}{m["fixed"]}</p></div>
+                    <button type="button" class="abtn" id="fix">{icon("wrench")}{m["fix"]}</button></div>
+                </div>
+              </div>
+              <div class="astatus"><i></i>{m["status"]}<span>{m["saved"]}</span><span class="ver">Igrek {{version}}</span></div>
+            </div>
+            <span class="cursor">{CURSOR}</span>
+          </div>
+        </div>
+        <p class="try"><span>{icon("pointer")}{m["label"]}</span><button type="button" class="replay" hidden>{icon("play")}{m["replay"]}</button></p>"""
+
+
+def file_row(m, f, open_=False):
+    path, add, rem, req, step, exp = f
+    return (f'<div class="frow"><span class="fname">{icon("file")}<code>{path}</code><span class="add">{add}</span><span class="del">{rem}</span></span>'
+            f'<button type="button" class="why{" on" if open_ else ""}">{m["why"]}</button>'
+            f'<dl class="whybox"{"" if open_ else " hidden"}><dt>{m["w_req"]}</dt><dd>{req}</dd><dt>{m["w_step"]}</dt><dd>{step}</dd><dt>{m["w_exp"]}</dt><dd>{exp}</dd></dl></div>')
+
+
+def bento(lang, features):
+    """The feature grid: each cell has a small moving picture of the thing it describes."""
+    m = M[lang]
+    real = m["p_real"]
+    chips = "".join(f'<span class="chip" style="--i:{i}">{x}</span>' for i, x in enumerate(m["b_experts"]))
+    vis = [
+        f'<div class="box flist">{file_row(m, m["files"][1], True)}</div>',
+        f'<div class="ask static">{icon("bot")}<span class="typed" style="--n:{len(m["b_task"])}">{m["b_task"]}</span></div>'
+        f'<div class="picked"><span class="chip" style="--i:0">shop</span><span class="chip" style="--i:1">invoice-api</span></div>',
+        '<span class="ring big grow"><b>100</b></span>',
+        f'<div class="swap"><span class="lbl">IBAN</span><span class="vals"><code class="real">{real["iban"]}</code><code class="ph">[[private:iban]]</code></span></div>'
+        f'<div class="swap"><span class="lbl">.env</span><span class="vals"><code class="real">STRIPE_KEY={real["key"]}</code><code class="ph">[[env:STRIPE_KEY]]</code></span></div>',
+        f'<div class="chips">{chips}</div>',
+        f'<div class="rules"><span class="fchip">{icon("file")}CLAUDE.md</span><span class="flow"></span><span class="fchip">{icon("file")}AGENTS.md</span></div>'
+        f'<div class="rnote"><span>{m["b_rules"]}</span><span class="abtn">{m["b_merge"]}</span></div>',
+    ]
+    spans = [2, 1, 1, 2, 1, 2]
+    return "\n".join(
+        f'            <div class="cell reveal span{spans[i]}"><div class="vis mini">{vis[i]}</div><h3>{a}</h3><p>{b}</p></div>'
+        for i, (a, b) in enumerate(features))
+
+
+def privacy_mock(lang):
+    m = M[lang]
+    real = m["p_real"]
+    you = m["p_msg"].format(**{k: f"<mark>{v}</mark>" for k, v in real.items()})
+    model = m["p_msg"].format(amount="<mark>[[private:amount]]</mark>", iban="<mark>[[private:iban]]</mark>", key="<mark>[[env:STRIPE_KEY]]</mark>")
+    return f"""<div class="app chat">
+              <div class="seg"><button type="button" class="on" data-see="you">{icon("eye")}{m["p_you"]}</button><button type="button" data-see="model">{icon("lock")}{m["p_model"]}</button></div>
+              <div class="bubble" data-show="you">{you}</div>
+              <div class="bubble model" data-show="model" hidden>{model}</div>
+              <p class="cnote" data-show="you">{m["p_note_you"]}</p>
+              <p class="cnote" data-show="model" hidden>{m["p_note_model"]}</p>
+            </div>"""
+
+
+MOCK_JS = """    <script>
+      // The working copies: plain clicks, nothing leaves the page.
+      const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const app = document.querySelector(".app:not(.chat)");
+      const $ = (s) => app.querySelector(s);
+      const show = (all, on) => {
+        for (const el of all) el.hidden = !on(el);
+      };
+      const go = (v) => show(app.querySelectorAll("[data-view]"), (el) => el.dataset.view === v);
+      const tab = (n) => {
+        for (const b of app.querySelectorAll(".tab")) b.classList.toggle("on", b.dataset.tab === n);
+        show(app.querySelectorAll("[data-panel]"), (el) => el.dataset.panel === n);
+      };
+      const setScore = (n) => {
+        const s = $("#score");
+        s.style.setProperty("--p", n);
+        s.querySelector("b").textContent = n;
+      };
+      app.addEventListener("click", (e) => {
+        const t = e.target.closest("button");
+        if (!t) return;
+        if (t.dataset.go) go(t.dataset.go);
+        if (t.dataset.tab) tab(t.dataset.tab);
+        if (t.classList.contains("why")) {
+          const box = t.nextElementSibling;
+          box.hidden = !box.hidden;
+          t.classList.toggle("on", !box.hidden);
+        }
+        if (t.id === "fix") {
+          t.hidden = true;
+          $(".fixcmd").hidden = false;
+        }
+        if (t.id === "run") {
+          $(".fixcmd").hidden = true;
+          $(".fixed").hidden = false;
+          $("#finding").classList.add("done");
+          // Count up to 100 so the change is seen, not just swapped.
+          let n = 92;
+          const step = () => {
+            setScore(++n);
+            if (n < 100) setTimeout(step, 60);
+          };
+          step();
+        }
+      });
+      $(".ask").addEventListener("submit", (e) => {
+        e.preventDefault();
+        $(".reply").hidden = false;
+        const card = $(".pcard.go");
+        card.classList.add("flash");
+        setTimeout(() => card.classList.remove("flash"), 1600);
+      });
+      const reset = () => {
+        go("projects");
+        tab("0");
+        $(".ask input").value = "";
+        $(".reply").hidden = true;
+        for (const b of app.querySelectorAll(".why")) {
+          b.classList.remove("on");
+          b.nextElementSibling.hidden = true;
+        }
+        $("#fix").hidden = false;
+        $(".fixcmd").hidden = true;
+        $(".fixed").hidden = true;
+        $("#finding").classList.remove("done");
+        setScore(92);
+      };
+
+      // The tour: a cursor that does what a visitor would, until the visitor does it themselves.
+      const cursor = $(".cursor");
+      const replay = document.querySelector(".replay");
+      let run = 0;
+      const live = (id) => {
+        if (id !== run) throw new Error("stopped");
+      };
+      const moveTo = async (id, el, ms = 800) => {
+        live(id);
+        const a = app.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        cursor.style.transform = `translate(${r.left - a.left + r.width * 0.5}px, ${r.top - a.top + r.height * 0.55}px)`;
+        await wait(ms);
+      };
+      // The tour waits while the window is off screen or the tab is hidden, so it costs nothing there.
+      let onScreen = false;
+      new IntersectionObserver((seen) => {
+        onScreen = seen[seen.length - 1].isIntersecting;
+      }).observe(app);
+      const press = async (id, el, after = 650) => {
+        while (!onScreen || document.hidden) {
+          live(id);
+          await wait(300);
+        }
+        await moveTo(id, el);
+        cursor.classList.add("press");
+        await wait(140);
+        live(id);
+        el.click();
+        cursor.classList.remove("press");
+        await wait(after);
+      };
+      const type = async (id, input, text) => {
+        for (const ch of text) {
+          live(id);
+          input.value += ch;
+          await wait(38 + Math.random() * 40);
+        }
+      };
+      const tour = async () => {
+        const id = ++run;
+        app.classList.add("touring");
+        replay.hidden = true;
+        try {
+          for (;;) {
+            reset();
+            await wait(700);
+            const input = $(".ask input");
+            await press(id, input, 200);
+            await type(id, input, input.dataset.example);
+            await press(id, $(".ask button"), 1500);
+            await press(id, $(".pcard.go"), 1100);
+            await press(id, app.querySelector(".tab[data-tab='1']"), 500);
+            await press(id, app.querySelectorAll(".why")[1], 2200);
+            await press(id, app.querySelector(".tab[data-tab='2']"), 700);
+            await press(id, $("#fix"), 900);
+            await press(id, $("#run"), 2400);
+            await press(id, $(".back"), 900);
+          }
+        } catch {
+          // The visitor took over; their clicks now drive the window.
+        }
+      };
+      const stop = () => {
+        if (!app.classList.contains("touring")) return;
+        run++;
+        app.classList.remove("touring");
+        replay.hidden = false;
+      };
+      app.addEventListener("pointerdown", (e) => e.isTrusted && stop());
+      app.addEventListener("keydown", (e) => e.isTrusted && stop());
+      replay.addEventListener("click", () => tour());
+      if (calm) replay.hidden = false;
+      else
+        new IntersectionObserver((seen, o) => {
+          if (seen.some((s) => s.isIntersecting)) {
+            o.disconnect();
+            tour();
+          }
+        }, { threshold: 0.35 }).observe(app);
+
+      // The window lies back a little and stands up as it scrolls into view.
+      const stage = document.querySelector(".stage");
+      const tilt = () => {
+        const r = stage.getBoundingClientRect();
+        const t = Math.max(0, Math.min(1, (r.top - innerHeight * 0.12) / (innerHeight * 0.55)));
+        stage.style.setProperty("--tilt", `${(t * 16).toFixed(2)}deg`);
+        stage.style.setProperty("--lift", t.toFixed(3));
+      };
+      let frame = 0;
+      if (!calm) {
+        addEventListener(
+          "scroll",
+          () => {
+            if (!frame)
+              frame = requestAnimationFrame(() => {
+                frame = 0;
+                tilt();
+              });
+          },
+          { passive: true },
+        );
+        tilt();
+      }
+
+      // What the model receives: it switches by itself until someone picks a side.
+      const chat = document.querySelector(".app.chat");
+      const see = (v) => {
+        for (const b of chat.querySelectorAll("[data-see]")) b.classList.toggle("on", b.dataset.see === v);
+        show(chat.querySelectorAll("[data-show]"), (el) => el.dataset.show === v);
+      };
+      let flip = calm ? 0 : setInterval(() => see(chat.querySelector("[data-see].on").dataset.see === "you" ? "model" : "you"), 3200);
+      chat.addEventListener("click", (e) => {
+        const t = e.target.closest("[data-see]");
+        if (!t) return;
+        clearInterval(flip);
+        flip = 0;
+        see(t.dataset.see);
+      });
+
+      // Sections come in as they are reached; feature cells light up under the pointer.
+      const io = new IntersectionObserver(
+        (seen) => {
+          for (const s of seen)
+            if (s.isIntersecting) {
+              s.target.classList.add("in");
+              io.unobserve(s.target);
+            }
+        },
+        { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+      );
+      for (const el of document.querySelectorAll(".reveal")) io.observe(el);
+      for (const c of document.querySelectorAll(".cell"))
+        c.addEventListener("pointermove", (e) => {
+          const r = c.getBoundingClientRect();
+          c.style.setProperty("--x", `${e.clientX - r.left}px`);
+          c.style.setProperty("--y", `${e.clientY - r.top}px`);
+        });
+    </script>
+"""

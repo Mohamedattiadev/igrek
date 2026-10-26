@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fbfbfc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)" />
     <title>Install · Igrek docs</title>
     <meta name="description" content="The desktop app
 Download the package for your computer from the latest release: .msi for Windows, .dmg for macOS (aarch64 for Apple silicon, x64 for I" />
@@ -12,6 +14,10 @@ Download the package for your computer from the latest release: .msi for Windows
     <meta property="og:image" content="https://mohamedattiadev.github.io/igrek/img/en-health.webp" />
     <link rel="icon" href="../../logo.svg" />
     <link rel="stylesheet" href="../../style.css" />
+    <script>
+      // Parts that fade in on scroll stay visible when scripts are off.
+      document.documentElement.classList.add("js");
+    </script>
   </head>
   <body>
     <header class="top">
@@ -23,7 +29,7 @@ Download the package for your computer from the latest release: .msi for Windows
           <a href="../../roadmap/">Roadmap</a>
           <a href="../../community/">Community</a>
           <a href="https://github.com/Mohamedattiadev/igrek">GitHub</a>
-          <a href="../../tr/docs/install/">Türkçe</a>
+          <span class="langs"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span class="cur" title="English">EN</span><a href="../../tr/docs/install/" hreflang="tr" lang="tr" title="Türkçe">TR</a></span>
           <a class="cta" href="../../#download">Download</a>
         </nav>
       </div>

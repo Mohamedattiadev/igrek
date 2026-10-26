@@ -1,6 +1,7 @@
 """Igrek's site (site/, published by hand with the Site workflow), laid out like well-known docs: a home
 page with the right download first, docs split into pages with a menu, "on this page", search and
-previous/next, and privacy, terms, roadmap and community pages. The texts are in content.py.
+previous/next, and privacy, terms, roadmap and community pages. The texts are in content.py; the working copy
+of the app on the home page is drawn by mock.py.
 
     python3 scripts/site/build.py . <version>      (after a release: its download links name the version)
 """
@@ -12,7 +13,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = open(os.path.join(HERE, "content.py")).read()
-exec(SRC)  # T, DOCS, I, icon, REL, GH
+exec(SRC)  # T, M, DOCS, I, icon, REL, GH
+exec(open(os.path.join(HERE, "mock.py")).read())  # app_mock, privacy_mock, MOCK_JS
 
 ROOT = sys.argv[1]
 VERSION = sys.argv[2]
@@ -229,10 +231,13 @@ def shell(lang, depth, title, desc, main, active="", search_index=None, path="")
         (f"{home}roadmap/", u["roadmap"], "roadmap"),
         (f"{home}community/", u["community"], "community"),
         (GH, "GitHub", ""),
-        (alt, "Türkçe" if lang == "en" else "English", "lang"),
     ]
     links = "\n".join(
         f'          <a href="{h}"{" class=on" if a == active else ""}>{x}</a>' for h, x, a in nav)
+    pair = [("en", "EN", "English"), ("tr", "TR", "Türkçe")]
+    links += "\n" + f'          <span class="langs">{icon("globe")}' + "".join(
+        f'<span class="cur" title="{n}">{c}</span>' if k == lang else f'<a href="{alt}" hreflang="{k}" lang="{k}" title="{n}">{c}</a>'
+        for k, c, n in pair) + "</span>"
     search = ""
     script = ""
     if search_index is not None:
@@ -282,6 +287,8 @@ def shell(lang, depth, title, desc, main, active="", search_index=None, path="")
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fbfbfc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)" />
     <title>{title}</title>
     <meta name="description" content="{html.escape(desc)}" />
     <meta property="og:title" content="{title}" />
@@ -289,6 +296,10 @@ def shell(lang, depth, title, desc, main, active="", search_index=None, path="")
     <meta property="og:image" content="https://mohamedattiadev.github.io/igrek/img/{lang}-health.webp" />
     <link rel="icon" href="{root}logo.svg" />
     <link rel="stylesheet" href="{root}style.css" />
+    <script>
+      // Parts that fade in on scroll stay visible when scripts are off.
+      document.documentElement.classList.add("js");
+    </script>
   </head>
   <body>
     <header class="top">
@@ -333,63 +344,76 @@ def home_page(lang):
     f = files(VERSION)
     depth = 0
     base = "" if lang == "en" else "../"
-    links = " · ".join(f'<a href="{h}">{o} {k}</a>' for h, o, k in f.values())
-    feats = "\n".join(
-        f'          <div class="card"><span class="ic">{icon(i)}</span><h3>{a}</h3><p>{b}</p></div>' for i, a, b in t["features"])
-    steps = "\n".join(f'          <div class="card"><h3>{a}</h3><p>{b}</p></div>' for a, b in t["steps"])
-    plist = "\n".join(f"            <li>{icon('check')}<span>{x}</span></li>" for x in t["p_list"])
-    faq = "\n".join(f"        <details><summary>{q}</summary><p>{a}</p></details>" for q, a in t["faq"])
-    main = f"""    <main>
-      <div class="hero wrap">
-        <span class="pill">{t["pill"]}</span>
-        <h1>{t["h1"]}</h1>
-        <p class="lead">{t["lead"]}</p>
-        <div class="dlbox" id="download">
-          <a class="button" id="dl" href="{REL}">{icon("download")}<span id="dltext">{u["download"]}</span></a>
-          <span class="version">{u["latest"]}: v{VERSION} · <a href="{REL}">{u["all"]}</a></span>
-          <span class="others">{links}</span>
+    links = " ".join(f"<a href=\"{h}\">{o} {k}</a>" for h, o, k in f.values())
+    works = "".join(f"<b>{x}</b>" for x in t["works_list"])
+    steps = "\n".join(
+        f'            <li style="--i:{i}"><span class="num">{i + 1}</span><b>{a}</b><p>{b}</p></li>' for i, (a, b) in enumerate(t["steps"]))
+    plist = "\n".join(f"                <li>{icon('check')}<span>{x}</span></li>" for x in t["p_list"])
+    faq = "\n".join(f"          <details><summary>{q}</summary><p>{a}</p></details>" for q, a in t["faq"])
+    app = app_mock(lang).replace("{base}", base).replace("{version}", VERSION)
+    dl = f'<a class="button dl-os" href="{REL}">{icon("download")}<span class="dltext">{u["download"]}</span></a>'
+    main = f"""    <main class="home">
+      <div class="hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="wrap hero-in">
+          <a class="announce" href="{REL}"><span>v{VERSION}</span>{t["announce"]}{icon("arrow")}</a>
+          <h1>{t["h1"]}</h1>
+          <p class="lead">{t["lead"]}</p>
+          <div class="actions" id="download">
+            {dl}
+            <a class="button ghost" href="docs/">{icon("book")}{t["docs_btn"]}</a>
+          </div>
+          <p class="others">{links}</p>
+          <p class="note">{u["dl_note"]}</p>
         </div>
-        <p class="note">{u["dl_note"]}</p>
-        <div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="{base}{t["shot"]}" width="1440" height="900" alt="{t["shot_alt"]}" /></div>
+        <div class="wrap">
+        {app}
+        </div>
       </div>
+      <div class="wrap works reveal"><span>{t["works"]}</span>{works}</div>
       <section id="features">
         <div class="wrap">
-          <p class="eyebrow">{t["f_eyebrow"]}</p>
-          <h2>{t["f_h"]}</h2>
-          <p class="sub">{t["f_sub"]}</p>
-          <div class="grid">
-{feats}
+          <div class="shead reveal"><h2>{t["f_h"]}</h2><p>{t["f_sub"]}</p></div>
+          <div class="bento">
+{bento(lang, t["features"])}
           </div>
         </div>
       </section>
       <section>
         <div class="wrap">
-          <p class="eyebrow">{t["s_eyebrow"]}</p>
-          <h2>{t["s_h"]}</h2>
-          <div class="steps" style="margin-top:32px">
-{steps}
-          </div>
-        </div>
-      </section>
-      <div class="band">
-        <section>
-          <div class="wrap split">
+          <div class="shead reveal"><h2>{t["p_h"]}</h2><p>{t["p_sub"]}</p></div>
+          <div class="split reveal">
             <div>
-              <p class="eyebrow">{t["p_eyebrow"]}</p>
-              <h2>{t["p_h"]}</h2>
-              <p style="color:var(--muted)">{t["p_text"]}</p>
-              <ul>
+              <p>{t["p_text"]}</p>
+              <ul class="checks">
 {plist}
               </ul>
             </div>
-            <div class="shot" style="margin:0"><div class="bar"><i></i><i></i><i></i></div><img src="{base}{t["p_shot"]}" width="1440" height="900" alt="{t["p_alt"]}" /></div>
+            {privacy_mock(lang)}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
       <section>
-        <div class="wrap" style="max-width:820px">
+        <div class="wrap">
+          <div class="shead reveal"><h2>{t["s_h"]}</h2><p>{t["s_sub"]}</p></div>
+          <ol class="steps reveal">
+{steps}
+          </ol>
+        </div>
+      </section>
+      <section>
+        <div class="wrap faq reveal">
           <h2>{t["faq_h"]}</h2>
 {faq}
+        </div>
+      </section>
+      <section>
+        <div class="wrap">
+          <div class="cta reveal">
+            <h2>{t["cta_h"]}</h2>
+            <p>{t["cta_p"]}</p>
+            {dl}
+          </div>
         </div>
       </section>
     </main>
@@ -398,12 +422,13 @@ def home_page(lang):
       const files = {json.dumps({k: v[0] for k, v in f.items()})};
       const ua = navigator.userAgent;
       const os = /Windows/.test(ua) ? ["windows", "Windows"] : /Mac/.test(ua) ? ["mac-arm", "macOS"] : /Linux|X11/.test(ua) ? ["linux", "Linux"] : null;
-      if (os) {{
-        document.getElementById("dl").href = files[os[0]];
-        document.getElementById("dltext").textContent = {json.dumps(u["for"])}.replace("{{os}}", os[1]);
-      }}
+      if (os)
+        for (const a of document.querySelectorAll(".dl-os")) {{
+          a.href = files[os[0]];
+          a.querySelector(".dltext").textContent = {json.dumps(u["for"])}.replace("{{os}}", os[1]);
+        }}
     </script>
-"""
+""" + MOCK_JS
     return shell(lang, depth, t["title"], t["desc"], main)
 
 
