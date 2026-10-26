@@ -1,13 +1,13 @@
-import { type ComponentType, StrictMode } from "react";
+import { type ComponentType, lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { createBrowserRouter, RouterProvider } from "react-router";
+import { RootBoundary } from "./components/RootBoundary";
 import { Shell } from "./components/Shell";
 import "./lib/i18n";
 import "./lib/install";
 import { SettingsProvider, useSettings } from "./lib/settings";
 import { renameStoredKeys } from "./lib/storage-rename";
-import { Onboarding } from "./pages/Onboarding";
 import { ProjectsPage } from "./pages/Projects";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/jetbrains-mono/wght.css";
@@ -71,6 +71,8 @@ const router = createBrowserRouter([
   },
 ]);
 
+const FirstRun = lazy(() => import("./pages/FirstRun").then((m) => ({ default: m.FirstRun })));
+
 function App() {
   const { loaded, error, settings } = useSettings();
   const { t } = useTranslation();
@@ -82,7 +84,12 @@ function App() {
     );
   }
   if (!loaded) return null;
-  if (!settings.onboarded) return <Onboarding />;
+  if (!settings.onboarded)
+    return (
+      <Suspense fallback={null}>
+        <FirstRun />
+      </Suspense>
+    );
   return <RouterProvider router={router} />;
 }
 
@@ -91,8 +98,10 @@ const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root");
 createRoot(root).render(
   <StrictMode>
-    <SettingsProvider>
-      <App />
-    </SettingsProvider>
+    <RootBoundary>
+      <SettingsProvider>
+        <App />
+      </SettingsProvider>
+    </RootBoundary>
   </StrictMode>,
 );

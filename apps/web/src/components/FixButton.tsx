@@ -15,11 +15,14 @@ export function FixButton({
   projectId,
   label,
   variant = "secondary",
+  onTerminal,
 }: {
   fix: FixId;
   projectId?: string;
   label: string;
   variant?: "primary" | "secondary" | "ghost";
+  /** Where the terminal opens instead of its page: the first-run wizard has no pages yet. */
+  onTerminal?: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -39,7 +42,8 @@ export function FixButton({
       .runFix(fix, projectId)
       .then((term) => {
         setPlan(undefined);
-        void navigate(`/t/${term.id}`);
+        if (onTerminal) onTerminal(term.id);
+        else void navigate(`/t/${term.id}`);
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setBusy(false));

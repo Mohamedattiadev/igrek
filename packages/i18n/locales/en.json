@@ -5004,5 +5004,10 @@
     "problem_missing-commit": "The commit this chat was on could not be found here, even after fetching. Push it on the other computer, then try again.",
     "problem_apply-failed": "The changes could not be applied; nothing of yours was overwritten.",
     "problem_file-exists": "A new file from the other computer already exists here with different content."
+  },
+  "crash": {
+    "title": "Igrek ran into a problem",
+    "body": "This screen could not be drawn. Reloading usually helps. If it happens again, send us the message below with Report a problem.",
+    "reload": "Reload"
   }
 }

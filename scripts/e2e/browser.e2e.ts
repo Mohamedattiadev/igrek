@@ -102,9 +102,9 @@ describe.skipIf(!ready)("the app in a browser", () => {
     return { page, ctx, errors };
   }
 
-  test("before setup is done, the welcome screen comes first, then the project folders", async () => {
+  test("before setup is done, the welcome screen comes first, then the project folders, then the tools", async () => {
     expect((await settings({ onboarded: false })).status).toBe(200);
-    const { page, ctx } = await open("light", "/");
+    const { page, ctx, errors } = await open("light", "/");
     await page.getByRole("heading", { name: "Welcome to Igrek" }).waitFor();
     // Projects are only the folders the user adds, so the next step asks for one.
     await page.getByRole("button", { name: "Continue" }).click();
@@ -112,6 +112,12 @@ describe.skipIf(!ready)("the app in a browser", () => {
     await page.getByRole("heading", { name: "Do you write code?" }).waitFor();
     await page.getByRole("button", { name: /No, I don't/ }).click();
     await page.getByRole("heading", { name: "Where are your projects?" }).waitFor();
+    // The seeded project is already added, so the last step opens. Codex is not on this PATH, so its
+    // install button shows: it once needed a router the wizard did not have, and the window went white.
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("heading", { name: "You're all set" }).waitFor();
+    await page.getByRole("button", { name: /Install Codex/ }).waitFor();
+    expect(errors).toEqual([]);
     await ctx.close();
     await settings({ onboarded: true, mode: "simple" });
   }, 30_000);

@@ -200,7 +200,12 @@ export function Onboarding() {
               <h1 className="text-[18px] font-semibold">{t("onboarding.readyTitle")}</h1>
               <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">{t("onboarding.readyBody")}</p>
               <div className="mt-4">
-                <AiToolsCheck />
+                <AiToolsCheck
+                  onTerminal={(id) =>
+                    // Installing a tool is the last thing here: setup is done, and its terminal opens.
+                    void update({ onboarded: true }).then(() => window.location.assign(`/t/${id}`))
+                  }
+                />
               </div>
               <FirstTask />
               <div className="mt-6 flex flex-wrap justify-end gap-2">

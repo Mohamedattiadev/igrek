@@ -5004,5 +5004,10 @@
     "problem_missing-commit": "Sohbetin üzerinde olduğu commit, çektikten sonra bile burada bulunamadı. Diğer bilgisayarda push et ve tekrar dene.",
     "problem_apply-failed": "Değişiklikler uygulanamadı; seninkilerden hiçbiri ezilmedi.",
     "problem_file-exists": "Diğer bilgisayardan gelen yeni bir dosya burada zaten var."
+  },
+  "crash": {
+    "title": "Igrek bir sorunla karşılaştı",
+    "body": "Bu ekran çizilemedi. Yeniden yüklemek çoğu zaman düzeltir. Tekrar olursa aşağıdaki mesajı Sorun bildir ile bize gönder.",
+    "reload": "Yeniden yükle"
   }
 }

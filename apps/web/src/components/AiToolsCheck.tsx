@@ -28,7 +28,7 @@ const TOOLS = [
  * First run: whether Claude Code and Codex are on this computer (the same check as Settings >
  * System), and for each one that is not, the command that installs it.
  */
-export function AiToolsCheck() {
+export function AiToolsCheck({ onTerminal }: { onTerminal?: (id: string) => void } = {}) {
   const { t } = useTranslation();
   const [status, setStatus] = useState<SystemStatus>();
   const [checking, setChecking] = useState(false);
@@ -69,6 +69,7 @@ export function AiToolsCheck() {
               <FixButton
                 fix={tool.id === "claude" ? "install-claude" : "install-codex"}
                 label={t("fix.installTool", { tool: tool.name })}
+                onTerminal={onTerminal}
               />
               <a
                 href={tool.docs}
