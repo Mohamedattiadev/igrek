@@ -2,7 +2,7 @@ import type { CommandRisk, DeployRecord, RemoteRun, ServerInfo, ServerTag } from
 import { ArrowLeft, Bot, Download, Plus, RefreshCw, Rocket, Server, SquareTerminal, Trash2, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { RemoteFiles } from "../components/RemoteFiles";
 import { RiskBadge } from "../components/RiskBadge";
@@ -13,6 +13,9 @@ import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { deferDelete, usePendingDeletes } from "../lib/undo";
 import { PersonaChatDialog } from "./PersonaDetail";
+import { ServerAi } from "./server/ServerAi";
+import { ServerContainers } from "./server/ServerContainers";
+import { ServerSecurity } from "./server/ServerSecurity";
 
 const TAGS: ServerTag[] = ["prod", "staging", "test", "other"];
 
@@ -368,23 +371,143 @@ function AskDevOps({ server }: { server: ServerInfo }) {
   );
 }
 
+/** The server page's tabs: its state, its security, its files, commands by hand, and its own AI chat. */
+const TABS = ["overview", "security", "files", "commands", "ai"] as const;
+
+/** The overview tab: how the machine is, its containers, what was deployed there. */
+function ServerOverview({ server }: { server: ServerInfo }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const health = server.health;
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <ServerDeploys serverId={server.id} />
+      <Card className="space-y-3 p-pad text-[13px]">
+        {health?.ok ? (
+          <>
+            <Meter label={t("servers.disk")} percent={health.diskPercent} />
+            <Meter label={t("servers.memory")} percent={health.memPercent} />
+            {health.uptime && (
+              <p className="text-xs text-fg-muted">
+                {t("servers.uptime")}: {health.uptime}
+              </p>
+            )}
+            {health.load && (
+              <p className="font-mono text-xs text-fg-muted">
+                {t("servers.load")}: {health.load}
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="space-y-1.5">
+            <p className="text-xs text-danger">{health ? `${t("servers.unreachable")}: ${health.error}` : "…"}</p>
+            {health?.error && /host key|known_hosts/i.test(health.error) && (
+              <p className="text-xs text-fg-muted">{t("servers.hostKey")}</p>
+            )}
+          </div>
+        )}
+      </Card>
+      <ServerContainers server={server} />
+      {health?.failedUnits && health.failedUnits.length > 0 && (
+        <Card className="border-danger p-pad">
+          <h3 className="mb-2 text-xs font-semibold text-danger">{t("servers.failed")}</h3>
+          {health.failedUnits.map((u) => (
+            <p key={u} className="font-mono text-xs">
+              {u}
+            </p>
+          ))}
+        </Card>
+      )}
+      <Button
+        variant="ghost"
+        icon={Trash2}
+        onClick={() => {
+          deferDelete(`server-${server.id}`, server.name, () => api.removeServer(server.id));
+          void navigate("/servers");
+        }}
+      >
+        {t("servers.remove")}
+      </Button>
+    </div>
+  );
+}
+
+/** Commands by hand: the box, the last output, and every command run here (by the user or an agent). */
+function ServerCommands({ server }: { server: ServerInfo }) {
+  const { t } = useTranslation();
+  const [audit, setAudit] = useState<RemoteRun[]>([]);
+  const [selected, setSelected] = useState<RemoteRun>();
+  const loadAudit = () => {
+    api
+      .serverAudit(server.id)
+      .then(setAudit)
+      .catch(() => undefined);
+  };
+  useEffect(loadAudit, [server.id]);
+  return (
+    <>
+      <RunBox
+        server={server}
+        onRan={(run) => {
+          setSelected(run);
+          loadAudit();
+        }}
+      />
+      {selected && (
+        <Card>
+          <div className="flex items-center gap-2 border-b border-border px-pad py-2 text-xs">
+            <span className="font-semibold uppercase tracking-wide text-fg-subtle">{t("servers.output")}</span>
+            <RiskBadge risk={selected.risk} />
+            <Badge tone={selected.exitCode === 0 ? "success" : "danger"}>exit {selected.exitCode}</Badge>
+            <span className="ms-auto font-mono text-fg-subtle">{selected.durationMs} ms</span>
+          </div>
+          <pre className="max-h-[50vh] overflow-auto p-pad font-mono text-[12px] leading-relaxed">
+            {selected.output || "—"}
+          </pre>
+        </Card>
+      )}
+      <Card>
+        <h3 className="border-b border-border px-pad py-2.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
+          {t("servers.audit")}
+        </h3>
+        <ul className="divide-y divide-border">
+          {audit.map((run) => (
+            <li key={run.id}>
+              <button
+                type="button"
+                data-nav-item
+                onClick={() => setSelected(run)}
+                className="flex w-full items-center gap-2 px-pad py-2 text-start hover:bg-bg-hover"
+              >
+                {run.actor === "agent" ? (
+                  <Bot size={13} className="text-accent" />
+                ) : (
+                  <User size={13} className="text-fg-subtle" />
+                )}
+                <code className="min-w-0 flex-1 truncate font-mono text-[12px]">{run.command}</code>
+                <RiskBadge risk={run.risk} />
+                <Badge tone={run.exitCode === 0 ? "success" : run.exitCode === undefined ? "neutral" : "danger"}>
+                  {run.exitCode ?? "…"}
+                </Badge>
+                <span className="w-20 text-end text-[11px] text-fg-subtle">{relativeTime(run.startedAt)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </>
+  );
+}
+
 export function ServerPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { serverId = "" } = useParams();
   const servers = useServers();
   const server = servers?.find((s) => s.id === serverId);
-  const [audit, setAudit] = useState<RemoteRun[]>([]);
-  const [selected, setSelected] = useState<RemoteRun>();
   const [checking, setChecking] = useState(false);
-
-  const loadAudit = () => {
-    api
-      .serverAudit(serverId)
-      .then(setAudit)
-      .catch(() => undefined);
-  };
-  useEffect(loadAudit, [serverId]);
+  const [params, setParams] = useSearchParams();
+  const tab = (TABS.find((v) => v === params.get("tab")) ?? "overview") as (typeof TABS)[number];
 
   if (!server) return <EmptyState icon={Server} title={t("servers.title")} body="…" />;
   const health = server.health;
@@ -422,123 +545,20 @@ export function ServerPage() {
           {t("servers.openShell")}
         </Button>
       </header>
-      <div className="mx-auto grid w-full max-w-6xl gap-4 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="min-w-0 space-y-4">
-          <RunBox
-            server={server}
-            onRan={(run) => {
-              setSelected(run);
-              loadAudit();
-            }}
-          />
-          {selected && (
-            <Card>
-              <div className="flex items-center gap-2 border-b border-border px-pad py-2 text-xs">
-                <span className="font-semibold uppercase tracking-wide text-fg-subtle">{t("servers.output")}</span>
-                <RiskBadge risk={selected.risk} />
-                <Badge tone={selected.exitCode === 0 ? "success" : "danger"}>exit {selected.exitCode}</Badge>
-                <span className="ms-auto font-mono text-fg-subtle">{selected.durationMs} ms</span>
-              </div>
-              <pre className="max-h-[50vh] overflow-auto p-pad font-mono text-[12px] leading-relaxed">
-                {selected.output || "—"}
-              </pre>
-            </Card>
-          )}
-          <RemoteFiles serverId={server.id} />
-          <Card>
-            <h3 className="border-b border-border px-pad py-2.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
-              {t("servers.audit")}
-            </h3>
-            <ul className="divide-y divide-border">
-              {audit.map((run) => (
-                <li key={run.id}>
-                  <button
-                    type="button"
-                    data-nav-item
-                    onClick={() => setSelected(run)}
-                    className="flex w-full items-center gap-2 px-pad py-2 text-start hover:bg-bg-hover"
-                  >
-                    {run.actor === "agent" ? (
-                      <Bot size={13} className="text-accent" />
-                    ) : (
-                      <User size={13} className="text-fg-subtle" />
-                    )}
-                    <code className="min-w-0 flex-1 truncate font-mono text-[12px]">{run.command}</code>
-                    <RiskBadge risk={run.risk} />
-                    <Badge tone={run.exitCode === 0 ? "success" : run.exitCode === undefined ? "neutral" : "danger"}>
-                      {run.exitCode ?? "…"}
-                    </Badge>
-                    <span className="w-20 text-end text-[11px] text-fg-subtle">{relativeTime(run.startedAt)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </div>
-        <div className="space-y-4">
-          <ServerDeploys serverId={server.id} />
-          <Card className="space-y-3 p-pad text-[13px]">
-            {health?.ok ? (
-              <>
-                <Meter label={t("servers.disk")} percent={health.diskPercent} />
-                <Meter label={t("servers.memory")} percent={health.memPercent} />
-                {health.uptime && (
-                  <p className="text-xs text-fg-muted">
-                    {t("servers.uptime")}: {health.uptime}
-                  </p>
-                )}
-                {health.load && (
-                  <p className="font-mono text-xs text-fg-muted">
-                    {t("servers.load")}: {health.load}
-                  </p>
-                )}
-              </>
-            ) : (
-              <div className="space-y-1.5">
-                <p className="text-xs text-danger">{health ? `${t("servers.unreachable")}: ${health.error}` : "…"}</p>
-                {health?.error && /host key|known_hosts/i.test(health.error) && (
-                  <p className="text-xs text-fg-muted">{t("servers.hostKey")}</p>
-                )}
-              </div>
-            )}
-          </Card>
-          {health?.containers && health.containers.length > 0 && (
-            <Card className="p-pad">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
-                {t("servers.containers")}
-              </h3>
-              <ul className="space-y-1">
-                {health.containers.map((c) => (
-                  <li key={c.name} className="flex items-center gap-2 text-xs">
-                    <StatusDot tone={c.status.startsWith("Up") ? "success" : "danger"} />
-                    <span className="min-w-0 flex-1 truncate font-mono">{c.name}</span>
-                    <span className="text-[11px] text-fg-subtle">{c.status}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-          {health?.failedUnits && health.failedUnits.length > 0 && (
-            <Card className="border-danger p-pad">
-              <h3 className="mb-2 text-xs font-semibold text-danger">{t("servers.failed")}</h3>
-              {health.failedUnits.map((u) => (
-                <p key={u} className="font-mono text-xs">
-                  {u}
-                </p>
-              ))}
-            </Card>
-          )}
-          <Button
-            variant="ghost"
-            icon={Trash2}
-            onClick={() => {
-              deferDelete(`server-${server.id}`, server.name, () => api.removeServer(server.id));
-              void navigate("/servers");
-            }}
-          >
-            {t("servers.remove")}
-          </Button>
-        </div>
+      <div className="border-b border-border px-6 py-2">
+        <Segmented
+          label={server.name}
+          value={tab}
+          onChange={(v) => setParams(v === "overview" ? {} : { tab: v }, { replace: true })}
+          options={TABS.map((v) => ({ value: v, label: t(`serverFix.tab_${v}`) }))}
+        />
+      </div>
+      <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
+        {tab === "overview" && <ServerOverview server={server} />}
+        {tab === "security" && <ServerSecurity server={server} />}
+        {tab === "files" && <RemoteFiles serverId={server.id} />}
+        {tab === "commands" && <ServerCommands server={server} />}
+        {tab === "ai" && <ServerAi server={server} />}
       </div>
     </>
   );

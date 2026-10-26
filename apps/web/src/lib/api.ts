@@ -239,6 +239,14 @@ async function requestOrProblem<T>(path: string, body: unknown): Promise<T | { p
   return data as T;
 }
 
+/** One thing the server scan found (apps/server/src/server-audit.ts); the page words it. */
+export interface ServerFinding {
+  id: string;
+  severity: "high" | "medium" | "low" | "info";
+  detail?: Record<string, string | number>;
+  fix?: string;
+}
+
 export const api = {
   /** Picks up the session cookie; call once before anything else. */
   bootstrap: () => request<{ ok: boolean }>("/api/session"),
@@ -701,6 +709,20 @@ export const api = {
   runOnServer: (id: string, command: string, confirmations: number) =>
     request<RemoteRun>(`/api/servers/${id}/run`, { method: "POST", body: JSON.stringify({ command, confirmations }) }),
   serverAudit: (id: string) => request<RemoteRun[]>(`/api/servers/${id}/audit`),
+  /** Security and health in plain findings (server-audit.ts); read-only. */
+  serverSecurity: (id: string) =>
+    request<{ findings: ServerFinding[]; unread: string[]; at: number }>(`/api/servers/${id}/security`, {
+      method: "POST",
+    }),
+  fixOnServer: (id: string, finding: string, confirmations: number) =>
+    request<RemoteRun>(`/api/servers/${id}/fix`, { method: "POST", body: JSON.stringify({ finding, confirmations }) }),
+  containerLogs: (id: string, name: string) =>
+    request<{ output: string }>(`/api/servers/${id}/containers/${encodeURIComponent(name)}/logs`, { method: "POST" }),
+  restartContainer: (id: string, name: string, confirmations: number) =>
+    request<RemoteRun>(`/api/servers/${id}/containers/${encodeURIComponent(name)}/restart`, {
+      method: "POST",
+      body: JSON.stringify({ confirmations }),
+    }),
   sshTerminal: (serverId: string) =>
     request<TerminalInfo>("/api/terminals", { method: "POST", body: JSON.stringify({ tool: "ssh", serverId }) }),
   approvals: () => request<Approval[]>("/api/approvals"),

@@ -4,6 +4,7 @@ import {
   ArrowUp,
   Briefcase,
   ChevronRight,
+  FilePen,
   FileText,
   FlaskConical,
   FolderKanban,
@@ -22,7 +23,7 @@ import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
 import { DayEndButton } from "../components/Writeups";
-import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
+import { ActiveDot, useSummaryText } from "../components/work";
 import { api, request } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -69,6 +70,32 @@ function TeamFaces({ project, people }: { project: ProjectListItem; people: Retu
 
 const DayCards = lazy(() => import("../components/DayCards").then((m) => ({ default: m.DayCards })));
 
+/** A small grey label with an icon; its tip says in words what the number means. */
+function Fact({
+  icon: Icon,
+  text,
+  tip,
+  tone,
+}: {
+  icon: typeof GitBranch;
+  text: string;
+  tip?: string;
+  tone?: "warning" | "accent";
+}) {
+  return (
+    <span
+      data-tip={tip}
+      className={cn(
+        "inline-flex min-w-0 shrink-0 items-center gap-1 rounded-full bg-bg-subtle px-2 py-0.5",
+        tone === "warning" ? "text-warning" : tone === "accent" ? "text-accent" : "text-fg-muted",
+      )}
+    >
+      <Icon size={11} className="shrink-0" aria-hidden="true" />
+      <span className="truncate">{text}</span>
+    </span>
+  );
+}
+
 function ProjectCard({ project, people }: { project: ProjectListItem; people: ReturnType<typeof useTeamPeople> }) {
   const { t } = useTranslation();
   const summary = useSummaryText(project.lastSummary);
@@ -96,7 +123,16 @@ function ProjectCard({ project, people }: { project: ProjectListItem; people: Re
           </p>
         </div>
         <TeamFaces project={project} people={people} />
-        {project.health && <HealthBadge health={project.health} />}
+        {working ? (
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
+            <ActiveDot active />
+            {t("projects.aiWorking")}
+          </span>
+        ) : (
+          project.lastActivity > 0 && (
+            <span className="shrink-0 text-[11px] text-fg-subtle">{relativeTime(project.lastActivity)}</span>
+          )
+        )}
       </div>
 
       <p
@@ -108,38 +144,36 @@ function ProjectCard({ project, people }: { project: ProjectListItem; people: Re
         {said ?? t("projects.noSummary")}
       </p>
 
-      <div className="mt-3 flex items-center gap-2 border-t border-border pt-2.5 text-[11.5px] text-fg-subtle">
+      <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px]">
         {git?.branch ? (
-          <span className="inline-flex min-w-0 items-center gap-1 truncate">
-            <GitBranch size={12} className="shrink-0" aria-hidden="true" />
-            <span className="truncate">{git.branch}</span>
-          </span>
+          <Fact icon={GitBranch} text={git.branch} tip={t("projects.branchTip")} />
         ) : (
-          <span>{t("projects.noGit")}</span>
+          <Fact icon={GitBranch} text={t("projects.noGit")} />
         )}
         {git && git.changed > 0 && (
-          <span className="shrink-0 text-warning">· {t("projects.changes", { count: git.changed })}</span>
+          <Fact
+            icon={FilePen}
+            text={t("projects.changedShort", { count: git.changed })}
+            tip={t("projects.changedTip")}
+            tone="warning"
+          />
         )}
         {git && git.ahead > 0 && (
-          <span className="inline-flex shrink-0 items-center text-accent" data-tip={t("projects.aheadTip")}>
-            <ArrowUp size={11} aria-hidden="true" />
-            {git.ahead}
-          </span>
+          <Fact
+            icon={ArrowUp}
+            text={t("projects.aheadShort", { count: git.ahead })}
+            tip={t("projects.aheadTip")}
+            tone="accent"
+          />
         )}
         {git && git.behind > 0 && (
-          <span className="inline-flex shrink-0 items-center text-warning" data-tip={t("projects.behindTip")}>
-            <ArrowDown size={11} aria-hidden="true" />
-            {git.behind}
-          </span>
+          <Fact
+            icon={ArrowDown}
+            text={t("projects.behindShort", { count: git.behind })}
+            tip={t("projects.behindTip")}
+            tone="warning"
+          />
         )}
-        <span className="ms-auto flex shrink-0 items-center gap-1.5">
-          {working && <ActiveDot active />}
-          {working
-            ? t("projects.active", { count: project.activeSessions })
-            : project.lastActivity > 0
-              ? relativeTime(project.lastActivity)
-              : t("projects.sessions", { count: project.sessionCount })}
-        </span>
       </div>
     </Link>
   );

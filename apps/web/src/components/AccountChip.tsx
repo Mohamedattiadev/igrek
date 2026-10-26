@@ -1,10 +1,29 @@
-import { Check, ChevronDown, Gauge, UserRound } from "lucide-react";
+import { Check, ChevronDown, Gauge } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useAccounts } from "../lib/live";
+
+/**
+ * Claude or Codex as a small coloured letter (the project's icons are lucide only, so no brand
+ * logos): readable at a glance, and the tip says the name in full.
+ */
+function ProviderMark({ provider }: { provider: string }) {
+  const codex = provider === "codex";
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "flex h-4 min-w-4 shrink-0 items-center justify-center rounded px-0.5 text-[9.5px] font-bold leading-none",
+        codex ? "bg-fg text-bg" : "bg-[#d97757] text-white",
+      )}
+    >
+      {codex ? "Cx" : "C"}
+    </span>
+  );
+}
 
 /** Top-bar switch: which Claude account new sessions use, and how full its 5-hour limit is. */
 export function AccountChip() {
@@ -35,17 +54,11 @@ export function AccountChip() {
         aria-label={t("limits.chipTip", { name: active.label, pct: pct ?? "?" })}
         data-tip={t("limits.chipTip", { name: active.label, pct: pct ?? "?" })}
       >
-        {/* The icon says it is an account: testers read a bare "Main" as a branch or a workspace. */}
-        <UserRound size={13} className="shrink-0 text-fg-subtle" aria-hidden="true" />
-        {/* Said in words, so nobody has to click to learn what "Main" and the bar are. */}
-        <span className="hidden max-w-36 truncate whitespace-nowrap font-medium sm:inline">
-          {t("limits.chipName", { name: active.label })}
-        </span>
+        {/* Which AI it is by its mark, then the account's own name: short enough for any top bar. */}
+        <ProviderMark provider={active.provider} />
+        <span className="hidden max-w-28 truncate whitespace-nowrap font-medium lg:inline">{active.label}</span>
         {pct !== undefined && (
           <span className="flex items-center gap-1">
-            <span className="hidden whitespace-nowrap text-[11px] text-fg-subtle xl:inline">
-              {t("limits.chipLimit")}
-            </span>
             <span className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-bg-muted sm:block">
               <span className={cn("block h-full rounded-full", tone)} style={{ width: `${Math.max(4, pct)}%` }} />
             </span>

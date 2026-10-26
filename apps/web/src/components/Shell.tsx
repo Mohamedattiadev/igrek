@@ -1,7 +1,7 @@
 import type { ServerMessage } from "@igrek/core";
 import { APP_VERSION } from "@igrek/core";
-import { ChevronDown, Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { ChevronDown, Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Search } from "lucide-react";
+import { lazy, type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { api } from "../lib/api";
@@ -16,7 +16,6 @@ import { useVimNavigation } from "../lib/vim";
 import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
 import { CodingQuestion } from "./CodingQuestion";
-import { CommandPalette } from "./CommandPalette";
 import { ExtensionPairPrompt } from "./ExtensionPairPrompt";
 import { Helper } from "./Helper";
 import { IdeaCapture } from "./IdeaCapture";
@@ -27,14 +26,44 @@ import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
-import { Tour } from "./Tour";
 import { UndoToast } from "./UndoToast";
 import { Kbd, StatusDot } from "./ui";
 import { WhatIs } from "./WhatIs";
 import { WorkspacePicker } from "./WorkspacePicker";
 
+// Loaded when first needed, so the first screen does not carry them (scripts/bundle-budget.json).
+const CommandPalette = lazy(() => import("./CommandPalette").then((m) => ({ default: m.CommandPalette })));
+const Tour = lazy(() => import("./Tour").then((m) => ({ default: m.Tour })));
+
 const WIDE = "igrek.nav.wide";
 const MORE = "igrek.nav.more";
+const PINNED = "igrek.nav.pinned";
+
+/**
+ * Pages under "More" the user pinned (plan.md, 26 Oct 2026): they stay on the strip while "More" is
+ * folded. Kept in this browser only, like the strip's width.
+ */
+function usePinned(): [Set<string>, (to: string) => void] {
+  const [pinned, setPinned] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(PINNED) ?? "[]") as string[]);
+    } catch {
+      return new Set();
+    }
+  });
+  const toggle = (to: string) =>
+    setPinned((now) => {
+      const next = new Set(now);
+      if (!next.delete(to)) next.add(to);
+      try {
+        localStorage.setItem(PINNED, JSON.stringify([...next]));
+      } catch {
+        // Only a convenience.
+      }
+      return next;
+    });
+  return [pinned, toggle];
+}
 
 function readMore(): boolean {
   try {
@@ -63,6 +92,46 @@ function useNarrow(): boolean {
     return () => m.removeEventListener("change", on);
   }, []);
   return narrow;
+}
+
+/** A page under "More" with a pin beside it on the wide strip: pinned, it stays when "More" is folded. */
+function PinnableLink({
+  item,
+  badge,
+  wide,
+  onPick,
+  pinned,
+  onPin,
+}: {
+  item: NavItem;
+  badge?: number;
+  wide: boolean;
+  onPick?: () => void;
+  pinned: boolean;
+  onPin: () => void;
+}) {
+  const { t } = useTranslation();
+  const label = pinned ? t("nav.unpin", { page: t(item.label) }) : t("nav.pin", { page: t(item.label) });
+  return (
+    <div className={cn("group/pin relative", wide && "w-full")}>
+      <ToolStripLink item={item} badge={badge} wide={wide} onPick={onPick} />
+      {wide && (
+        <button
+          type="button"
+          onClick={onPin}
+          aria-label={label}
+          aria-pressed={pinned}
+          data-tip={label}
+          className={cn(
+            "absolute end-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-fg-subtle hover:bg-bg-active hover:text-fg",
+            pinned ? "text-accent" : "opacity-0 focus:opacity-100 group-hover/pin:opacity-100",
+          )}
+        >
+          {pinned ? <PinOff size={13} aria-hidden="true" /> : <Pin size={13} aria-hidden="true" />}
+        </button>
+      )}
+    </div>
+  );
 }
 
 function ToolStripLink({
@@ -211,8 +280,9 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
     });
   const { pathname } = useLocation();
   const [moreSetting, setMore] = useState(readMore);
+  const [pinned, togglePin] = usePinned();
   const folded = (item: NavItem) => item.group === "work" || item.group === "know";
-  const inMore = visible.some((item) => folded(item) && pathname.startsWith(item.to));
+  const inMore = visible.some((item) => folded(item) && !pinned.has(item.to) && pathname.startsWith(item.to));
   const showMore = moreSetting || inMore;
   const flipMore = () =>
     setMore((on) => {
@@ -226,6 +296,18 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
   const link = (item: NavItem) => (
     <ToolStripLink key={item.to} item={item} badge={badges[item.to]} wide={wide} onPick={onClose} />
   );
+  const pinnable = (item: NavItem) => (
+    <PinnableLink
+      key={item.to}
+      item={item}
+      badge={badges[item.to]}
+      wide={wide}
+      onPick={onClose}
+      pinned={pinned.has(item.to)}
+      onPin={() => togglePin(item.to)}
+    />
+  );
+  const pinnedItems = visible.filter((item) => folded(item) && pinned.has(item.to));
   return (
     <nav
       data-tour="nav"
@@ -251,14 +333,19 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
         <NavGroup label={t("nav.groupTeam")} wide={wide}>
           {visible.filter((item) => item.group === "team").map(link)}
         </NavGroup>
+        {!showMore && pinnedItems.length > 0 && (
+          <NavGroup label={t("nav.groupPinned")} wide={wide}>
+            {pinnedItems.map(pinnable)}
+          </NavGroup>
+        )}
         <MoreToggle open={showMore} wide={wide} onClick={flipMore} />
         {showMore && (
           <>
             <NavGroup label={t("nav.groupWork")} wide={wide}>
-              {visible.filter((item) => item.group === "work").map(link)}
+              {visible.filter((item) => item.group === "work").map(pinnable)}
             </NavGroup>
             <NavGroup label={t("nav.groupKnow")} wide={wide}>
-              {visible.filter((item) => item.group === "know").map(link)}
+              {visible.filter((item) => item.group === "know").map(pinnable)}
             </NavGroup>
           </>
         )}
@@ -304,7 +391,7 @@ function TopBar({
         onClick={onSearch}
         data-tour="search"
         aria-label={t("palette.placeholder")}
-        className="flex h-7 shrink-0 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2 text-[13px] text-fg-subtle hover:border-border-strong sm:w-[min(340px,40vw)] sm:px-2.5"
+        className="flex h-7 shrink-0 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2 text-[13px] text-fg-subtle hover:border-border-strong sm:w-[min(320px,24vw)] sm:px-2.5"
       >
         <Search size={14} />
         <span className="hidden flex-1 truncate text-start sm:block">{t("palette.placeholder")}</span>
@@ -356,6 +443,11 @@ export function Shell() {
   const { t } = useTranslation();
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Mounted at its first opening and kept, so it opens instantly after that.
+  const [paletteUsed, setPaletteUsed] = useState(false);
+  useEffect(() => {
+    if (paletteOpen) setPaletteUsed(true);
+  }, [paletteOpen]);
   const [toast, setToast] = useState<string>();
   const [zen, setZen] = useState(readZen);
   const narrow = useNarrow();
@@ -474,13 +566,19 @@ export function Shell() {
           {t("zen.exit")}
         </button>
       )}
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      {paletteUsed && (
+        <Suspense fallback={null}>
+          <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+        </Suspense>
+      )}
       <QuickAsk />
       <ExtensionPairPrompt />
       <WhatIs />
       <TooltipLayer />
       <UndoToast />
-      <Tour />
+      <Suspense fallback={null}>
+        <Tour />
+      </Suspense>
       {/* A chat is already a conversation, and the button would sit on its send box. */}
       {!zen && !location.pathname.startsWith("/c/") && <Helper />}
       <IdeaCapture onSaved={setToast} />

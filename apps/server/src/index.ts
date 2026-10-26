@@ -784,23 +784,35 @@ const app = createApp({
         readSettings(db).consultExperts ? experts.writeSubagents(projectId, join(config.dataDir, "agents")) : undefined,
     });
     // The chief: one chat about everything, which hands work to the projects (chief.ts).
+    /**
+     * What a chief thread is about: a project's thread stays on that project, a server's ("server:<id>",
+     * the server page's AI tab) on that one machine, and the general one is for everything else.
+     */
+    const chiefThread = (projectId?: string): { title: string; note?: string } => {
+      const server = projectId?.startsWith("server:") ? servers.get(projectId.slice(7)) : undefined;
+      if (server)
+        return {
+          title: server.name,
+          note: `This thread is only about the server "${server.name}" (${server.target}, ${server.tag === "prod" ? "PRODUCTION: other people's live services may run here" : server.tag}). Run commands on it with igrek_server_run (server "${server.name}"): reading is free, changes wait for the user's approval in Igrek. Look before you change, say what a command will do before asking, prefer the smallest change, and never restart or remove what you did not find out about first.`,
+        };
+      const project = projectId ? store.projectRow(projectId) : undefined;
+      if (projectId && !project) throw new Error("Project not found");
+      if (!project) return { title: "Chief" };
+      return {
+        title: project.name,
+        note: `This thread is only about the project "${project.name}" (folder ${project.path}, id ${project.id}). Hand its work to it with igrek_delegate; for other projects the user has the general thread.`,
+      };
+    };
     const chief = new Chief(
       join(config.dataDir, "chief"),
       chats,
       (cwd, resume, projectId) => {
         const account = accounts.active("claude");
-        const project = projectId ? store.projectRow(projectId) : undefined;
-        if (projectId && !project) throw new Error("Project not found");
+        const thread = chiefThread(projectId);
         return chats.start({
           projectId: "chief",
           cwd,
-          title: project ? project.name : "Chief",
-          // A project's thread stays on that project; the general one is for everything else.
-          ...(project
-            ? {
-                note: `This thread is only about the project "${project.name}" (folder ${project.path}, id ${project.id}). Hand its work to it with igrek_delegate; for other projects the user has the general thread.`,
-              }
-            : {}),
+          ...thread,
           mode: "normal",
           focus: "chief",
           resume,
@@ -811,7 +823,10 @@ const app = createApp({
           env: accounts.env(account),
         });
       },
-      (projectId) => store.projectRow(projectId)?.name ?? projectId,
+      (projectId) =>
+        projectId.startsWith("server:")
+          ? (servers.get(projectId.slice(7))?.name ?? projectId)
+          : (store.projectRow(projectId)?.name ?? projectId),
     );
     flows.onChange = (run) => {
       board.followRun(run);

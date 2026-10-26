@@ -31,14 +31,14 @@ export function StopButton({ onStopped }: { onStopped: (message: string) => void
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title={running ? t("stop.running", { count: running }) : t("stop.idle")}
+        // Only the icon and how many things run: the tip says what it does, the dialog asks before anything stops.
+        data-tip={running ? t("stop.running", { count: running }) : t("stop.idle")}
         aria-label={t("stop.title")}
-        className={`flex h-7 items-center gap-1.5 whitespace-nowrap rounded-ui px-2 text-xs font-medium ${
+        className={`flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-ui px-2 text-xs font-medium ${
           running ? "text-danger hover:bg-danger-soft" : "text-fg-subtle hover:bg-bg-hover hover:text-danger"
         }`}
       >
         <OctagonX size={14} strokeWidth={2} />
-        <span className="hidden md:inline">{t("stop.button")}</span>
         {running > 0 && (
           <span className="rounded-full bg-danger px-1.5 text-[10.5px] font-semibold text-white">{running}</span>
         )}

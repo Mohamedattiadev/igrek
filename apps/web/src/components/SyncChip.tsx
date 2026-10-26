@@ -48,8 +48,8 @@ export function SyncChip() {
       data-tip={tip}
       className={
         offline
-          ? "flex items-center gap-1 text-[12px] text-warning"
-          : "flex items-center gap-1 text-[12px] text-fg-muted hover:text-fg"
+          ? "flex shrink-0 items-center gap-1 whitespace-nowrap text-[12px] text-warning"
+          : "flex shrink-0 items-center gap-1 whitespace-nowrap text-[12px] text-fg-muted hover:text-fg"
       }
     >
       <Icon
@@ -57,7 +57,8 @@ export function SyncChip() {
         className={!offline && (status.pending || missing) ? "animate-spin" : undefined}
         aria-hidden="true"
       />
-      <span className="hidden md:inline">{label}</span>
+      {/* The icon and its tip say it on narrower screens, so the top bar never runs into the search. */}
+      <span className="hidden 2xl:inline">{label}</span>
     </Link>
   );
 }
