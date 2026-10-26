@@ -101,7 +101,7 @@ Son değişiklik: 25 Ekim 2026.
 What comes next, in the order it is planned. It changes with what people ask for: say what you need in
 [Discussions](https://github.com/Mohamedattiadev/igrek/discussions).
 
-### Now <span class="badge">0.1.6</span>
+### Now <span class="badge">{version}</span>
 - About 17 MB installers; the runtime is fetched once on the first start.
 - One "What do you want to do?" box, ways of working per task, a Simple view for people who do not code.
 - One-click fixes, a browser extension that acts on pages with you, one memory for Claude and Codex.
@@ -120,7 +120,7 @@ What comes next, in the order it is planned. It changes with what people ask for
 Sırada ne var, planlandığı sırayla. İnsanların istediklerine göre değişir: neye ihtiyacın olduğunu
 [Discussions](https://github.com/Mohamedattiadev/igrek/discussions)'ta söyle.
 
-### Şimdi <span class="badge">0.1.6</span>
+### Şimdi <span class="badge">{version}</span>
 - Yaklaşık 17 MB kurulum; çalışma ortamı ilk açılışta bir kez indirilir.
 - Tek "Ne yapmak istiyorsun?" kutusu, işe göre çalışma yolları, kod yazmayanlar için Basit görünüm.
 - Tek tıkla düzeltme, sayfalarda seninle iş yapan tarayıcı eklentisi, Claude ve Codex için tek hafıza.
@@ -356,7 +356,7 @@ def home_page(lang):
       <div class="hero">
         <div class="hero-bg" aria-hidden="true"></div>
         <div class="wrap hero-in">
-          <a class="announce" href="{REL}"><span>v{VERSION}</span>{t["announce"]}{icon("arrow")}</a>
+          <a class="announce" href="{REL}"><span>v{VERSION}</span>{t["announce"].replace("{version}", VERSION)}{icon("arrow")}</a>
           <h1>{t["h1"]}</h1>
           <p class="lead">{t["lead"]}</p>
           <div class="actions" id="download">
@@ -506,7 +506,7 @@ def plain_pages(lang):
     depth = 1
     for key, langs in PAGES.items():
         title, text = langs[lang]
-        body = md(text)
+        body = md(text.replace("{version}", VERSION))
         cls = "doc roadmap" if key == "roadmap" else "doc"
         main = f"""    <main class="wrap" style="padding-top:40px">
       <article class="{cls}" style="margin:0 auto">
