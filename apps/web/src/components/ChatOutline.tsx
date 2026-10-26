@@ -60,7 +60,8 @@ export function ChatOutline({ events, list }: { events: ChatEvent[]; list: RefOb
               ))}
             </ul>
           ) : (
-            <ul className="flex min-h-0 flex-col items-end gap-1.5 overflow-hidden px-1 py-2">
+            // As wide as the arrow buttons and centred, so the marks line up under them.
+            <ul className="flex min-h-0 w-7 flex-col items-center gap-1.5 overflow-hidden py-2">
               {asks.map((e) => (
                 <li key={e.id}>
                   <button

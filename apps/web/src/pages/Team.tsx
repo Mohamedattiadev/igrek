@@ -21,6 +21,7 @@ import {
   Mail,
   MailCheck,
   MailX,
+  MessagesSquare,
   Plus,
   RefreshCw,
   ShieldCheck,
@@ -34,7 +35,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { TeamAvatar } from "../components/TeamAvatar";
 import { TeamBoard } from "../components/TeamBoard";
-import { TeamChat } from "../components/TeamChat";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Section, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -983,7 +983,13 @@ export function TeamPage() {
         ) : (
           <div className="mx-auto max-w-5xl px-6">
             <Section title={t("chatTeam.title")} hint={t("chatTeam.hint")}>
-              <TeamChat />
+              <Link
+                to="/chat"
+                className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-2 text-[13px] font-medium hover:border-accent"
+              >
+                <MessagesSquare size={15} className="text-accent" aria-hidden="true" />
+                {t("teamChat.open")}
+              </Link>
             </Section>
             <Section title={t("team.members")} hint={t("team.membersHint")}>
               {status.members.length ? (

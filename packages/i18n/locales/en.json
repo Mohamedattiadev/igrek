@@ -23,7 +23,11 @@
     "narrow": "Hide names",
     "skip": "Skip to content",
     "more": "More",
-    "less": "Less"
+    "less": "Less",
+    "chat": "Messages",
+    "groupTeam": "Team",
+    "groupWork": "Work",
+    "groupKnow": "Knowledge"
   },
   "workspace": {
     "local": "My computer",
@@ -42,7 +46,7 @@
     "allSaved": "Everything saved locally"
   },
   "stop": {
-    "button": "Stop all",
+    "button": "Stop all AI work",
     "running_one": "Emergency stop: 1 thing is running now",
     "running_other": "Emergency stop: {{count}} things are running now",
     "idle": "Emergency stop: nothing runs on its own right now",
@@ -248,7 +252,9 @@
     "autoProjectsHint": "On: every folder Claude works in becomes a project. Off: only the folders you add; the others wait under 'Found folders' on the projects page.",
     "autoReview": "Expert review of sensitive changes",
     "autoReviewHint": "When a chat turn changes login, payment or database code, the matching expert (security, back end, database) reads the change and leaves its notes in the chat. It only reads; nothing is changed or sent back to the AI.",
-    "broken": "Found, does not start"
+    "broken": "Found, does not start",
+    "designHint": "Igrek's colours, type and parts in one place, for people who change Igrek itself.",
+    "openDesign": "Open the design system"
   },
   "onboarding": {
     "startTour": "Start with a short tour",
@@ -1130,7 +1136,9 @@
     "personas": "By expert",
     "chipTip": "New sessions use the Claude account \"{{name}}\". {{pct}}% of its 5-hour limit is used. Click to switch accounts.",
     "usesLimit": "Asks an AI model, so it uses your plan's limit.",
-    "chipHeader": "Claude account for new chats"
+    "chipHeader": "Claude account for new chats",
+    "chipName": "Claude: {{name}}",
+    "chipLimit": "5-hour limit"
   },
   "accounts": {
     "title": "Accounts",
@@ -3013,7 +3021,10 @@
     "nobody": "Not assigned",
     "take": "I'm taking this",
     "release": "Let it go",
-    "from": "from {{name}}"
+    "from": "from {{name}}",
+    "work": "Work on it",
+    "workTip": "Open a chat that starts with this card. The card moves by itself: Doing when the chat starts, Review when nothing is left, Done with a commit that carries its mark.",
+    "workMark": "Card {{mark}}: put this mark in the commit message too, so the card moves to Done."
   },
   "flows": {
     "raiseTitle": "Raise {{part}} to 100",
@@ -3928,12 +3939,7 @@
   "chatTeam": {
     "title": "Team chat",
     "hint": "Channels per shared project, end-to-end encrypted like everything the team shares. @name notifies someone.",
-    "channels": "Channels",
-    "newChannel": "New channel in {{project}}",
-    "add": "Add channel",
-    "summary": "What did we talk about",
-    "emptyTitle": "No channels yet",
-    "emptyBody": "Share a project with the team (Sharing, below) and it gets a #general channel."
+    "summary": "What did we talk about"
   },
   "bridges": {
     "title": "Notification bridges",
@@ -4574,7 +4580,20 @@
     "online_one": "{{count}} online",
     "online_other": "{{count}} online",
     "newCard": "A new card for the team",
-    "add": "Add"
+    "add": "Add",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "searchSessions": "Search sessions",
+    "everyone": "Everyone",
+    "untitled": "Untitled session",
+    "why": "Why",
+    "did": "What was done",
+    "left": "What is left",
+    "ai": "AI",
+    "chat": "Messages",
+    "noChannels": "No messages yet. Channels appear here once someone writes in one from Igrek.",
+    "stats_one": "{{sessions}} sessions, {{count}} open card",
+    "stats_other": "{{sessions}} sessions, {{count}} open cards"
   },
   "experts": {
     "askWhich": "Which experts should look at the project? Each one reads it and writes their view; three work at a time, the rest wait their turn.",
@@ -5009,5 +5028,60 @@
     "title": "Igrek ran into a problem",
     "body": "This screen could not be drawn. Reloading usually helps. If it happens again, send us the message below with Report a problem.",
     "reload": "Reload"
+  },
+  "teamChat": {
+    "open": "Open messages",
+    "channels": "Channels",
+    "channel": "Channel",
+    "newChannel": "New channel",
+    "project": "Project",
+    "channelName": "Name",
+    "channelNameHint": "e.g. backend, release, design",
+    "topic": "Topic",
+    "topicHint": "What this channel is for (optional)",
+    "create": "Create channel",
+    "cancel": "Cancel",
+    "send": "Send",
+    "mention": "Mention someone",
+    "composerHint": "Enter sends, Shift+Enter for a new line. @name notifies a teammate, @ai asks Igrek (with your own Claude).",
+    "placeholder": "Message #{{channel}}",
+    "replyPlaceholder": "Reply in the thread",
+    "firstMessage": "No messages yet. Say hello, or ask @ai what happened in this project this week.",
+    "aiName": "Igrek, answers with your Claude",
+    "aiBadge": "AI",
+    "aiFor": "Igrek (for {{name}})",
+    "aiWriting": "Igrek is writing an answer...",
+    "aiFailed": "Igrek could not answer: {{reason}}",
+    "task_created": "{{who}} turned this into a card on the board.",
+    "task_todo": "The card went back to To do.",
+    "task_doing": "Work on the card started (Doing).",
+    "task_review": "The chat on the card has nothing left to do: ready for review.",
+    "task_done": "A commit finished the card (Done).",
+    "status_todo": "To do",
+    "status_doing": "Doing",
+    "status_review": "Review",
+    "status_done": "Done",
+    "replies_one": "{{count}} reply",
+    "replies_other": "{{count}} replies",
+    "reply": "Reply in thread",
+    "thread": "Thread",
+    "closeThread": "Close the thread",
+    "closeSummary": "Close the summary",
+    "toTask": "Turn into a card",
+    "toTaskHint": "The card goes to the project's board and to the teammate you pick; it moves on by itself as they work on it.",
+    "taskTitle": "Title",
+    "assignee": "For",
+    "nobody": "Nobody yet",
+    "addCard": "Add the card",
+    "emptyTitle": "No shared project yet",
+    "emptyBody": "Channels belong to projects you share with your team. Connect to your team's hub and share a project, and its #general channel is here.",
+    "openTeam": "Go to the Team page",
+    "share": "To the team",
+    "shareTip": "Write to the team about this session, and give someone a card if you want",
+    "shareTitle": "Write to the team about this session",
+    "notShared": "This project is not shared with your team yet. Share it on the Team page, then its channels are here.",
+    "sharePlaceholder": "What happened, what is left, who should do what (@name)",
+    "draft": "Let Igrek write it from the session",
+    "alsoTask": "Also add a card to the board"
   }
 }

@@ -33,7 +33,7 @@ export interface MemberUser {
   mustChange?: boolean;
 }
 
-interface MemberSession {
+export interface MemberSession {
   id: string;
   tool: string;
   title?: string;
@@ -41,7 +41,8 @@ interface MemberSession {
   updatedAt: number;
   startedAt?: number;
   userMessages?: number;
-  summary?: { title?: string; summary?: string; done?: string[]; open?: string[] } | null;
+  /** Igrek's summary of the session (SessionSummaryData): a title and, per language, what was done and what is left. */
+  summary?: { title?: string; texts?: Record<string, { did?: string[]; why?: string; left?: string[] }> } | null;
   author: string;
 }
 
@@ -64,13 +65,25 @@ interface MemberMemory {
   author: string;
 }
 
-interface MemberComment {
+export interface MemberComment {
   id: string;
   targetKind: string;
   targetId: string;
   text: string;
   at: number;
   author: string;
+  /** In a chat channel: the message this one answers in its thread. */
+  parentId?: string;
+  /** Igrek's answer to someone's @ai. */
+  bot?: boolean;
+  /** The board card the message became. */
+  taskId?: string;
+}
+
+interface MemberChannel {
+  id: string;
+  name: string;
+  topic: string;
 }
 
 export interface MemberTask {
@@ -95,6 +108,7 @@ export interface MemberProject {
   memory: Map<string, MemberMemory>;
   comments: Map<string, MemberComment>;
   tasks: Map<string, MemberTask>;
+  channels: Map<string, MemberChannel>;
 }
 
 export type MemberState =
@@ -170,7 +184,14 @@ const FOLDS: Record<string, Fold> = {
       text: String(v.text ?? ""),
       at: Number(v.at ?? e.at),
       author: e.author,
+      ...(v.parentId ? { parentId: String(v.parentId) } : {}),
+      ...(v.bot ? { bot: true } : {}),
+      ...(v.taskId ? { taskId: String(v.taskId) } : {}),
     });
+  },
+  channel: (p, v) => {
+    const id = String(v.id ?? "");
+    if (id) p.channels.set(id, { id, name: String(v.name ?? ""), topic: String(v.topic ?? "") });
   },
   task: (p, v, e) => {
     const id = String(v.id ?? "");
@@ -401,6 +422,7 @@ export class MemberClient {
       messages: new Map(),
       memory: new Map(),
       comments: new Map(),
+      channels: new Map(),
       tasks: new Map(),
     });
     this.send({ op: "sub", projects: [key] });
@@ -422,7 +444,7 @@ export class MemberClient {
   }
 
   /** A comment on a session, a decision or a card; teammates see it like one written in Igrek. */
-  async comment(project: string, targetKind: string, targetId: string, text: string): Promise<void> {
+  async comment(project: string, targetKind: string, targetId: string, text: string, parentId?: string): Promise<void> {
     const value = {
       id: crypto.randomUUID().slice(0, 12),
       targetKind,
@@ -430,6 +452,7 @@ export class MemberClient {
       text: text.slice(0, 4000),
       mentions: [],
       at: Date.now(),
+      ...(parentId ? { parentId } : {}),
     };
     await this.publish(project, "comment", `c-${value.id}`, value);
     this.fold(project, { kind: "comment", author: this.myId(), at: value.at } as WireEvent, value);

@@ -920,6 +920,8 @@ export type ServerMessage =
   | { type: "flows-changed"; runId?: string }
   /** A chat handed over from another computer arrived, or one was taken (handoff.ts). */
   | { type: "handoffs-changed" }
+  /** A message, reply or channel in the team chat (team-chat.ts); also while Igrek is writing an answer. */
+  | { type: "chat-changed"; channelId: string; writing?: boolean }
   /** The browser extension asks to pair; Igrek shows its code for the user to allow. */
   | { type: "extension-pair" }
   | { type: "board-changed"; projectId: string }

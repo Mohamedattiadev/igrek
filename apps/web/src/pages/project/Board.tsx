@@ -1,5 +1,5 @@
 import type { BoardTask, FlowRun, ProjectDetail, TaskStatus } from "@igrek/core";
-import { ArrowRight, Hand, Plus, Trash2, Users, Workflow } from "lucide-react";
+import { ArrowRight, Hand, MessageSquarePlus, Plus, Trash2, Users, Workflow } from "lucide-react";
 import { type DragEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -89,6 +89,34 @@ function CardPeople({ task, onError }: { task: BoardTask; onError: (message: str
   );
 }
 
+/**
+ * "Work on it": a chat in the project that starts with the card, carrying its mark, so the card moves
+ * to Doing when the chat starts, to Review when it is done and to Done with the commit (board-auto.ts).
+ */
+function WorkOnIt({ task, onError }: { task: BoardTask; onError: (message: string) => void }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const start = () =>
+    void api
+      .startTask(task.id)
+      .then((r) => {
+        const draft = [r.title, r.description, t("board.workMark", { mark: r.mark })].filter(Boolean).join("\n\n");
+        void navigate(`/c/new?project=${encodeURIComponent(r.projectId)}&draft=${encodeURIComponent(draft)}`);
+      })
+      .catch((e: Error) => onError(e.message));
+  return (
+    <button
+      type="button"
+      onClick={start}
+      data-tip={t("board.workTip")}
+      className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-[11px] font-medium text-accent hover:bg-accent-soft"
+    >
+      <MessageSquarePlus size={12} aria-hidden="true" />
+      {t("board.work")}
+    </button>
+  );
+}
+
 function CardView({ task, run, onDragStart }: { task: BoardTask; run?: FlowRun; onDragStart: (e: DragEvent) => void }) {
   const { t } = useTranslation();
   const next = COLUMNS[COLUMNS.indexOf(task.status) + 1];
@@ -113,6 +141,7 @@ function CardView({ task, run, onDragStart }: { task: BoardTask; run?: FlowRun; 
         )}
         <span className="text-[11px] text-fg-subtle">{relativeTime(task.updatedAt)}</span>
         <div className="flex-1" />
+        {task.status === "todo" && task.assignee?.kind !== "persona" && <WorkOnIt task={task} onError={setError} />}
         <button
           type="button"
           aria-label={t("persona.delete")}

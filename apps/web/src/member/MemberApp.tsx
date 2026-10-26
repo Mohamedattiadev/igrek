@@ -1,10 +1,11 @@
-import { Check, Hand, KeyRound, LogOut, MessageSquare, RefreshCw, Shield } from "lucide-react";
+import { Hand, KeyRound, LogOut, RefreshCw, Shield } from "lucide-react";
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "../components/Logo";
 import { Badge, Button, Card, EmptyState, Segmented, StatusDot } from "../components/ui";
-import { relativeTime } from "../lib/format";
 import type { MemberClient, MemberProject, MemberTask } from "./client";
+import { MemberChat } from "./MemberChat";
+import { SessionList, SessionView } from "./MemberSessions";
 
 const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
 
@@ -129,105 +130,6 @@ function Waiting({ client, fingerprint }: { client: MemberClient; fingerprint: s
   );
 }
 
-function Comments({
-  client,
-  project,
-  kind,
-  id,
-}: {
-  client: MemberClient;
-  project: MemberProject;
-  kind: string;
-  id: string;
-}) {
-  const { t } = useTranslation();
-  const [text, setText] = useState("");
-  const list = [...project.comments.values()]
-    .filter((c) => c.targetKind === kind && c.targetId === id)
-    .sort((a, b) => a.at - b.at);
-  const viewer = client.state.phase === "ready" && client.state.user.role === "viewer";
-  return (
-    <div className="space-y-2">
-      <h3 className="flex items-center gap-1.5 text-[13px] font-semibold">
-        <MessageSquare size={14} aria-hidden="true" /> {t("member.comments")}
-      </h3>
-      {list.map((c) => (
-        <p key={c.id} className="text-[13px]">
-          <span className="font-medium">{c.author}</span>{" "}
-          <span className="text-[11px] text-fg-subtle">{relativeTime(c.at)}</span>
-          <br />
-          {c.text}
-        </p>
-      ))}
-      {!viewer && (
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!text.trim()) return;
-            void client.comment(project.key, kind, id, text.trim()).then(() => setText(""));
-          }}
-        >
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={t("member.commentPlaceholder")}
-            aria-label={t("member.commentPlaceholder")}
-            className={field}
-          />
-          <Button type="submit" variant="primary" disabled={!text.trim()}>
-            {t("member.send")}
-          </Button>
-        </form>
-      )}
-    </div>
-  );
-}
-
-function SessionView({
-  client,
-  project,
-  id,
-  onBack,
-}: {
-  client: MemberClient;
-  project: MemberProject;
-  id: string;
-  onBack: () => void;
-}) {
-  const { t } = useTranslation();
-  const s = project.sessions.get(id);
-  if (!s) return null;
-  const messages = (project.messages.get(id) ?? []).filter((m) => m.kind !== "tool");
-  return (
-    <div className="space-y-4">
-      <button type="button" onClick={onBack} className="text-[12px] text-accent hover:underline">
-        ← {t("member.sessions")}
-      </button>
-      <h2 className="text-[15px] font-semibold">{s.summary?.title || s.title || s.id.slice(0, 8)}</h2>
-      <p className="text-[11.5px] text-fg-subtle">
-        {s.author} · {s.tool} · {relativeTime(s.updatedAt)}
-      </p>
-      {s.summary?.summary && <Card className="p-pad text-[13px]">{s.summary.summary}</Card>}
-      {messages.length > 0 ? (
-        <div className="space-y-2">
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={m.role === "user" ? "rounded-ui bg-accent-soft/40 p-2 text-[13px]" : "p-2 text-[13px]"}
-            >
-              <p className="whitespace-pre-wrap">{m.text}</p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-xs text-fg-subtle">{t("member.summaryOnly")}</p>
-      )}
-      <Comments client={client} project={project} kind="session" id={id} />
-    </div>
-  );
-}
-
 function BoardView({ client, project }: { client: MemberClient; project: MemberProject }) {
   const { t } = useTranslation();
   const [error, setError] = useState<string>();
@@ -301,59 +203,49 @@ function BoardView({ client, project }: { client: MemberClient; project: MemberP
 
 function ProjectView({ client, project }: { client: MemberClient; project: MemberProject }) {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<"sessions" | "decisions" | "board">("sessions");
+  const [tab, setTab] = useState<"sessions" | "chat" | "decisions" | "board">("sessions");
   const [session, setSession] = useState<string>();
-  const sessions = [...project.sessions.values()].sort((a, b) => b.updatedAt - a.updatedAt);
   if (session)
     return <SessionView client={client} project={project} id={session} onBack={() => setSession(undefined)} />;
+  const open = [...project.tasks.values()].filter((x) => !x.deleted && x.status !== "done").length;
   return (
-    <div className="space-y-3">
-      <h2 className="text-[16px] font-semibold">{project.name}</h2>
-      <Segmented
-        label={project.name}
-        value={tab}
-        onChange={setTab}
-        options={[
-          { value: "sessions", label: t("member.sessions") },
-          { value: "decisions", label: t("member.decisions") },
-          { value: "board", label: t("member.board") },
-        ]}
-      />
-      {tab === "sessions" &&
-        (sessions.length ? (
-          <ul className="divide-y divide-border rounded-ui border border-border">
-            {sessions.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => setSession(s.id)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-start hover:bg-bg-hover"
-                >
-                  <span className="min-w-0 flex-1 truncate text-[13px]">
-                    {s.summary?.title || s.title || s.id.slice(0, 8)}
-                  </span>
-                  <span className="text-[11px] text-fg-subtle">
-                    {s.author} · {relativeTime(s.updatedAt)}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-xs text-fg-subtle">{t("member.nothingYet")}</p>
-        ))}
+    <div className="space-y-4">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-[20px] font-semibold tracking-tight">{project.name}</h2>
+          <p className="text-[12.5px] text-fg-subtle">
+            {t("member.stats", { sessions: project.sessions.size, count: open })}
+          </p>
+        </div>
+        <Segmented
+          label={project.name}
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: "sessions", label: t("member.sessions") },
+            { value: "chat", label: t("member.chat") },
+            { value: "board", label: t("member.board") },
+            { value: "decisions", label: t("member.decisions") },
+          ]}
+        />
+      </header>
+      {tab === "sessions" && <SessionList project={project} onOpen={setSession} />}
+      {tab === "chat" && <MemberChat client={client} project={project} />}
       {tab === "decisions" && (
-        <ul className="space-y-1.5">
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-bg">
           {[...project.memory.values()]
             .filter((m) => m.status !== "rejected")
             .sort((a, b) => b.updatedAt - a.updatedAt)
             .map((m) => (
-              <li key={m.id} className="text-[13px]">
-                <Badge>{t(`memory.${m.section}`, { defaultValue: m.section })}</Badge> {m.text}
-                <span className="ms-1 text-[11px] text-fg-subtle">· {m.author}</span>
+              <li key={m.id} className="flex items-start gap-2 px-4 py-2.5 text-[13px]">
+                <Badge>{t(`memory.${m.section}`, { defaultValue: m.section })}</Badge>
+                <span className="min-w-0 flex-1">{m.text}</span>
+                <span className="shrink-0 text-[11px] text-fg-subtle">{m.author}</span>
               </li>
             ))}
-          {project.memory.size === 0 && <li className="text-xs text-fg-subtle">{t("member.nothingYet")}</li>}
+          {project.memory.size === 0 && (
+            <li className="px-4 py-6 text-center text-xs text-fg-subtle">{t("member.nothingYet")}</li>
+          )}
         </ul>
       )}
       {tab === "board" && <BoardView client={client} project={project} />}
@@ -369,22 +261,24 @@ function Ready({ client }: { client: MemberClient }) {
   const projects = [...client.projects.values()].sort((a, b) => a.name.localeCompare(b.name));
   const project = projects.find((p) => p.key === selected) ?? projects[0];
   return (
-    <div className="min-h-screen">
-      <header className="flex items-center gap-3 border-b border-border px-4 py-2">
+    <div className="min-h-screen bg-bg-subtle">
+      <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b border-border bg-bg px-4">
         <Logo />
-        <span className="text-[13.5px] font-semibold">{t("member.title")}</span>
-        <StatusDot tone={connected ? "success" : "warning"} />
-        <span className="text-[11.5px] text-fg-subtle">{connected ? t("member.live") : t("member.offline")}</span>
+        <span className="text-[14px] font-semibold tracking-tight">{t("member.title")}</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11.5px] text-fg-muted">
+          <StatusDot tone={connected ? "success" : "warning"} />
+          {connected ? t("member.live") : t("member.offline")}
+        </span>
         {client.online.size > 0 && (
           <span
-            className="text-[11.5px] text-fg-subtle"
+            className="hidden text-[11.5px] text-fg-subtle sm:inline"
             title={[...client.online].map((id) => client.nameOf(id)).join(", ")}
           >
-            · {t("member.online", { count: client.online.size })}
+            {t("member.online", { count: client.online.size })}
           </span>
         )}
         <div className="flex-1" />
-        <span className="text-[12.5px]">{user.displayName}</span>
+        <span className="hidden text-[12.5px] font-medium sm:inline">{user.displayName}</span>
         <Badge>{t(`member.role_${user.role}`)}</Badge>
         <Button
           size="sm"
@@ -394,20 +288,28 @@ function Ready({ client }: { client: MemberClient }) {
           onClick={() => void client.signOut()}
         />
       </header>
-      <div className="flex flex-col gap-4 p-4 md:flex-row">
-        <nav aria-label={t("member.projects")} className="shrink-0 space-y-1 md:w-56">
-          <p className="text-[11px] font-semibold uppercase text-fg-subtle">{t("member.projects")}</p>
-          {projects.map((p) => (
-            <button
-              type="button"
-              key={p.key}
-              onClick={() => setSelected(p.key)}
-              className={`flex w-full items-center gap-2 rounded-ui px-2 py-1.5 text-start text-[13px] ${p.key === project?.key ? "bg-bg-active font-medium" : "hover:bg-bg-hover"}`}
-            >
-              {p.key === project?.key && <Check size={12} aria-hidden="true" />}
-              {p.name}
-            </button>
-          ))}
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 p-4 md:flex-row md:p-6">
+        <nav aria-label={t("member.projects")} className="shrink-0 md:w-56">
+          <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
+            {t("member.projects")}
+          </p>
+          <ul className="flex gap-1 overflow-x-auto md:flex-col">
+            {projects.map((p) => (
+              <li key={p.key} className="shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setSelected(p.key)}
+                  aria-current={p.key === project?.key ? "page" : undefined}
+                  className={`flex w-full items-center gap-2 rounded-ui px-2 py-1.5 text-start text-[13px] ${p.key === project?.key ? "bg-bg font-medium shadow-sm ring-1 ring-border" : "text-fg-muted hover:bg-bg-hover"}`}
+                >
+                  <span className="flex size-6 items-center justify-center rounded-md bg-accent-soft text-[11px] font-semibold text-accent">
+                    {p.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="truncate">{p.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </nav>
         <main className="min-w-0 flex-1">
           {project ? (

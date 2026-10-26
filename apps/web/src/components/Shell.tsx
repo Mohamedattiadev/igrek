@@ -1,12 +1,13 @@
 import type { ServerMessage } from "@igrek/core";
 import { APP_VERSION } from "@igrek/core";
 import { ChevronDown, Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
+import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useDesktopTray, useDesktopUpdateCheck } from "../lib/desktop";
-import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } from "../lib/live";
+import { dispatchServerMessage, useApprovals, useIndexStatus, useServerEvent, useTerminals } from "../lib/live";
 import { useDesktopNotifications } from "../lib/notify";
 import { runPageShortcut } from "../lib/page-actions";
 import { useSettings } from "../lib/settings";
@@ -108,6 +109,38 @@ function ToolStripLink({
   );
 }
 
+/** Unread team chat messages, for the strip's badge; read ones clear when their channel is opened. */
+function useChatUnread(): number {
+  const [unread, setUnread] = useState(0);
+  const load = useCallback(
+    () =>
+      void api
+        .chatChannels()
+        .then((list) => setUnread(list.reduce((n, c) => n + c.unread, 0)))
+        .catch(() => undefined),
+    [],
+  );
+  useEffect(load, [load]);
+  useServerEvent("chat-changed", (m) => m.writing === undefined && load());
+  return unread;
+}
+
+/** A heading over a few items when the strip is wide; a thin line between them when it is narrow. */
+function NavGroup({ label, wide, children }: { label: string; wide: boolean; children: ReactNode }) {
+  return (
+    <div className={cn("mt-2 flex flex-col gap-0.5", !wide && "items-center")}>
+      {wide ? (
+        <span className="px-2.5 pb-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-fg-subtle">
+          {label}
+        </span>
+      ) : (
+        <span className="mb-1 h-px w-6 bg-border" aria-hidden="true" />
+      )}
+      {children}
+    </div>
+  );
+}
+
 const stripRow = (wide: boolean) => (wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center");
 
 function MoreToggle({ open, wide, onClick }: { open: boolean; wide: boolean; onClick: () => void }) {
@@ -162,10 +195,11 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
   const { settings } = useSettings();
   const [wideSetting, setWide] = useState(readWide);
   const wide = drawer || wideSetting;
-  const visible = NAV_ITEMS.filter((item) => !item.proOnly || settings.mode === "pro");
+  const visible = NAV_ITEMS.filter((item) => !item.offStrip && (!item.proOnly || settings.mode === "pro"));
   const waiting = useTerminals().filter((term) => term.status === "attention").length;
   const approvals = useApprovals().length;
-  const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting + approvals };
+  const unread = useChatUnread();
+  const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting + approvals, "/chat": unread };
   const flip = () =>
     setWide((on) => {
       try {
@@ -177,7 +211,8 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
     });
   const { pathname } = useLocation();
   const [moreSetting, setMore] = useState(readMore);
-  const inMore = visible.some((item) => item.more && item.to !== "/" && pathname.startsWith(item.to));
+  const folded = (item: NavItem) => item.group === "work" || item.group === "know";
+  const inMore = visible.some((item) => folded(item) && pathname.startsWith(item.to));
   const showMore = moreSetting || inMore;
   const flipMore = () =>
     setMore((on) => {
@@ -212,9 +247,21 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
           !wide && "items-center",
         )}
       >
-        {visible.filter((item) => !item.bottom && !item.more).map(link)}
+        {visible.filter((item) => !item.bottom && !item.group).map(link)}
+        <NavGroup label={t("nav.groupTeam")} wide={wide}>
+          {visible.filter((item) => item.group === "team").map(link)}
+        </NavGroup>
         <MoreToggle open={showMore} wide={wide} onClick={flipMore} />
-        {showMore && visible.filter((item) => !item.bottom && item.more).map(link)}
+        {showMore && (
+          <>
+            <NavGroup label={t("nav.groupWork")} wide={wide}>
+              {visible.filter((item) => item.group === "work").map(link)}
+            </NavGroup>
+            <NavGroup label={t("nav.groupKnow")} wide={wide}>
+              {visible.filter((item) => item.group === "know").map(link)}
+            </NavGroup>
+          </>
+        )}
       </div>
       <div className={cn("flex shrink-0 flex-col gap-0.5 border-t border-border pt-2", !wide && "items-center")}>
         {visible.filter((item) => item.bottom).map(link)}

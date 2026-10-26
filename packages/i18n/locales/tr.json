@@ -23,7 +23,11 @@
     "narrow": "Adları gizle",
     "skip": "İçeriğe atla",
     "more": "Daha fazla",
-    "less": "Daha az"
+    "less": "Daha az",
+    "chat": "Mesajlar",
+    "groupTeam": "Takım",
+    "groupWork": "Çalışma",
+    "groupKnow": "Bilgi"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -42,7 +46,7 @@
     "allSaved": "Her şey lokal olarak kaydedildi"
   },
   "stop": {
-    "button": "Hepsini durdur",
+    "button": "Tüm AI işlerini durdur",
     "title": "Acil durdurma",
     "running_one": "Acil durdurma: şu an 1 şey çalışıyor",
     "running_other": "Acil durdurma: şu an {{count}} şey çalışıyor",
@@ -248,7 +252,9 @@
     "autoProjectsHint": "Açık: Claude'un çalıştığı her klasör proje olur. Kapalı: sadece senin eklediğin klasörler; diğerleri projeler sayfasında 'Bulunan klasörler' altında bekler.",
     "autoReview": "Hassas değişikliklere uzman incelemesi",
     "autoReviewHint": "Bir sohbet turu giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman (güvenlik, sunucu tarafı, veritabanı) değişikliği okur ve notlarını sohbete bırakır. Sadece okur; hiçbir şeyi değiştirmez, AI'a da geri göndermez.",
-    "broken": "Bulundu, açılmıyor"
+    "broken": "Bulundu, açılmıyor",
+    "designHint": "Igrek'in renkleri, yazıları ve parçaları tek yerde; Igrek'in kendisini değiştirenler için.",
+    "openDesign": "Tasarım sistemini aç"
   },
   "onboarding": {
     "startTour": "Kısa turla başla",
@@ -1130,7 +1136,9 @@
     "personas": "Uzman bazında",
     "chipTip": "Yeni oturumlar \"{{name}}\" Claude hesabını kullanır. 5 saatlik limitinin doluluğu: %{{pct}}. Hesap değiştirmek için tıkla.",
     "usesLimit": "Bir AI modeline sorar, bu yüzden limitini kullanır.",
-    "chipHeader": "Yeni sohbetlerin Claude hesabı"
+    "chipHeader": "Yeni sohbetlerin Claude hesabı",
+    "chipName": "Claude: {{name}}",
+    "chipLimit": "5 saatlik limit"
   },
   "accounts": {
     "title": "Hesaplar",
@@ -3013,7 +3021,10 @@
     "nobody": "Atanmadı",
     "take": "Ben alıyorum",
     "release": "Bırak",
-    "from": "{{name}} ekledi"
+    "from": "{{name}} ekledi",
+    "work": "Üzerinde çalış",
+    "workTip": "Bu kartla başlayan bir sohbet aç. Kart kendi kendine ilerler: sohbet başlayınca Yapılıyor, yapılacak bir şey kalmayınca İnceleme, işaretini taşıyan bir commit ile Bitti.",
+    "workMark": "Kart {{mark}}: bu işareti commit mesajına da koy, kart Bitti'ye geçsin."
   },
   "flows": {
     "raiseTitle": "{{part}} bölümünü 100'e çıkar",
@@ -3928,12 +3939,7 @@
   "chatTeam": {
     "title": "Takım sohbeti",
     "hint": "Paylaşılan her proje için kanallar, takımın paylaştığı her şey gibi uçtan uca şifreli. @ad birine bildirim gönderir.",
-    "channels": "Kanallar",
-    "newChannel": "{{project}} için yeni kanal",
-    "add": "Kanal ekle",
-    "summary": "Ne konuştuk",
-    "emptyTitle": "Henüz kanal yok",
-    "emptyBody": "Bir projeyi takımla paylaş (aşağıda Paylaşım) ve onun bir #general kanalı olur."
+    "summary": "Ne konuştuk"
   },
   "bridges": {
     "title": "Bildirim köprüleri",
@@ -4574,7 +4580,20 @@
     "online_one": "{{count}} kişi çevrimiçi",
     "online_other": "{{count}} kişi çevrimiçi",
     "newCard": "Takım için yeni bir kart",
-    "add": "Ekle"
+    "add": "Ekle",
+    "today": "Bugün",
+    "yesterday": "Dün",
+    "searchSessions": "Oturumlarda ara",
+    "everyone": "Herkes",
+    "untitled": "Adsız oturum",
+    "why": "Neden",
+    "did": "Ne yapıldı",
+    "left": "Ne kaldı",
+    "ai": "AI",
+    "chat": "Mesajlar",
+    "noChannels": "Henüz mesaj yok. Biri Igrek'ten bir kanala yazınca kanallar burada görünür.",
+    "stats_one": "{{sessions}} oturum, {{count}} açık kart",
+    "stats_other": "{{sessions}} oturum, {{count}} açık kart"
   },
   "experts": {
     "askWhich": "Projeye hangi uzmanlar baksın? Her biri projeyi okur ve görüşünü yazar; aynı anda üçü çalışır, diğerleri sırasını bekler.",
@@ -5009,5 +5028,60 @@
     "title": "Igrek bir sorunla karşılaştı",
     "body": "Bu ekran çizilemedi. Yeniden yüklemek çoğu zaman düzeltir. Tekrar olursa aşağıdaki mesajı Sorun bildir ile bize gönder.",
     "reload": "Yeniden yükle"
+  },
+  "teamChat": {
+    "open": "Mesajları aç",
+    "channels": "Kanallar",
+    "channel": "Kanal",
+    "newChannel": "Yeni kanal",
+    "project": "Proje",
+    "channelName": "Ad",
+    "channelNameHint": "örn. backend, surum, tasarim",
+    "topic": "Konu",
+    "topicHint": "Bu kanal ne için (isteğe bağlı)",
+    "create": "Kanalı oluştur",
+    "cancel": "Vazgeç",
+    "send": "Gönder",
+    "mention": "Birini an",
+    "composerHint": "Enter gönderir, Shift+Enter yeni satır. @ad bir takım arkadaşına haber verir, @ai Igrek'e sorar (senin Claude'unla).",
+    "placeholder": "#{{channel}} kanalına yaz",
+    "replyPlaceholder": "Thread'de cevap yaz",
+    "firstMessage": "Henüz mesaj yok. Selam ver ya da @ai'a bu hafta projede neler olduğunu sor.",
+    "aiName": "Igrek, senin Claude'unla cevaplar",
+    "aiBadge": "AI",
+    "aiFor": "Igrek ({{name}} için)",
+    "aiWriting": "Igrek bir cevap yazıyor...",
+    "aiFailed": "Igrek cevap veremedi: {{reason}}",
+    "task_created": "{{who}} bunu panoda bir karta çevirdi.",
+    "task_todo": "Kart Yapılacak'a geri döndü.",
+    "task_doing": "Kart üzerinde çalışma başladı (Yapılıyor).",
+    "task_review": "Karttaki sohbette yapılacak bir şey kalmadı: incelemeye hazır.",
+    "task_done": "Bir commit kartı bitirdi (Bitti).",
+    "status_todo": "Yapılacak",
+    "status_doing": "Yapılıyor",
+    "status_review": "İnceleme",
+    "status_done": "Bitti",
+    "replies_one": "{{count}} cevap",
+    "replies_other": "{{count}} cevap",
+    "reply": "Thread'de cevap ver",
+    "thread": "Thread",
+    "closeThread": "Thread'i kapat",
+    "closeSummary": "Özeti kapat",
+    "toTask": "Karta çevir",
+    "toTaskHint": "Kart projenin panosuna ve seçtiğin takım arkadaşına gider; o üzerinde çalıştıkça kendi kendine ilerler.",
+    "taskTitle": "Başlık",
+    "assignee": "Kime",
+    "nobody": "Henüz kimse",
+    "addCard": "Kartı ekle",
+    "emptyTitle": "Henüz paylaşılan proje yok",
+    "emptyBody": "Kanallar takımınla paylaştığın projelere aittir. Takımının hub'ına bağlan ve bir projeyi paylaş; #general kanalı burada olur.",
+    "openTeam": "Takım sayfasına git",
+    "share": "Takıma yaz",
+    "shareTip": "Bu oturum hakkında takıma yaz, istersen birine kart ver",
+    "shareTitle": "Bu oturum hakkında takıma yaz",
+    "notShared": "Bu proje henüz takımınla paylaşılmıyor. Takım sayfasından paylaş, kanalları burada görünür.",
+    "sharePlaceholder": "Ne oldu, ne kaldı, kim ne yapmalı (@ad)",
+    "draft": "Igrek oturumdan yazsın",
+    "alsoTask": "Panoya bir kart da ekle"
   }
 }

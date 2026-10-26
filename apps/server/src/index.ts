@@ -34,6 +34,7 @@ import { Backups } from "./backup";
 import { BackupJobs } from "./backup-jobs";
 import { applyMovedIn, exportDataFolder, movedInWaiting, stageDataFolder } from "./backup-move";
 import { Board } from "./board";
+import { BoardAuto } from "./board-auto";
 import { Bridges } from "./bridges";
 import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
@@ -156,6 +157,8 @@ import { registerSpeechRoutes, Speech } from "./speech";
 import { Store } from "./store";
 import { claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
 import { Sync } from "./sync/client";
+import { Chat } from "./team-chat";
+import { registerTeamChatRoutes } from "./team-chat-routes";
 import { registerTeamRoutes } from "./team-routes";
 import { registerTelegramRoutes, Telegram } from "./telegram";
 import { registerTerminalRoutes } from "./terminal-routes";
@@ -566,6 +569,20 @@ const docs = new Docs(
 );
 sync.docs = docs;
 sync.board = board;
+const chat = new Chat(sqlite, bus);
+sync.chat = chat;
+// The board follows the work: a minute at most behind, sooner when a session or commit comes in.
+const boardAuto = new BoardAuto(sqlite, board, (taskId, status) => chat.noteTask(taskId, status));
+let boardAutoAt = 0;
+const followWork = () => {
+  if (Date.now() - boardAutoAt < 10_000) return;
+  boardAutoAt = Date.now();
+  if (boardAuto.tick()) void sync.flush();
+};
+setInterval(followWork, 60_000);
+bus.subscribe((m) => {
+  if (m.type === "sessions-changed") followWork();
+});
 sync.lessons = lessons;
 const product = new Product(
   sqlite,
@@ -682,6 +699,16 @@ const app = createApp({
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
     registerReportRoutes(hono, gatewayValues);
+    registerTeamChatRoutes(hono, {
+      db: sqlite,
+      chat,
+      board,
+      sync,
+      projects: () => store.listProjects().map((p) => ({ id: p.id, name: p.name })),
+      language: () => readSettings(db).language,
+      runnerDir: join(config.dataDir, "runner"),
+      stops,
+    });
     registerHandoffRoutes(hono, {
       db: sqlite,
       handoffs,

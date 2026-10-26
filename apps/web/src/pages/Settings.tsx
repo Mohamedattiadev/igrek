@@ -1,7 +1,8 @@
 import type { SystemStatus } from "@igrek/core";
-import { AlertTriangle, AppWindow, Check, CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
+import { AlertTriangle, AppWindow, Check, CheckCircle2, Circle, Compass, Palette, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { AutostartPanel, DesktopUpdatePanel } from "../components/DesktopPanels";
 import { EnhanceSettings } from "../components/EnhanceSettings";
 import { ExtensionPanel } from "../components/ExtensionPanel";
@@ -265,6 +266,17 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        {pro && (
+          <Section title={t("nav.design")} hint={t("settings.designHint")}>
+            <Link
+              to="/design"
+              className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-1.5 text-[13px] font-medium hover:border-accent"
+            >
+              <Palette size={14} className="text-accent" aria-hidden="true" />
+              {t("settings.openDesign")}
+            </Link>
+          </Section>
+        )}
         <Section title={t("tour.title")} hint={t("tour.hint")}>
           <Button icon={Compass} onClick={startTour}>
             {t("tour.start")}

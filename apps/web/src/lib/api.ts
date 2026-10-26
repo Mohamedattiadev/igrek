@@ -8,7 +8,9 @@ import type {
   CatalogEntry,
   Category,
   CategoryDetail,
+  ChatChannel,
   ChatInfo,
+  ChatMessage,
   ChatMode,
   ChatTodo,
   Checkpoint,
@@ -1000,6 +1002,35 @@ export const api = {
     ),
   addComment: (body: { projectId: string; targetKind: string; targetId: string; text: string }) =>
     request<{ ok: boolean }>("/api/comments", { method: "POST", body: JSON.stringify(body) }),
+  // ---- team chat (team-chat-routes.ts) ----
+  chatChannels: () => request<ChatChannel[]>("/api/chat/channels"),
+  createChannel: (body: { projectId: string; name: string; topic?: string }) =>
+    request<{ id: string }>("/api/chat/channels", { method: "POST", body: JSON.stringify(body) }),
+  chatMessages: (channel: string, thread?: string) =>
+    request<ChatMessage[]>(
+      `/api/chat/channels/${encodeURIComponent(channel)}/messages${thread ? `?thread=${encodeURIComponent(thread)}` : ""}`,
+    ),
+  postChat: (channel: string, text: string, parentId?: string) =>
+    request<ChatMessage>(`/api/chat/channels/${encodeURIComponent(channel)}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ text, parentId }),
+    }),
+  channelSummary: (channel: string) =>
+    request<{ summary: string }>(`/api/channels/${encodeURIComponent(channel)}/summary`, {
+      method: "POST",
+      body: "{}",
+    }),
+  messageToTask: (id: string, body: { assignee?: string; title?: string }) =>
+    request<BoardTask>(`/api/chat/messages/${id}/task`, { method: "POST", body: JSON.stringify(body) }),
+  sessionToChat: (sessionId: string, body: { channel: string; text: string; assignee?: string; task?: boolean }) =>
+    request<ChatMessage>(`/api/sessions/${sessionId}/to-chat`, { method: "POST", body: JSON.stringify(body) }),
+  sessionChatDraft: (sessionId: string) =>
+    request<{ draft: string }>(`/api/sessions/${sessionId}/chat-draft`, { method: "POST", body: "{}" }),
+  startTask: (taskId: string) =>
+    request<{ projectId: string; title: string; description: string; mark: string }>(`/api/board/${taskId}/start`, {
+      method: "POST",
+      body: "{}",
+    }),
   teamMessages: () =>
     request<
       {

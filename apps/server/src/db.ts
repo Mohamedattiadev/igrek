@@ -953,6 +953,26 @@ export const migrations: string[] = [
      created_at INTEGER NOT NULL,
      used_at INTEGER
    );`,
+  // Team chat as a real chat (team-chat.ts): replies in threads, Igrek's own answers (bot), the card a
+  // message became, channels with a topic that reach teammates, and the session a card is worked in,
+  // so the board moves on by itself (board-auto.ts).
+  `ALTER TABLE comments ADD COLUMN parent_id TEXT REFERENCES comments(id) ON DELETE CASCADE;
+   ALTER TABLE comments ADD COLUMN bot INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE comments ADD COLUMN task_id TEXT REFERENCES board_tasks(id) ON DELETE SET NULL;
+   CREATE INDEX comments_parent ON comments(parent_id, at);
+   CREATE INDEX comments_task ON comments(task_id);
+   CREATE TABLE channels (
+     id TEXT PRIMARY KEY NOT NULL,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     name TEXT NOT NULL,
+     topic TEXT NOT NULL DEFAULT '',
+     author_name TEXT,
+     created_at INTEGER NOT NULL,
+     sent INTEGER NOT NULL DEFAULT 0
+   );
+   CREATE INDEX channels_project ON channels(project_id, name);
+   ALTER TABLE board_tasks ADD COLUMN session_id TEXT REFERENCES sessions(id) ON DELETE SET NULL;
+   CREATE INDEX board_tasks_session ON board_tasks(session_id);`,
 ];
 
 export function migrate(sqlite: Database): number {

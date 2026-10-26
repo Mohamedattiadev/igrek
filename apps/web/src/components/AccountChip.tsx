@@ -37,10 +37,13 @@ export function AccountChip() {
       >
         {/* The icon says it is an account: testers read a bare "Main" as a branch or a workspace. */}
         <UserRound size={13} className="shrink-0 text-fg-subtle" aria-hidden="true" />
-        {/* With one account its name says nothing new; the limit bar is what matters. */}
-        {accounts.length > 1 && <span className="hidden max-w-28 truncate font-medium sm:inline">{active.label}</span>}
+        {/* Said in words, so nobody has to click to learn what "Main" and the bar are. */}
+        <span className="hidden max-w-36 truncate font-medium sm:inline">
+          {t("limits.chipName", { name: active.label })}
+        </span>
         {pct !== undefined && (
           <span className="flex items-center gap-1">
+            <span className="hidden text-[11px] text-fg-subtle md:inline">{t("limits.chipLimit")}</span>
             <span className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-bg-muted sm:block">
               <span className={cn("block h-full rounded-full", tone)} style={{ width: `${Math.max(4, pct)}%` }} />
             </span>

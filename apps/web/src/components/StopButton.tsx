@@ -38,7 +38,10 @@ export function StopButton({ onStopped }: { onStopped: (message: string) => void
         }`}
       >
         <OctagonX size={14} strokeWidth={2} />
-        <span className="hidden lg:inline">{t("stop.button")}</span>
+        <span className="hidden md:inline">{t("stop.button")}</span>
+        {running > 0 && (
+          <span className="rounded-full bg-danger px-1.5 text-[10.5px] font-semibold text-white">{running}</span>
+        )}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("stop.title")}>
         <div className="p-5">

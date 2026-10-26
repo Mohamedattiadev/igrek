@@ -160,3 +160,32 @@ export function arenaCategory(request: string): string {
   if (/\b(refactor|clean|rename|split|simplify)\b|sadeleştir|yeniden düzenle/.test(r)) return "refactor";
   return "other";
 }
+
+/** A channel of the team chat: one shared project's, "general" or one people made. */
+export interface ChatChannel {
+  id: string;
+  projectId: string;
+  project: string;
+  name: string;
+  topic: string;
+  last: number;
+  unread: number;
+  messages: number;
+}
+
+/** A message in a channel or a thread; bot is Igrek answering someone's @ai. */
+export interface ChatMessage {
+  id: string;
+  channelId: string;
+  parentId?: string;
+  author?: string;
+  authorId?: string;
+  mine: boolean;
+  bot: boolean;
+  text: string;
+  at: number;
+  replies: number;
+  lastReplyAt?: number;
+  /** The board card this message became. */
+  task?: { id: string; title: string; status: TaskStatus; assignee?: string };
+}

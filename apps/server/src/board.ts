@@ -169,6 +169,22 @@ export class Board {
     return this.get(id) as BoardTask;
   }
 
+  /**
+   * A card a person works on moves with their work (board-auto.ts): no team of experts is started,
+   * unlike move(). The session it is worked in is remembered here only; it lives on this computer.
+   */
+  track(id: string, status: TaskStatus, sessionId?: string): BoardTask | undefined {
+    const task = this.get(id);
+    if (!task || !STATUSES.includes(status)) return undefined;
+    this.db
+      .query(
+        "UPDATE board_tasks SET status = ?, session_id = COALESCE(?, session_id), updated_at = ?, dirty = 1 WHERE id = ?",
+      )
+      .run(status, sessionId ?? null, Date.now(), id);
+    this.changed(task.projectId);
+    return this.get(id);
+  }
+
   /** Kept as a marker so the removal reaches teammates too. */
   remove(id: string): void {
     const task = this.get(id);

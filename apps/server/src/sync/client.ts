@@ -1155,20 +1155,7 @@ export class Sync {
           }
         }
 
-        // Comments written here, and messages to one teammate.
-        for (const cm of this.db
-          .query("SELECT * FROM comments WHERE project_id = ? AND author_id IS NULL AND sent = 0 LIMIT 50")
-          .all(project.id) as Record<string, unknown>[]) {
-          const ok = await this.publish(key, "comment", `c-${cm.id}`, {
-            id: cm.id,
-            targetKind: cm.target_kind,
-            targetId: cm.target_id,
-            text: cm.text,
-            mentions: JSON.parse(String(cm.mentions)),
-            at: cm.at,
-          });
-          if (ok) this.db.query("UPDATE comments SET sent = 1 WHERE id = ?").run(String(cm.id));
-        }
+        // Messages to one teammate (comments go after the board, below).
         for (const msg of this.db
           .query("SELECT * FROM team_messages WHERE project_id = ? AND outgoing = 1 AND sent = 0 LIMIT 20")
           .all(project.id) as Record<string, unknown>[]) {
@@ -1245,10 +1232,54 @@ export class Sync {
             if (ok) this.board.markSent(task.id, task.updatedAt);
           }
         }
+        await this.publishChat(key, project.id);
       }
       this.lastSyncAt = Date.now();
     } finally {
       this.flushing = false;
+    }
+  }
+
+  private unsentComments(projectId: string): Record<string, unknown>[] {
+    return this.db
+      .query(
+        "SELECT id, target_kind, target_id, text, mentions, at, parent_id, bot, task_id FROM comments WHERE project_id = ? AND author_id IS NULL AND sent = 0 ORDER BY at LIMIT 50",
+      )
+      .all(projectId) as Record<string, unknown>[];
+  }
+
+  /**
+   * Chat channels and comments written here, after the board: a message that became a card names
+   * the card, which teammates must have first. Oldest first, so a reply follows its message.
+   */
+  private async publishChat(key: string, projectId: string): Promise<void> {
+    for (const ch of this.chat?.unsentChannels(projectId) ?? []) {
+      // The id goes too: the browser page has no project ids of its own to rebuild it with.
+      const ok = await this.publish(key, "channel", `ch-${ch.id}-${ch.at}`, {
+        id: ch.id,
+        name: ch.name,
+        topic: ch.topic,
+        at: ch.at,
+      });
+      if (ok) this.chat?.markChannelSent(ch.id);
+    }
+    for (const cm of this.unsentComments(projectId)) {
+      const ok = await this.publish(key, "comment", `c-${cm.id}-${cm.task_id ?? ""}`, {
+        id: cm.id,
+        targetKind: cm.target_kind,
+        targetId: cm.target_id,
+        text: cm.text,
+        mentions: JSON.parse(String(cm.mentions)),
+        at: cm.at,
+        ...(cm.parent_id ? { parentId: cm.parent_id } : {}),
+        ...(cm.bot ? { bot: true } : {}),
+        ...(cm.task_id ? { taskId: cm.task_id } : {}),
+      });
+      // Turned into a card while it was on its way: it stays unsent and goes again with the card.
+      if (ok)
+        this.db
+          .query("UPDATE comments SET sent = 1 WHERE id = ? AND task_id IS ?")
+          .run(String(cm.id), (cm.task_id as string | null) ?? null);
     }
   }
 
@@ -1427,22 +1458,8 @@ export class Sync {
           this.db
             .query("DELETE FROM sessions WHERE id = ? AND author_id = ?")
             .run(String(value.id ?? ""), event.author);
-        else if (event.kind === "comment")
-          this.db
-            .query(
-              "INSERT OR IGNORE INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, sent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
-            )
-            .run(
-              String(value.id),
-              projectId,
-              String(value.targetKind),
-              String(value.targetId),
-              author.id,
-              author.name,
-              String(value.text ?? "").slice(0, 4000),
-              JSON.stringify(value.mentions ?? []),
-              Number(value.at ?? event.at),
-            );
+        else if (event.kind === "comment") this.applyComment(projectId, value, author, event.at);
+        else if (event.kind === "channel") this.chat?.applyRemote(projectId, value, author.name);
         else if (event.kind === "message") {
           // Only the person it's addressed to keeps it.
           if (value.to === this.config?.user.id)
@@ -1590,8 +1607,43 @@ export class Sync {
   docs?: import("../docs").Docs;
   /** The task board (plan.md 4.4), set by the server at startup. */
   board?: import("../board").Board;
+  /** The team chat (team-chat.ts), set by the server at startup. */
+  chat?: import("../team-chat").Chat;
   /** The lessons book (plan.md 4.4), set by the server at startup. */
   lessons?: import("../lessons").Lessons;
+
+  /**
+   * A teammate's comment or chat message. Sent again when it became a card, so the card is filled in
+   * then. A reply whose message or a card that is not here (yet) is kept without that link.
+   */
+  private applyComment(
+    projectId: string,
+    value: Record<string, unknown>,
+    author: { id: string; name: string },
+    at: number,
+  ): void {
+    this.db
+      .query(
+        `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, sent, parent_id, bot, task_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, (SELECT id FROM comments WHERE id = ?), ?, (SELECT id FROM board_tasks WHERE id = ?))
+         ON CONFLICT(id) DO UPDATE SET task_id = COALESCE(excluded.task_id, comments.task_id)`,
+      )
+      .run(
+        String(value.id),
+        projectId,
+        String(value.targetKind),
+        String(value.targetId),
+        author.id,
+        author.name,
+        String(value.text ?? "").slice(0, 8000),
+        JSON.stringify(value.mentions ?? []),
+        Number(value.at ?? at),
+        String(value.parentId ?? ""),
+        value.bot ? 1 : 0,
+        String(value.taskId ?? ""),
+      );
+    if (value.targetKind === "channel") this.bus.publish({ type: "chat-changed", channelId: String(value.targetId) });
+  }
 
   private applyMemory(projectId: string, item: Record<string, unknown>, author: { id: string; name: string }): void {
     const existing = this.db
