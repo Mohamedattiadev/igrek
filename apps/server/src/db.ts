@@ -973,6 +973,13 @@ export const migrations: string[] = [
    CREATE INDEX channels_project ON channels(project_id, name);
    ALTER TABLE board_tasks ADD COLUMN session_id TEXT REFERENCES sessions(id) ON DELETE SET NULL;
    CREATE INDEX board_tasks_session ON board_tasks(session_id);`,
+  // The Company page (sync/seats.ts): each teammate's last report of their AI accounts and week.
+  // "member" is a hub user id; there is no users table on this computer to point at.
+  `CREATE TABLE team_seats (
+     member TEXT PRIMARY KEY NOT NULL,
+     data TEXT NOT NULL,
+     at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

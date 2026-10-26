@@ -761,6 +761,9 @@ export class Sync {
     };
     this.loops.push(setInterval(() => void this.flush(), 3000));
     this.loops.push(setInterval(() => void this.sendPresence(), 15_000));
+    // The Company page: this computer's accounts and week, now and every ten minutes.
+    this.loops.push(setInterval(() => void this.sendSeat(), 10 * 60_000));
+    setTimeout(() => void this.sendSeat(), 5000);
     this.loops.push(setInterval(() => void this.loadMembers(), 5 * 60_000));
     this.loops.push(setInterval(() => void this.repair(), 10 * 60_000));
   }
@@ -1283,6 +1286,13 @@ export class Sync {
     }
   }
 
+  /** This computer's AI accounts and week for the team's Company page, when the user lets it. */
+  private async sendSeat(): Promise<void> {
+    if (!this.connected || !this.indexKey || !this.seats || !this.shareUsage()) return;
+    if (this.config?.user.role === "viewer") return;
+    await this.publish(this.indexKey, "seat", `seat-${Date.now()}`, this.seats.mine());
+  }
+
   /** A session made private after it was shared: ask teammates to drop their copy. */
   async forgetSession(projectId: string, sessionId: string): Promise<void> {
     if (!this.connected || !this.idKey) return;
@@ -1412,6 +1422,16 @@ export class Sync {
       try {
         if (event.device === mine) continue; // our own, echoed back on reconnect
         if (projectKeyHex === this.indexKey) {
+          if (event.kind === "seat") {
+            const value = await decrypt<Record<string, unknown>>(
+              key,
+              aadFor(projectKeyHex, "seat", event.n, event.prev),
+              event.nonce,
+              event.data,
+            );
+            if (this.track(projectKeyHex, event) !== "seen") this.seats?.applyRemote(event.author, value, event.at);
+            continue;
+          }
           if (event.kind === "project") {
             const value = await decrypt<{ identity: string; name: string; key: string }>(
               key,
@@ -1607,6 +1627,9 @@ export class Sync {
   docs?: import("../docs").Docs;
   /** The task board (plan.md 4.4), set by the server at startup. */
   board?: import("../board").Board;
+  /** The Company page's reports (seats.ts) and whether this user shares theirs, set by the server at startup. */
+  seats?: import("./seats").Seats;
+  shareUsage: () => boolean = () => true;
   /** The team chat (team-chat.ts), set by the server at startup. */
   chat?: import("../team-chat").Chat;
   /** The lessons book (plan.md 4.4), set by the server at startup. */

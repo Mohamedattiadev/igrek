@@ -102,6 +102,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
     "onboarded",
     "askedCoding",
     "autoSummarize",
+    "shareUsage",
     "richAnswers",
     "consultExperts",
     "privacyGateway",

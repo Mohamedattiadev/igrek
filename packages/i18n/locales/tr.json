@@ -27,7 +27,8 @@
     "chat": "Mesajlar",
     "groupTeam": "Takım",
     "groupWork": "Çalışma",
-    "groupKnow": "Bilgi"
+    "groupKnow": "Bilgi",
+    "company": "Şirket"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -1138,7 +1139,7 @@
     "usesLimit": "Bir AI modeline sorar, bu yüzden limitini kullanır.",
     "chipHeader": "Yeni sohbetlerin Claude hesabı",
     "chipName": "Claude: {{name}}",
-    "chipLimit": "5 saatlik limit"
+    "chipLimit": "5 sa. limit"
   },
   "accounts": {
     "title": "Hesaplar",
@@ -5083,5 +5084,40 @@
     "sharePlaceholder": "Ne oldu, ne kaldı, kim ne yapmalı (@ad)",
     "draft": "Igrek oturumdan yazsın",
     "alsoTask": "Panoya bir kart da ekle"
+  },
+  "company": {
+    "title": "Şirket",
+    "intro": "Takımındaki herkes, AI hesapları ve her limitin ne kadar dolu olduğu, bir de haftaları. Her Igrek kendini raporlar, takım için şifreli; sohbetler ve e-posta adresleri asla içinde değil.",
+    "emptyTitle": "Önce takımına bağlan",
+    "emptyBody": "Şirket sayfası takımının hub'ındaki kişileri gösterir. Takım sayfasından bağlan.",
+    "people": "Kişiler",
+    "onlineNow_one": "Şu an {{count}} kişi çevrimiçi",
+    "onlineNow_other": "Şu an {{count}} kişi çevrimiçi",
+    "weekSessions": "Bu hafta oturum",
+    "weekTokens": "Bu hafta token",
+    "nearFull": "Limite yakın",
+    "nearFullHint": "5 saatlik ya da haftalık limit %90 ve üstü",
+    "fullWarning": "Limite yakın: {{names}}. Sıradaki oturumları limit sıfırlanana kadar durabilir; başka bir hesap ya da bir takım arkadaşı devralabilir.",
+    "person": "Kişi",
+    "accounts": "AI hesapları",
+    "thisWeek": "Bu hafta",
+    "app": "Igrek",
+    "admin": "Yönetici",
+    "online": "Çevrimiçi",
+    "seen": "{{when}} görüldü",
+    "neverSeen": "Henüz görülmedi",
+    "noReport": "Henüz rapor yok: ya Igrek'i o zamandan beri açmadı ya da kullanımını paylaşmıyor.",
+    "inUse": "kullanımda",
+    "loggedOut": "çıkış yapılmış",
+    "fiveHour": "5 saat",
+    "week": "Hafta",
+    "sessions_one": "{{count}} oturum",
+    "sessions_other": "{{count}} oturum",
+    "tokens": "{{tokens}} token",
+    "oldVersion": "takımın en yenisinden eski",
+    "reported": "{{when}} raporladı",
+    "shareTitle": "Kullanımımı takımla paylaş",
+    "shareHint": "Hesaplarının adları ve planları, limitlerinin doluluğu, bu haftanın oturum ve token sayısı. Sohbetlerin, kodun ve e-posta adresin asla.",
+    "manage": "Kişiler, roller ve cihazlar Takım sayfasında"
   }
 }

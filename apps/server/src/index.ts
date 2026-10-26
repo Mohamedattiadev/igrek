@@ -157,6 +157,7 @@ import { registerSpeechRoutes, Speech } from "./speech";
 import { Store } from "./store";
 import { claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
 import { Sync } from "./sync/client";
+import { Seats } from "./sync/seats";
 import { Chat } from "./team-chat";
 import { registerTeamChatRoutes } from "./team-chat-routes";
 import { registerTeamRoutes } from "./team-routes";
@@ -569,6 +570,9 @@ const docs = new Docs(
 );
 sync.docs = docs;
 sync.board = board;
+const seats = new Seats(sqlite, () => accounts.list(), APP_VERSION);
+sync.seats = seats;
+sync.shareUsage = () => readSettings(db).shareUsage;
 const chat = new Chat(sqlite, bus);
 sync.chat = chat;
 // The board follows the work: a minute at most behind, sooner when a session or commit comes in.
@@ -1079,6 +1083,7 @@ const app = createApp({
       language: () => readSettings(db).language,
       runnerDir: join(config.dataDir, "runner"),
       stops,
+      seats,
     });
     registerEnhanceRoutes(hono, enhancer);
     registerHttpRoutes(hono, store);

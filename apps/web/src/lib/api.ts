@@ -78,6 +78,7 @@ import type {
   Schedule,
   ScheduleWhen,
   SearchHit,
+  Seat,
   ServerHealth,
   ServerInfo,
   SessionDetail,
@@ -1002,6 +1003,8 @@ export const api = {
     ),
   addComment: (body: { projectId: string; targetKind: string; targetId: string; text: string }) =>
     request<{ ok: boolean }>("/api/comments", { method: "POST", body: JSON.stringify(body) }),
+  /** The Company page: everyone's AI accounts and week (sync/seats.ts). */
+  company: () => request<Seat[]>("/api/team/company"),
   // ---- team chat (team-chat-routes.ts) ----
   chatChannels: () => request<ChatChannel[]>("/api/chat/channels"),
   createChannel: (body: { projectId: string; name: string; topic?: string }) =>

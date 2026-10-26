@@ -44,6 +44,8 @@ export interface Settings {
   onboarded: boolean;
   /** Summarize finished sessions automatically with a small, cheap model. */
   autoSummarize: boolean;
+  /** Tell the team how full this computer's AI accounts are and how much was used this week (the Company page); never chats or emails. */
+  shareUsage: boolean;
   /** Chats may answer with OpenUI blocks drawn with Igrek's components (plan.md 16.2); costs about a thousand tokens per chat. */
   richAnswers: boolean;
   /** Chats may consult the expert personas in the background (each consultation is one model call). */
@@ -119,6 +121,7 @@ export const DEFAULT_SETTINGS: Settings = {
   keymap: "default",
   onboarded: false,
   autoSummarize: true,
+  shareUsage: true,
   richAnswers: false,
   consultExperts: true,
   privacyGateway: true,
@@ -529,6 +532,29 @@ export type ChatMode = "normal" | "acceptEdits" | "auto" | "plan";
 export type ChatStatus = "idle" | "working" | "waiting" | "exited";
 
 /** Limit usage as Claude reports it (0–1), with reset times. */
+/** One teammate's AI accounts and week, as their Igrek reports it to the team (sync/seats.ts). */
+export interface Seat {
+  memberId: string;
+  name: string;
+  role?: string;
+  online?: boolean;
+  lastSeen?: number;
+  /** When their Igrek last reported; old reports are shown as such. */
+  at: number;
+  version?: string;
+  os?: string;
+  accounts: {
+    provider: string;
+    label: string;
+    plan?: string;
+    loggedIn: boolean;
+    active: boolean;
+    fiveHour?: number;
+    week?: number;
+  }[];
+  week: { sessions: number; input: number; output: number; models: Record<string, number> };
+}
+
 export interface RateLimitInfo {
   fiveHour?: number;
   fiveHourResetsAt?: number;

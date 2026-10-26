@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BookMarked,
   Bot,
+  Building2,
   CalendarClock,
   FolderKanban,
   FolderOpen,
@@ -43,6 +44,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/chat", label: "nav.chat", icon: MessagesSquare, group: "team" },
   { to: "/team", label: "nav.team", icon: Users, group: "team" },
   { to: "/personas", label: "nav.personas", icon: UsersRound, group: "team" },
+  { to: "/company", label: "nav.company", icon: Building2, group: "team" },
   { to: "/files", label: "nav.files", icon: FolderOpen, group: "work" },
   { to: "/servers", label: "nav.servers", icon: Server, group: "work" },
   { to: "/schedules", label: "nav.schedules", icon: CalendarClock, group: "work" },

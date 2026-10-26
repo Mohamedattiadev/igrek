@@ -27,7 +27,8 @@
     "chat": "Messages",
     "groupTeam": "Team",
     "groupWork": "Work",
-    "groupKnow": "Knowledge"
+    "groupKnow": "Knowledge",
+    "company": "Company"
   },
   "workspace": {
     "local": "My computer",
@@ -1138,7 +1139,7 @@
     "usesLimit": "Asks an AI model, so it uses your plan's limit.",
     "chipHeader": "Claude account for new chats",
     "chipName": "Claude: {{name}}",
-    "chipLimit": "5-hour limit"
+    "chipLimit": "5h limit"
   },
   "accounts": {
     "title": "Accounts",
@@ -5083,5 +5084,40 @@
     "sharePlaceholder": "What happened, what is left, who should do what (@name)",
     "draft": "Let Igrek write it from the session",
     "alsoTask": "Also add a card to the board"
+  },
+  "company": {
+    "title": "Company",
+    "intro": "Everyone in your team, their AI accounts and how full each limit is, and their week. Each Igrek reports itself, encrypted for the team; chats and email addresses are never in it.",
+    "emptyTitle": "Connect to your team first",
+    "emptyBody": "The Company page shows the people on your team's hub. Connect on the Team page.",
+    "people": "People",
+    "onlineNow_one": "{{count}} online now",
+    "onlineNow_other": "{{count}} online now",
+    "weekSessions": "Sessions this week",
+    "weekTokens": "Tokens this week",
+    "nearFull": "Near a limit",
+    "nearFullHint": "5-hour or weekly limit at 90% or more",
+    "fullWarning": "Close to a limit: {{names}}. Their next sessions may stop until it resets; another account or a teammate can take over.",
+    "person": "Person",
+    "accounts": "AI accounts",
+    "thisWeek": "This week",
+    "app": "Igrek",
+    "admin": "Admin",
+    "online": "Online",
+    "seen": "Seen {{when}}",
+    "neverSeen": "Not seen yet",
+    "noReport": "No report yet: their Igrek has not been open since, or they keep their usage to themselves.",
+    "inUse": "in use",
+    "loggedOut": "signed out",
+    "fiveHour": "5 hours",
+    "week": "Week",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "tokens": "{{tokens}} tokens",
+    "oldVersion": "older than the team's newest",
+    "reported": "reported {{when}}",
+    "shareTitle": "Share my usage with the team",
+    "shareHint": "Your accounts' names and plans, how full their limits are, and this week's sessions and tokens. Never your chats, code or email address.",
+    "manage": "People, roles and devices are on the Team page"
   }
 }

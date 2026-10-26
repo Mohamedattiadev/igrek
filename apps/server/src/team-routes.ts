@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { SessionSummaryData, ShareLevel } from "@igrek/core";
+import type { Seat, SessionSummaryData, ShareLevel } from "@igrek/core";
 import { languages } from "@igrek/i18n";
 import type { Hono } from "hono";
 import type { StopRegistry } from "./bus";
@@ -7,6 +7,7 @@ import type { Store } from "./store";
 import { runClaude } from "./summarizer";
 import type { Sync } from "./sync/client";
 import { encodeInvite } from "./sync/crypto";
+import type { Seats } from "./sync/seats";
 import { handoffPrompt } from "./terminal-routes";
 
 const fail = (err: unknown) => ({ error: (err as Error).message });
@@ -17,7 +18,12 @@ export function registerTeamRoutes(
   app: Hono,
   sync: Sync,
   store: Store,
-  { language, runnerDir, stops }: { language: () => string; runnerDir: string; stops: StopRegistry },
+  {
+    language,
+    runnerDir,
+    stops,
+    seats,
+  }: { language: () => string; runnerDir: string; stops: StopRegistry; seats: Seats },
 ): void {
   app.get("/api/team", (c) => c.json(sync.status()));
 
@@ -516,6 +522,29 @@ export function registerTeamRoutes(
   });
 
   app.get("/api/team/projects", async (c) => c.json(await sync.projectKeys()));
+  // The Company page: each teammate's AI accounts and week, as their Igrek last reported it; mine is fresh.
+  app.get("/api/team/company", (c) => {
+    const me = sync.identity().id;
+    const reports = new Map(seats.reports().map((r) => [r.member, r]));
+    const empty = { accounts: [], week: { sessions: 0, input: 0, output: 0, models: {} } };
+    // Igrek reports every ten minutes while it is open; working in a shared project counts too.
+    const working = new Set(sync.presenceList().map((p) => p.userId));
+    const now = Date.now();
+    return c.json(
+      sync.memberList().map((m): Seat => {
+        const r = m.id === me ? { report: seats.mine(), at: Date.now() } : reports.get(m.id);
+        return {
+          memberId: m.id,
+          name: m.displayName || m.username,
+          role: m.role,
+          online: m.id === me || working.has(m.id) || (!!r && now - r.at < 12 * 60_000),
+          ...(m.lastSeen ? { lastSeen: m.lastSeen } : {}),
+          at: r?.at ?? 0,
+          ...(r ? r.report : empty),
+        };
+      }),
+    );
+  });
 
   // Own account on the hub: profile, two-factor sign-in, signing out other devices.
   app.patch("/api/team/me", async (c) => {
