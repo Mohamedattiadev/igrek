@@ -1242,6 +1242,45 @@ god-eye/
 
 ---
 
+### Faz 18 — Kullanıcı geri bildirimi (27 Ekim 2026, 0.1.11 sonrası)
+
+**Hedef:** İki kişilik gerçek kullanımda (Ati ve Kerim, PoultryCareAi) görülen karışıklıklar ve eksikler. Her madde kullanıcının kendi sözüyle başlar; sonra ne yapılacağı. Aydınlık ve karanlık temada aynı özenle.
+
+#### 18.1 Güncelleme
+- [ ] "millet indirdi ya eski surumu silip bi daha indirmesine gerek kalmasin direk update edilsin ben update attigimda ... bilgileri gitmesin" — *Bugün: AppImage, .msi ve macOS kendi kendini güncelliyor (imzalı, latest.json), veriler ~/.igrek'te kalıyor ve güncellemede silinmiyor. Eksik: yeni sürüm sadece Ayarlar açılınca aranıyor. Yapılacak: açılışta ve birkaç saatte bir arasın, üst çubukta "Yeni sürüm var, güncelle" görünsün, tek tıkla kurup yeniden açsın (açık sohbet varsa uyarsın). .deb kendini güncelleyemez: .deb kullanana "AppImage'a geç ya da yeni .deb'i kur" denilsin*
+- [ ] Hub'ı VPS'te 0.1.11'e güncelle (isim değişikliklerinin anında yayılması için) — *otomatik izin sistemi canlı sunucuya kurulumu engelledi; kullanıcı kendisi çalıştıracak ya da izin verecek*
+
+#### 18.2 Pano
+- [ ] "panolar suruklenebilir olsun daha rahat olsun" — *kartlar sütunlar arasında ve sütun içinde sürüklenebilsin (klavyeyle de taşınabilsin)*
+- [ ] "I'm taking this ... daha iyi olmasi lazim gozde batacak gorunecek, bi de isimi de gozukmesi lazim" — *"Ben alıyorum" belirgin bir düğme olsun; kartı kim aldıysa avatarı ve adı kartın üstünde görünsün*
+- [ ] "bano cok karisik olmasin lutfen" — *kartta sadece başlık, kişi, durum; atama seçimi, "Üzerinde çalış", ok ve tarih sade bir menüye ya da üzerine gelince görünsün. "Takıma bir iş ver" kutusu katlı başlasın*
+- [ ] "su kartsiz takim asagiadaki sey ne ya duzel" — *"Kartsız takım işleri" ne olduğunu söylesin ya da kaldırılsın; "## Goal" gibi ham başlık yerine işin adı yazsın*
+- [ ] "ilerleme grafigi kim napmis flan havali olsun" — *Yol haritasında kişi kişi ilerleme grafiği (kim kaç kart bitirdi, ne üzerinde), şık ve okunur*
+- [ ] "kart olarak ekledim ... panoya gidip bakmam lazim ... mesajlardan -> projeye -> proje sec -> panoya bu cok karisik" — *mesajın altındaki kart çipi tıklanınca kart doğrudan panoda açılsın; kart eklenince "Panoda gör" bağlantısı çıksın*
+- [ ] "her zaman gozukecek bi yerde sana atanmis ... tasklar sayisi olsun basildiginda da panoya alsin" — *kenar çubuğunda ya da üst çubukta "Bana atanan: 3" rozeti; tıklayınca bana atanan kartların listesi/panosu açılsın*
+
+#### 18.3 Mesajlar
+- [ ] "chat neden sayfanin asagisina kadar degil yarisi hallet" — *hub'daki üye (web) sayfasında sohbet tüm yüksekliği kullansın*
+- [ ] "meseaja baktigim halde o 3 gitmedi, bi de kimden geldigi gosterse cok iyi olur" — *kanal açılınca okunmamış sayısı hemen düşsün (cevaplar dahil); sayının üzerinde kimden geldiği görünsün*
+- [ ] "arkadasim chat gorunce direk ona gitti projects'e gitmedi" — *ilk açılışta ve kenar çubuğunda nereden başlanacağı belli olsun; Mesajlar ile Projeler arasındaki ilişki anlaşılsın*
+
+#### 18.4 Gelen Kutusu
+- [ ] "gelen kutudan onemli bi mesaj geldi onlari kategorize edip renklerle mesajin yanindaki 3 sayisi gibi orada da gozuksun" — *Gelen Kutusu'nda okunmamış sayısı kenar çubuğunda; türlere göre (bahsedilme, kart, sunucu, onay bekleyen) renkli etiketler*
+
+#### 18.5 Kenar çubuğu ve genel arayüz
+- [ ] "siralama cok sacma neden uzmanlar sirket ile ayni kategoride" — *Uzmanlar Takım başlığından çıksın (AI araçlarının yanına); Takım altında Mesajlar, Takım, Şirket kalsın*
+- [ ] "isimler ve ikonlar renk verme istegini ver ... sirketi farkli renk yapmak isterim ki hemen belli olsun, degisebilir olsun" — *kenar çubuğundaki her sayfaya isteğe bağlı renk (ve belki ikon) seçimi; arayüzü bozmayacak küçük bir renk noktası/ikon rengi*
+- [ ] "butun sayfalarda bak, ? ikonu hic bir seyin uzerine olmasin saklamasin baska bi seyi" — *yardım düğmesi gönder düğmesi gibi hiçbir şeyin üstüne binmesin; her sayfada kontrol edilsin (crawl testine çakışma kontrolü)*
+- [ ] "kartlarda halen eksiklik var guzel gorunmuyor, oradaki yazi cok bi sey anlam vermiyor, eksik oldugu icin" — *proje kartındaki özet yarım cümleyle kesilmesin: kısa, tam bir cümle ("Son iş: ilaç ve aşı notları ayıklandı") ve kim, ne zaman*
+
+#### 18.6 Şirket
+- [ ] "denetimler filtrelenebilir, search edilebilir, hatta ai ile bi sey isterim bana sonuc gostersin" — *Denetim kaydında kişi, olay türü ve tarih filtresi, arama; "geçen hafta başarısız girişler" gibi sorulara AI ile cevap (kayıt üzerinde, sadece okuyarak)*
+- [ ] "bunun icin cok sey eklenmesi lazim, halen eksik gibi geliyor ... functionality olarak eksik" — *Şirket sayfası işlev olarak zenginleşsin: kişi başı kullanım ve bütçe uyarıları, fatura görünümü, rol şablonları, cihaz yönetimi, kim hangi projede (plan.md'deki kişi başı bütçe maddesiyle birlikte)*
+
+**Bitti sayılır:** Kerim uygulamayı ilk açtığında nereden başlayacağını biliyor; bir mesajdan karta ve panoya iki tıkla gidiyor; bana atanan işler her zaman görünüyor; yeni sürüm uygulamanın içinden tek tıkla, veriler kaybolmadan kuruluyor.
+
+---
+
 ---
 
 ## 9. Açık Sorular ve Riskler
