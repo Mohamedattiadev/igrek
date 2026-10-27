@@ -43,7 +43,7 @@ import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { ChatStream } from "./chat-stream";
 import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
-import { Chief, registerChiefRoutes } from "./chief";
+import { Chief, registerChiefRoutes, threadOf } from "./chief";
 import { CodeHost } from "./codehost";
 import { registerCommitHookRoutes } from "./commit-hook";
 import { loadConfig } from "./config";
@@ -150,6 +150,7 @@ import {
   SESSION_COOKIE,
 } from "./security";
 import { registerServerRoutes } from "./server-routes";
+import { ServerWeek } from "./server-week";
 import { Servers } from "./servers";
 import { readSettings } from "./settings";
 import { registerSkillRoutes, Skills } from "./skills";
@@ -648,7 +649,12 @@ const aiComments = new AiComments(
   () => readSettings(db).language,
 );
 aiComments.start();
+// The weekly server report: each server's security scan and "who used it" once a week (checked hourly).
+const serverWeek = new ServerWeek(sqlite, servers);
+setTimeout(() => void serverWeek.tick().catch(() => undefined), 10 * 60_000);
+setInterval(() => void serverWeek.tick().catch(() => undefined), 60 * 60_000);
 insight.extraNotices = () => [
+  ...serverWeek.notices(),
   ...aiComments.notices(),
   ...agentRequests.notices(),
   ...sync.overlapNotices(),
@@ -764,6 +770,10 @@ const app = createApp({
           // The list of projects and of runs only reads; handing work over (igrek_delegate) asks.
           "mcp__igrek__igrek_projects",
           "mcp__igrek__igrek_runs",
+          // Servers: a reading command runs at once and every change waits for the user's approval in
+          // Igrek itself (Servers.run), so a second prompt from Claude Code only got in the way.
+          "mcp__igrek__igrek_servers",
+          "mcp__igrek__igrek_server_run",
           ...(readSettings(db).consultExperts ? ["mcp__igrek__igrek_ask_expert"] : []),
         ];
       },
@@ -784,25 +794,8 @@ const app = createApp({
         readSettings(db).consultExperts ? experts.writeSubagents(projectId, join(config.dataDir, "agents")) : undefined,
     });
     // The chief: one chat about everything, which hands work to the projects (chief.ts).
-    /**
-     * What a chief thread is about: a project's thread stays on that project, a server's ("server:<id>",
-     * the server page's AI tab) on that one machine, and the general one is for everything else.
-     */
-    const chiefThread = (projectId?: string): { title: string; note?: string } => {
-      const server = projectId?.startsWith("server:") ? servers.get(projectId.slice(7)) : undefined;
-      if (server)
-        return {
-          title: server.name,
-          note: `This thread is only about the server "${server.name}" (${server.target}, ${server.tag === "prod" ? "PRODUCTION: other people's live services may run here" : server.tag}). Run commands on it with igrek_server_run (server "${server.name}"): reading is free, changes wait for the user's approval in Igrek. Look before you change, say what a command will do before asking, prefer the smallest change, and never restart or remove what you did not find out about first.`,
-        };
-      const project = projectId ? store.projectRow(projectId) : undefined;
-      if (projectId && !project) throw new Error("Project not found");
-      if (!project) return { title: "Chief" };
-      return {
-        title: project.name,
-        note: `This thread is only about the project "${project.name}" (folder ${project.path}, id ${project.id}). Hand its work to it with igrek_delegate; for other projects the user has the general thread.`,
-      };
-    };
+    const chiefThread = (projectId?: string) =>
+      threadOf(projectId, { server: (id) => servers.get(id), project: (id) => store.projectRow(id) });
     const chief = new Chief(
       join(config.dataDir, "chief"),
       chats,

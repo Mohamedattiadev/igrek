@@ -249,6 +249,28 @@ export interface ServerFinding {
   fix?: string;
 }
 
+/** Who used a server this week (apps/server/src/server-access.ts). */
+export interface ServerAccess {
+  now: { user: string; tty: string; since: string; from: string }[];
+  logins: { at: number; user: string; ip: string; method: string; key?: string; who?: string }[];
+  keys: { fingerprint: string; label: string; account: string }[];
+  failed: { total: number; top: { ip: string; count: number }[] };
+  sudo: { at: number; user: string; command: string }[];
+  readable: boolean;
+  at: number;
+}
+
+/** A listening port and what reaches it (apps/server/src/server-ports.ts). */
+export interface ServerPort {
+  proto: "tcp" | "udp";
+  port: number;
+  address: string;
+  program: string;
+  public: boolean;
+  firewall: "open" | "closed" | "off";
+  container?: string;
+}
+
 export const api = {
   /** Picks up the session cookie; call once before anything else. */
   bootstrap: () => request<{ ok: boolean }>("/api/session"),
@@ -716,6 +738,21 @@ export const api = {
   serverSecurity: (id: string) =>
     request<{ findings: ServerFinding[]; unread: string[]; at: number }>(`/api/servers/${id}/security`, {
       method: "POST",
+    }),
+  serverAccess: (id: string) => request<ServerAccess>(`/api/servers/${id}/access`, { method: "POST" }),
+  serverPorts: (id: string) =>
+    request<{ ports: ServerPort[]; firewall: "active" | "inactive" | "unknown"; at: number }>(
+      `/api/servers/${id}/ports`,
+      { method: "POST" },
+    ),
+  changeFirewall: (
+    id: string,
+    change: { action: "open" | "close" | "forget"; port: number; proto: string },
+    confirmations: number,
+  ) =>
+    request<RemoteRun>(`/api/servers/${id}/firewall`, {
+      method: "POST",
+      body: JSON.stringify({ ...change, confirmations }),
     }),
   fixOnServer: (id: string, finding: string, confirmations: number) =>
     request<RemoteRun>(`/api/servers/${id}/fix`, { method: "POST", body: JSON.stringify({ finding, confirmations }) }),

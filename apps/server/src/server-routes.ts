@@ -1,6 +1,8 @@
 import type { Hono } from "hono";
 import { classifyCommand } from "./commands";
+import { ACCESS_COMMAND, accessReport } from "./server-access";
 import { type Finding, findings, SCAN_COMMAND, scanned, unread } from "./server-audit";
+import { firewallCommand, openPorts, PORTS_COMMAND } from "./server-ports";
 import { type Servers, sshConfigHosts } from "./servers";
 
 const CONTAINER = /^[\w.-]{1,128}$/;
@@ -96,6 +98,38 @@ export function registerServerRoutes(app: Hono, servers: Servers): void {
     const fix = scans.get(id)?.find((f) => f.id === body.finding)?.fix;
     if (!fix) return c.json({ error: "Scan again first" }, 400);
     const r = await runAsked(servers, id, fix, body.confirmations, `fix: ${body.finding}`);
+    return "ok" in r ? c.json(r.ok) : c.json({ error: r.error, risk: r.risk }, r.status);
+  });
+  // Who used the server this week, and its open ports with the firewall (server-access.ts, server-ports.ts).
+  app.post("/api/servers/:id/access", async (c) => {
+    try {
+      const { output } = await servers.inspect(c.req.param("id"), ACCESS_COMMAND, "who used the server");
+      return c.json({ ...accessReport(output), at: Date.now() });
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 404);
+    }
+  });
+  app.post("/api/servers/:id/ports", async (c) => {
+    try {
+      const { output } = await servers.inspect(c.req.param("id"), PORTS_COMMAND, "open ports");
+      return c.json({ ...openPorts(output), at: Date.now() });
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 404);
+    }
+  });
+  app.post("/api/servers/:id/firewall", async (c) => {
+    const id = c.req.param("id");
+    const body = (await c.req.json().catch(() => ({}))) as {
+      action?: string;
+      port?: number;
+      proto?: string;
+      confirmations?: number;
+    };
+    const server = servers.get(id);
+    if (!server) return c.json({ error: "Server not found" }, 404);
+    const change = firewallCommand(body.action, body.port, body.proto, server.port ?? 22);
+    if ("error" in change) return c.json({ error: change.error }, 400);
+    const r = await runAsked(servers, id, change.command, body.confirmations, `firewall: ${change.command}`);
     return "ok" in r ? c.json(r.ok) : c.json({ error: r.error, risk: r.risk }, r.status);
   });
   // A container's recent log, and a restart (a change: it asks to be confirmed like any command).

@@ -993,6 +993,12 @@ export const migrations: string[] = [
      removed INTEGER NOT NULL DEFAULT 0,
      PRIMARY KEY (comment_id, member, reaction)
    );`,
+  // The weekly server report (server-week.ts): the last one per server, for the inbox.
+  `CREATE TABLE server_reports (
+     server_id TEXT NOT NULL PRIMARY KEY REFERENCES servers(id) ON DELETE CASCADE,
+     at INTEGER NOT NULL,
+     data TEXT NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

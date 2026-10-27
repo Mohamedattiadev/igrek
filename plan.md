@@ -1280,7 +1280,39 @@ god-eye/
 #### 18.7 AI'nın yazısı
 - [x] "claude inglizce ya da tr yazinca cok kotu yaziyo daha cok claudesih yaziyo ona gore bi skill bi sey bul pls temelli halletsin" — *Yapılan: yazı kuralları (packages/core/src/writing.ts) her sohbetin, takım işinin ve her küçük işin (özet, cevap, rapor) sistem talimatına ekleniyor: hazır giriş ve kapanış cümleleri yok ("Harika soru", "Umarım yardımcı olur"), uzun tire yok, AI'ya özgü kelimeler yok (kapsamlı, kusursuz, delve, seamless), her şey liste değil, Türkçe çeviri Türkçesi değil (etken fiil, "gerçekleştirildi/sağlandı" yerine "ekledim/düzelttim", doğru Türkçe harfler). Kod, komut ve veri biçimlerine dokunmaz*
 
+#### 18.8 Sunucu güvenliği
+- [x] "server sunucu icin guvenlik scriptleri fln olmasi lazim ... mining varsa zararli bi sey fln varsa ve benzer ne olabilirsa ona onlem bi de butun kapilari fln onlari kontrol edebilecek durumda" — *Yapılan: Güvenlik taraması artık şunları da arıyor (hepsi sadece okur): bilinen madenci süreçleri, madencilik havuzu portlarına bağlantı, /tmp, /var/tmp ve /dev/shm'den çalışan programlar, ağa açık kabuk (SSH dışından bir bağlantıdan okuyan kabuk, nc -e, /dev/tcp), paketinden farklılaşmış sistem programları (dpkg --verify), PHP web shell'leri, ayrıcalıklı container'lar, kod indirip çalıştıran cron işleri, ikinci root kullanıcı, /etc/ld.so.preload, çok işlemci yiyen süreçler, root'a girebilen anahtarlar. Madenci, geçici klasör programı ve arka kapı için "Düzelt" süreci durdurur (onaylı, kayıtlı). Yeni "Portlar" sekmesi: dinleyen her port, hangi program, internetten erişiliyor mu (Docker'ın ufw'yi aşması dahil), tek tıkla aç/kapat (ufw, onaylı); SSH portu buradan kapatılamaz*
+- [x] "madencilikten baska ne varsa arastir hepsinin de onlemini al iste baska biri kullaniyor mu haftalik raporlari fln filen kimler kullandi ... profesyonel olsun ki baska bi seye ihtiyacimiz olmasin" — *Yapılan: "Kimler kullandı" sekmesi: son 7 günde kim, hangi anahtarla (anahtarın etiketiyle, ör. kerim@macbook), hangi adresten girdi; bilinmeyen anahtarla ve şifreyle girişler işaretli; şu an bağlı olanlar, sudo komutları, en çok deneyen adresler. Haftalık rapor: her sunucu haftada bir taranır ve Gelen Kutusu'na sunucu başına bir satır düşer (tehlike ya da bilinmeyen anahtar varsa "alarm")*
+- [x] "sohbeti olacakti zaten var da calisiyor mu diye kontrol et" — *Kontrol edildi ve bir sorun düzeltildi: sunucu sohbetinde Claude, igrek_server_run'ı her kullanışında (okuma komutlarında bile) ayrıca izin istiyordu; araç artık izinli listede, değişiklikler yine Igrek'in kendi onayından geçiyor. Sohbetin kurulumu test edildi; modelin gerçek cevabı demo ortamında denenemez (model çağrısı kapalı)*
+
 **Bitti sayılır:** Kerim uygulamayı ilk açtığında nereden başlayacağını biliyor; bir mesajdan karta ve panoya iki tıkla gidiyor; bana atanan işler her zaman görünüyor; yeni sürüm uygulamanın içinden tek tıkla, veriler kaybolmadan kuruluyor.
+
+---
+
+### Faz 19 — Sohbette dosya ve ses, takım botları, daha az kullanım, projeyi tek tıkla başlatma (27 Ekim 2026)
+
+**Hedef:** Kullanıcının 0.1.12 öncesi istekleri. Sistem karışmasın: her yeni şey var olan bir yerin içine girsin, yeni sayfa açmasın.
+
+#### 19.1 Sohbete dosya ve ses
+- [ ] "chattaki + kismina dosya fln filan ekleyebiliriz voice fln da olabilir" — *bugün + sadece resim alıyor (png, jpeg, gif, webp). PDF, metin, CSV, Excel, Word gibi dosyalar da eklensin: Claude Code'un okuyabildiği biçimde sohbetin çalışma klasörüne (ya da geçici bir klasöre) konup yolu mesaja eklenir; PDF transkript gibi belgeler okunur ve hesaplanır (kullanıcının örneği: transkriptten AKTS hesabı). Ses kaydı: bir ses mesajı kaydedilir, yazıya çevrilir (yerel Whisper, ücretsiz) ve mesaj olur*
+- [ ] "bizim mikrofon full calisiyor mu onu kontrol et pls full calissin" — *bugünkü mikrofon düğmesi (MicButton.tsx) tarayıcının Web Speech API'sine dayanıyor: masaüstü uygulamasında (Linux'ta WebKitGTK, macOS'ta WebKit) bu yok ya da Apple/Google sunucusuna gidiyor, Firefox'ta yok. Yapılacak: gerçek bir mikrofonla her platformda dene; olmayan yerde yerel Whisper (whisper.cpp, ücretsiz, çevrimdışı) ile yazıya çevir; düğme hiçbir yerde gizlenmesin, çalışmıyorsa nedenini söylesin*
+
+#### 19.2 Takım botları (OpenBot fikri)
+- [ ] "bu fikri de bizim sisteme entegre etmek istiyorum https://github.com/CopilotKit/openbot ... opensource zaten kod bile alabilir ... takimlara boyle botlar fln ekleyebiliriz mesela kerim gibi olacaklar ... chatta da olabilir" — *önce OpenBot'un ne yaptığını ve lisansını incele (kod alınacaksa lisansı uymalı ve kaynağı yazılmalı). Fikir: takımın bir üyesi gibi davranan botlar (bir uzman persona ya da kullanıcının kendi tanımladığı bir rol): Takım listesinde ve kanallarda görünür, @bot ile çağrılır, kart alabilir, kendi işini yapıp kartı ilerletir, sohbete yazar. Mevcut parçalar: uzman personalar, @ai cevapları, panodaki "kişiye/personaya ata", takım akışları. Bot hep kullanıcının kendi Claude hesabıyla, Igrek'in onay kurallarıyla çalışır*
+
+#### 19.3 Daha az kullanım, hafıza kaybı olmadan
+- [ ] "en onemli sey kullanimi azaltmak icin bi seyler yapman lazim optimize etmek lazim auto olarak hafiza kayip olmadan herseyi sen halledeceksin" — *ölç ve kendiliğinden yap: küçük işler (özet, sınıflama, başlık) en küçük modele ya da yerel modele; uzun sohbetler belli bir doluluğa gelince otomatik sıkıştırma ve özetin proje hafızasına yazılması (hafıza kaybolmasın); önbelleği bozmamak için sistem talimatlarını sabit tutma; aynı soruya önbellekten cevap; arka plan AI işlerinin sıklığını kullanım limitine göre ayarlama; Limitler sayfasında "bu hafta şunlarla şu kadar tasarruf edildi"*
+
+#### 19.4 Projeyi başlat
+- [ ] "projeyi baslat mesela poultrycare icin cok server var hepsini baslatip ya da tam olarak hangileri var onlari tek tek baslatma sansim olsun bi de hepsini ya da auto yap" — *proje sayfasında "Başlat": projenin çalıştırılabilir parçalarını bul (package.json script'leri, docker-compose servisleri, Procfile, Makefile hedefleri, birden çok uygulama klasörü), liste olarak göster; tek tek ya da hepsini başlat/durdur; her birinin logu ve portu; "proje açılınca otomatik başlat" seçeneği. Önizleme sekmesindeki dev sunucu başlatma bunun bir parçası olur*
+
+#### 19.5 Arayüzde seç, yorum yaz, değiştir
+- [ ] "bi oge secip onunla bi sey yazabiliriz duzeltebiliriz ... cok onemli bu ui ux konusunda hani begenmedigim kismi secip uzerine yazar comment olarak onlar da chatta olur ve degistirebiliriz" — *Önizlemedeki Seç-Değiştir (Faz 10) var; eksik olan yorum: seçilen öğeye yorum bırakmak (hemen değiştirmeden), yorumların listesi, her yorumun sohbete gidip tek tek ya da hepsi birlikte uygulanması, takım arkadaşının yorumlarının da görünmesi. Igrek'in kendi arayüzü için de aynısı (kullanıcının beğenmediği yeri seçip yazması)*
+
+#### 19.6 Eksikler ve öneriler
+- [ ] "baska cok sey var yapilacak test edilecek cok karisik olmasin sistem bi de onerilerin de vardir onlara da bakalim baska ne eksik" — *bu fazın sonunda bir gözden geçirme: her sayfayı ilk kez gören biri gibi dolaşmak (Teyze testi, test kullanıcıları), karışık yerleri listelemek, önerileri kullanıcıya sunmak; uygulanacakları ayrı maddeler olarak buraya eklemek*
+
+**Bitti sayılır:** Sohbete bir PDF atıp içinden hesap yaptırabiliyorum, sesle mesaj yazabiliyorum; takıma bir bot ekleyip ona kart verebiliyorum; PoultryCare'in bütün servislerini bir tıkla başlatıyorum; önizlemede beğenmediğim yere yorum yazıp sonra hepsini uygulatabiliyorum; Limitler sayfası ne kadar tasarruf edildiğini gösteriyor.
 
 ---
 

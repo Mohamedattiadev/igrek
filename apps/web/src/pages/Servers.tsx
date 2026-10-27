@@ -14,8 +14,10 @@ import { useServerEvent } from "../lib/live";
 import { deferDelete, usePendingDeletes } from "../lib/undo";
 import { PersonaChatDialog } from "./PersonaDetail";
 import { QuickCommands } from "./server/QuickCommands";
+import { ServerAccess } from "./server/ServerAccess";
 import { ServerAi } from "./server/ServerAi";
 import { ServerContainers } from "./server/ServerContainers";
+import { ServerPorts } from "./server/ServerPorts";
 import { ServerSecurity } from "./server/ServerSecurity";
 
 const TAGS: ServerTag[] = ["prod", "staging", "test", "other"];
@@ -373,7 +375,7 @@ function AskDevOps({ server }: { server: ServerInfo }) {
 }
 
 /** The server page's tabs: its state, its security, its files, commands by hand, and its own AI chat. */
-const TABS = ["overview", "security", "files", "commands", "ai"] as const;
+const TABS = ["overview", "security", "access", "ports", "files", "commands", "ai"] as const;
 
 /** The overview tab: how the machine is, its containers, what was deployed there. */
 function ServerOverview({ server }: { server: ServerInfo }) {
@@ -564,6 +566,8 @@ export function ServerPage() {
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
         {tab === "overview" && <ServerOverview server={server} />}
         {tab === "security" && <ServerSecurity server={server} />}
+        {tab === "access" && <ServerAccess server={server} />}
+        {tab === "ports" && <ServerPorts server={server} />}
         {tab === "files" && <RemoteFiles serverId={server.id} />}
         {tab === "commands" && <ServerCommands server={server} />}
         {tab === "ai" && <ServerAi server={server} />}

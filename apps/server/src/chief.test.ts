@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ChatEvent, ChatInfo, FlowRun } from "@igrek/core";
 import type { Chats } from "./chats";
-import { Chief } from "./chief";
+import { Chief, threadOf } from "./chief";
 
 /** Just enough of Chats: chats that start, run and stop, and the events added to them. */
 function fakeChats() {
@@ -98,5 +98,24 @@ describe("chief", () => {
     chief.addStarted("Update React everywhere", { runs: ["r1", "r2"] });
     expect(chief.started()[0]).toMatchObject({ runs: ["r1", "r2"] });
     expect(chief.started()[0]?.chatId).toBeUndefined();
+  });
+});
+
+describe("a server's own AI thread", () => {
+  const find = {
+    server: (id: string) => (id === "s1" ? { name: "prod-vps", target: "root@1.2.3.4", tag: "prod" } : undefined),
+    project: (id: string) => (id === "p1" ? { id: "p1", name: "shop", path: "/work/shop" } : undefined),
+  };
+  test("stays on that server, runs through igrek_server_run, and says changes wait for approval", () => {
+    const thread = threadOf("server:s1", find);
+    expect(thread.title).toBe("prod-vps");
+    expect(thread.note).toContain('igrek_server_run (server "prod-vps")');
+    expect(thread.note).toContain("changes wait for the user's approval");
+    expect(thread.note).toContain("PRODUCTION");
+  });
+  test("a project's thread and the general one are told apart; an unknown server is an error", () => {
+    expect(threadOf("p1", find).title).toBe("shop");
+    expect(threadOf(undefined, find)).toEqual({ title: "Chief" });
+    expect(() => threadOf("server:gone", find)).toThrow("Server not found");
   });
 });

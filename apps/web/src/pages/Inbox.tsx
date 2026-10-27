@@ -26,6 +26,7 @@ import {
   RefreshCcw,
   Rocket,
   ShieldAlert,
+  ShieldCheck,
   SquareTerminal,
   TrendingDown,
   Users,
@@ -56,6 +57,8 @@ const NOTICE_ICON: Partial<Record<InboxNotice["kind"], LucideIcon>> = {
   ratchet: TrendingDown,
   deployFailed: Rocket,
   deployDone: Rocket,
+  serverWeek: ShieldCheck,
+  serverAlarm: ShieldAlert,
   overlap: Users,
   mention: AtSign,
   lesson: NotebookPen,
@@ -125,6 +128,17 @@ function SnoozeButton({ onClick }: { onClick: () => void }) {
  * Everything waiting for you, most urgent first (plan.md 2.6b):
  * approvals · sessions waiting for an answer · things to decide when you have time.
  */
+/** A weekly server report carries its numbers (server-week.ts); everything else its own short fact. */
+function noticeDetail(n: InboxNotice, t: (key: string, options?: Record<string, unknown>) => string): string {
+  if (n.kind !== "serverWeek" && n.kind !== "serverAlarm") return n.detail;
+  try {
+    const r = JSON.parse(n.detail) as Record<string, number | string[]>;
+    return t("inbox.serverWeekDetail", { ...r, top: (r.top as string[]).join(", ") });
+  } catch {
+    return n.detail;
+  }
+}
+
 /** What a notice is about, for the filter at the top of the list. */
 const TOPIC: Record<string, "security" | "packages" | "checks" | "site" | "other"> = {
   secret: "security",
@@ -142,6 +156,8 @@ const TOPIC: Record<string, "security" | "packages" | "checks" | "site" | "other
   domain: "site",
   deployFailed: "site",
   deployDone: "site",
+  serverWeek: "security",
+  serverAlarm: "security",
 };
 const TOPICS = ["all", "security", "packages", "checks", "site", "other"] as const;
 type Topic = (typeof TOPICS)[number];
@@ -216,7 +232,7 @@ function Notices({
                   <span className="min-w-0 flex-1 truncate text-[13px]">
                     {t(`inbox.notice_${n.kind}`)}
                     <span className="ms-2 font-mono text-[11px] text-fg-subtle">
-                      {n.kind === "tool" ? t(`tools.kind_${n.detail}`) : n.detail}
+                      {n.kind === "tool" ? t(`tools.kind_${n.detail}`) : noticeDetail(n, t)}
                     </span>
                   </span>
                   <span className="shrink-0 text-[11px] text-fg-subtle">{relativeTime(n.at)}</span>
