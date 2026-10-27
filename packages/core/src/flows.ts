@@ -173,6 +173,21 @@ export interface ChatChannel {
   messages: number;
 }
 
+/** One line of the team's shared timeline: who worked on what, across the shared projects. */
+export interface TeamTimelineItem {
+  id: string;
+  kind: "session" | "commit" | "task" | "message";
+  projectId: string;
+  project: string;
+  /** Who did it; empty when it was me on this computer. */
+  who: string;
+  mine: boolean;
+  title: string;
+  at: number;
+  status?: TaskStatus;
+  channelId?: string;
+}
+
 /** A message in a channel or a thread; bot is Igrek answering someone's @ai. */
 export interface ChatMessage {
   id: string;
@@ -188,4 +203,10 @@ export interface ChatMessage {
   lastReplyAt?: number;
   /** The board card this message became. */
   task?: { id: string; title: string; status: TaskStatus; assignee?: string };
+  /** Reactions under it, like WhatsApp's: how many, by whom, and whether one is mine. */
+  reactions: { reaction: ChatReaction; count: number; mine: boolean; names: string[] }[];
 }
+
+/** The reactions a message can get; the page draws each with an icon (no emoji in Igrek). */
+export const CHAT_REACTIONS = ["like", "love", "done", "laugh", "seen", "celebrate"] as const;
+export type ChatReaction = (typeof CHAT_REACTIONS)[number];

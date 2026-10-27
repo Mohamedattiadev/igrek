@@ -1,5 +1,12 @@
 import type { Database } from "bun:sqlite";
-import type { ChatChannel, ChatMessage, TaskStatus } from "@igrek/core";
+import {
+  CHAT_REACTIONS,
+  type ChatChannel,
+  type ChatMessage,
+  type ChatReaction,
+  type TaskStatus,
+  type TeamTimelineItem,
+} from "@igrek/core";
 import type { Bus } from "./bus";
 
 /** "PoultryCareAi:general": a channel belongs to one shared project, whose key encrypts it for the team. */
@@ -44,7 +51,9 @@ const SELECT_MESSAGE = `SELECT c.id, c.target_id, c.parent_id, c.author_id, c.au
   t.title AS task_title, t.status AS task_status, t.assignee_name AS task_assignee
   FROM comments c LEFT JOIN board_tasks t ON t.id = c.task_id AND t.deleted = 0`;
 
-function toMessage(r: MessageRow): ChatMessage {
+type Reactions = ChatMessage["reactions"];
+
+function toMessage(r: MessageRow, reactions: Reactions = []): ChatMessage {
   return {
     id: r.id,
     channelId: r.target_id,
@@ -56,6 +65,7 @@ function toMessage(r: MessageRow): ChatMessage {
     text: r.text,
     at: r.at,
     replies: r.replies,
+    reactions,
     ...(r.last_reply ? { lastReplyAt: r.last_reply } : {}),
     ...(r.task_id && r.task_title && r.task_status
       ? {
@@ -141,20 +151,67 @@ export class Chat {
   /** The channel's messages without replies (newest 200), or one thread's replies. */
   messages(channel: string, thread?: string): ChatMessage[] {
     if (thread)
-      return (this.db.query(`${SELECT_MESSAGE} WHERE c.parent_id = ? ORDER BY c.at`).all(thread) as MessageRow[]).map(
-        toMessage,
+      return this.withReactions(
+        this.db.query(`${SELECT_MESSAGE} WHERE c.parent_id = ? ORDER BY c.at`).all(thread) as MessageRow[],
       );
     const rows = this.db
       .query(
         `${SELECT_MESSAGE} WHERE c.target_kind = 'channel' AND c.target_id = ? AND c.parent_id IS NULL ORDER BY c.at DESC LIMIT 200`,
       )
       .all(channel) as MessageRow[];
-    return rows.reverse().map(toMessage);
+    return this.withReactions(rows.reverse());
   }
 
   message(id: string): ChatMessage | undefined {
     const row = this.db.query(`${SELECT_MESSAGE} WHERE c.id = ?`).get(id) as MessageRow | null;
-    return row ? toMessage(row) : undefined;
+    return row ? this.withReactions([row])[0] : undefined;
+  }
+
+  /** The reactions under each message, in one query: grouped by kind, with who gave them. */
+  private withReactions(rows: MessageRow[]): ChatMessage[] {
+    const given = new Map<string, Reactions>();
+    const found = this.db
+      .query(
+        `SELECT comment_id, member, member_name, reaction FROM chat_reactions
+         WHERE removed = 0 AND comment_id IN (SELECT value FROM json_each(?)) ORDER BY at`,
+      )
+      .all(JSON.stringify(rows.map((r) => r.id))) as {
+      comment_id: string;
+      member: string;
+      member_name: string | null;
+      reaction: ChatReaction;
+    }[];
+    for (const f of found) {
+      const list = given.get(f.comment_id) ?? [];
+      let entry = list.find((e) => e.reaction === f.reaction);
+      if (!entry) {
+        entry = { reaction: f.reaction, count: 0, mine: false, names: [] };
+        list.push(entry);
+      }
+      entry.count++;
+      entry.mine ||= f.member === "";
+      if (f.member_name) entry.names.push(f.member_name);
+      given.set(f.comment_id, list);
+    }
+    return rows.map((r) => toMessage(r, given.get(r.id)));
+  }
+
+  /**
+   * My reaction on a message, given or taken back (like tapping it again on WhatsApp). Mine are
+   * kept with member "", teammates' with their hub id; either way it goes out with the next sync.
+   */
+  react(messageId: string, reaction: ChatReaction, name?: string): void {
+    this.db
+      .query(
+        `INSERT INTO chat_reactions (comment_id, member, member_name, reaction, at, sent, removed)
+         VALUES (?, '', ?, ?, ?, 0, 0)
+         ON CONFLICT(comment_id, member, reaction) DO UPDATE SET removed = 1 - removed, sent = 0, at = excluded.at`,
+      )
+      .run(messageId, name ?? null, reaction, Date.now());
+    const row = this.db.query("SELECT target_id FROM comments WHERE id = ?").get(messageId) as {
+      target_id: string;
+    } | null;
+    if (row) this.bus.publish({ type: "chat-changed", channelId: row.target_id });
   }
 
   /** A message written here (or Igrek's answer, bot) goes out with the next sync. */
@@ -241,6 +298,106 @@ export class Chat {
       });
   }
 
+  /**
+   * The team's timeline (plan.md, 27 Oct 2026): sessions, commits, cards and messages of the shared
+   * projects in one list, newest first, so everyone sees who works on what without asking.
+   */
+  timeline(projects: { id: string; name: string }[], since: number): TeamTimelineItem[] {
+    const names = new Map(projects.map((p) => [p.id, p.name]));
+    const ids = JSON.stringify(projects.map((p) => p.id));
+    const sessions = this.db
+      .query(
+        `SELECT id, project_id, COALESCE(title, first_prompt, '') AS title, author_name, author_id, updated_at FROM sessions
+         WHERE project_id IN (SELECT value FROM json_each(?)) AND private = 0 AND updated_at > ? ORDER BY updated_at DESC LIMIT 80`,
+      )
+      .all(ids, since) as {
+      id: string;
+      project_id: string;
+      title: string;
+      author_name: string | null;
+      author_id: string | null;
+      updated_at: number;
+    }[];
+    const commits = this.db
+      .query(
+        `SELECT project_id, hash, author, subject, at FROM commits
+         WHERE project_id IN (SELECT value FROM json_each(?)) AND at > ? ORDER BY at DESC LIMIT 80`,
+      )
+      .all(ids, since) as { project_id: string; hash: string; author: string; subject: string; at: number }[];
+    const tasks = this.db
+      .query(
+        `SELECT id, project_id, title, status, assignee_name, author_name, updated_at FROM board_tasks
+         WHERE project_id IN (SELECT value FROM json_each(?)) AND deleted = 0 AND updated_at > ? ORDER BY updated_at DESC LIMIT 80`,
+      )
+      .all(ids, since) as {
+      id: string;
+      project_id: string;
+      title: string;
+      status: TaskStatus;
+      assignee_name: string | null;
+      author_name: string | null;
+      updated_at: number;
+    }[];
+    const messages = this.db
+      .query(
+        `SELECT id, project_id, target_id, author_name, author_id, text, at FROM comments
+         WHERE target_kind = 'channel' AND parent_id IS NULL AND bot = 0
+           AND project_id IN (SELECT value FROM json_each(?)) AND at > ? ORDER BY at DESC LIMIT 80`,
+      )
+      .all(ids, since) as {
+      id: string;
+      project_id: string;
+      target_id: string;
+      author_name: string | null;
+      author_id: string | null;
+      text: string;
+      at: number;
+    }[];
+    const project = (id: string) => ({ projectId: id, project: names.get(id) ?? "" });
+    const items: TeamTimelineItem[] = [
+      ...sessions.map((r) => ({
+        id: `s-${r.id}`,
+        kind: "session" as const,
+        ...project(r.project_id),
+        who: r.author_id ? (r.author_name ?? "") : "",
+        mine: !r.author_id,
+        title: r.title.slice(0, 160),
+        at: r.updated_at,
+      })),
+      ...commits.map((r) => ({
+        id: `g-${r.project_id}-${r.hash}`,
+        kind: "commit" as const,
+        ...project(r.project_id),
+        who: r.author,
+        mine: false,
+        title: r.subject.slice(0, 160),
+        at: r.at,
+      })),
+      ...tasks.map((r) => ({
+        id: `t-${r.id}`,
+        kind: "task" as const,
+        ...project(r.project_id),
+        who: r.assignee_name ?? r.author_name ?? "",
+        // A card made here and given to nobody yet: mine.
+        mine: !r.assignee_name && !r.author_name,
+        title: r.title,
+        at: r.updated_at,
+        status: r.status,
+      })),
+      ...messages.map((r) => ({
+        id: `m-${r.id}`,
+        kind: "message" as const,
+        ...project(r.project_id),
+        who: r.author_id ? (r.author_name ?? "") : "",
+        mine: !r.author_id,
+        title: r.text.split("\n")[0]?.slice(0, 160) ?? "",
+        at: r.at,
+        channelId: r.target_id,
+      })),
+    ];
+    return items.sort((a, b) => b.at - a.at).slice(0, 200);
+  }
+
   // ---- team sync of channels (messages travel as comments) ------------------------------------
 
   unsentChannels(projectId: string): { id: string; name: string; topic: string; at: number }[] {
@@ -249,6 +406,56 @@ export class Chat {
         .query("SELECT id, name, topic, created_at FROM channels WHERE project_id = ? AND sent = 0")
         .all(projectId) as { id: string; name: string; topic: string; created_at: number }[]
     ).map((r) => ({ id: r.id, name: r.name, topic: r.topic, at: r.created_at }));
+  }
+
+  unsentReactions(projectId: string): { messageId: string; reaction: string; removed: boolean; at: number }[] {
+    return (
+      this.db
+        .query(
+          `SELECT r.comment_id, r.reaction, r.removed, r.at FROM chat_reactions r JOIN comments c ON c.id = r.comment_id
+           WHERE r.member = '' AND r.sent = 0 AND c.project_id = ?`,
+        )
+        .all(projectId) as { comment_id: string; reaction: string; removed: number; at: number }[]
+    ).map((r) => ({ messageId: r.comment_id, reaction: r.reaction, removed: r.removed === 1, at: r.at }));
+  }
+
+  /** Sent: a taken-back reaction is gone for good. Changed again while on its way: it goes again. */
+  markReactionSent(messageId: string, reaction: string, at: number): void {
+    this.db.transaction(() => {
+      this.db
+        .query(
+          "DELETE FROM chat_reactions WHERE comment_id = ? AND member = '' AND reaction = ? AND at = ? AND removed = 1",
+        )
+        .run(messageId, reaction, at);
+      this.db
+        .query("UPDATE chat_reactions SET sent = 1 WHERE comment_id = ? AND member = '' AND reaction = ? AND at = ?")
+        .run(messageId, reaction, at);
+    })();
+  }
+
+  /** A teammate's reaction, given or taken back; one on a message that is not here is dropped. */
+  applyReaction(value: Record<string, unknown>, author: { id: string; name: string }): void {
+    const messageId = String(value.messageId ?? "");
+    const reaction = String(value.reaction ?? "");
+    if (!author.id || !(CHAT_REACTIONS as readonly string[]).includes(reaction)) return;
+    this.db.transaction(() => {
+      if (value.removed)
+        this.db
+          .query("DELETE FROM chat_reactions WHERE comment_id = ? AND member = ? AND reaction = ?")
+          .run(messageId, author.id, reaction);
+      else
+        this.db
+          .query(
+            `INSERT INTO chat_reactions (comment_id, member, member_name, reaction, at, sent, removed)
+             SELECT id, ?, ?, ?, ?, 1, 0 FROM comments WHERE id = ?
+             ON CONFLICT(comment_id, member, reaction) DO UPDATE SET member_name = excluded.member_name, removed = 0`,
+          )
+          .run(author.id, author.name, reaction, Number(value.at ?? Date.now()), messageId);
+    })();
+    const row = this.db.query("SELECT target_id FROM comments WHERE id = ?").get(messageId) as {
+      target_id: string;
+    } | null;
+    if (row) this.bus.publish({ type: "chat-changed", channelId: row.target_id });
   }
 
   markChannelSent(id: string): void {

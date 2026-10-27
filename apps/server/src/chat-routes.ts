@@ -15,6 +15,46 @@ import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolde
 
 const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
 
+/**
+ * What a session said, for a new chat that goes on with it because Claude's own file of it is not
+ * on this computer: a teammate's (on their computer), or mine that was moved or cleaned up. Bounded.
+ */
+function earlierContext(store: Store, sessionId: string, author: string | null | undefined): string {
+  const said = (store.sessionDetail(sessionId, 80)?.messages ?? [])
+    .filter((m) => m.kind === "prompt" || m.kind === "text")
+    .map((m) => `${m.kind === "prompt" ? (author ?? "Me") : "Claude"}: ${m.text}`)
+    .join("\n\n");
+  const intro = author
+    ? `This chat goes on with ${author}'s session from their computer. Their conversation so far, for context (their files may differ from this computer's; check before relying on them):`
+    : "This chat goes on with an earlier session whose saved conversation is no longer on this computer. What was said, for context:";
+  return [intro, said.length > 30_000 ? `...${said.slice(-30_000)}` : said].join("\n\n");
+}
+
+/** A project's own hooks, MCP servers and skills load only once the user trusts them. */
+function untrustedIn(store: Store, projectId: string, root: string) {
+  const extensions = projectExtensions(root);
+  return extensions && !isTrusted(store.db, projectId, extensions.fingerprint) ? extensions : undefined;
+}
+
+/**
+ * How a chat goes on with a session. Ours resumes Claude's own file of it. A teammate's cannot:
+ * that file is on their computer, so it goes on as a new chat in this project's folder, with their
+ * conversation as its context.
+ */
+export function continuation(
+  store: Store,
+  resume: string | undefined,
+  session: ReturnType<Store["sessionRow"]>,
+): { resume?: string; cwd?: string; note?: string } {
+  if (!resume) return {};
+  // Claude's file of the session was read here once but is gone now (moved, cleaned up): Claude
+  // would answer "No conversation found", so it goes on like a teammate's, from what we kept.
+  const files = store.db.query("SELECT path FROM source_files WHERE session_id = ?").all(resume) as { path: string }[];
+  const gone = files.length > 0 && !files.some((f) => existsSync(f.path));
+  if (!session?.author_id && !gone) return { resume, cwd: session?.cwd ?? undefined };
+  return { note: earlierContext(store, resume, session?.author_id ? session.author_name || "A teammate" : undefined) };
+}
+
 export function registerChatRoutes(
   app: Hono,
   {
@@ -88,6 +128,7 @@ export function registerChatRoutes(
     const project = body.projectId ? store.projectRow(body.projectId) : undefined;
     if (!project) return c.json({ error: "Project not found" }, 404);
     const session = body.resume ? store.sessionRow(body.resume) : undefined;
+    const goOn = continuation(store, body.resume, session);
     if (body.resume && !capabilitiesOf(session?.tool ?? "").chat)
       return c.json({ error: "Only Claude sessions can be continued in chat" }, 400);
     const mode = MODES.find((m) => m === body.mode);
@@ -105,21 +146,19 @@ export function registerChatRoutes(
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
-    // A project's own hooks, MCP servers and skills load only once the user trusts them.
-    const extensions = projectExtensions(project.path);
-    const untrusted = extensions && !isTrusted(store.db, project.id, extensions.fingerprint) ? extensions : undefined;
+    const untrusted = untrustedIn(store, project.id, project.path);
     try {
       const started = chats.start({
         projectId: project.id,
         untrusted,
         richUi: richUi?.(),
-        cwd: worktree ? workFolder(worktree) : (session?.cwd ?? project.path),
+        ...goOn,
+        cwd: worktree ? workFolder(worktree) : (goOn.cwd ?? project.path),
         worktree,
         title: session?.title ?? undefined,
         history: body.resume ? historyEvents(store.sessionDetail(body.resume, 120)?.messages ?? []) : undefined,
         // A persona's own chat works alone; other chats can hand work to the experts.
         agents: as ? undefined : subagents?.(project.id),
-        resume: body.resume,
         model:
           typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
         mode,
@@ -133,7 +172,7 @@ export function registerChatRoutes(
         })(),
       });
       // Messages queued in the chat this one continues (before a restart) come along.
-      if (body.resume) chats.restoreQueue(started.id, history.takeQueue(body.resume));
+      if (goOn.resume) chats.restoreQueue(started.id, history.takeQueue(goOn.resume));
       return c.json(chats.get(started.id) ?? started);
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
@@ -218,11 +257,10 @@ export function registerChatRoutes(
     const before = chats.snapshot(info.id)?.events;
     chats.close(info.id);
     const root = store.projectRow(info.projectId)?.path ?? info.cwd;
-    const extensions = projectExtensions(root);
     return c.json(
       chats.start({
         projectId: info.projectId,
-        untrusted: extensions && !isTrusted(store.db, info.projectId, extensions.fingerprint) ? extensions : undefined,
+        untrusted: untrustedIn(store, info.projectId, root),
         cwd: info.cwd,
         title: info.title,
         resume: info.sessionId,

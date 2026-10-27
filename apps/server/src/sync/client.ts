@@ -817,10 +817,70 @@ export class Sync {
     try {
       const list = await this.hubRequest<TeamMember[]>("/api/members");
       this.members = new Map(list.map((m) => [m.id, m]));
+      this.renameMembers(list);
       this.bus.publish({ type: "team-changed" });
     } catch {
       // Offline: keep the last known list.
     }
+  }
+
+  /**
+   * Names are kept with what teammates sent (sessions, messages, cards), as they were then. A
+   * teammate who changes their name on the hub is shown with the new one everywhere, old items
+   * too; and my own new name goes out with what I write next.
+   */
+  private renameMembers(list: TeamMember[]): void {
+    const names = JSON.stringify(list.map((m) => ({ id: m.id, name: m.displayName || m.username })));
+    const me = list.find((m) => m.id === this.config?.user.id);
+    if (me && this.config && me.displayName && me.displayName !== this.config.user.displayName) {
+      this.config.user.displayName = me.displayName;
+      this.save();
+    }
+    this.db.transaction(() => {
+      this.db
+        .query(
+          `WITH n AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.name') AS name FROM json_each(?))
+           UPDATE sessions SET author_name = n.name FROM n WHERE sessions.author_id = n.id AND sessions.author_name IS NOT n.name`,
+        )
+        .run(names);
+      this.db
+        .query(
+          `WITH n AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.name') AS name FROM json_each(?))
+           UPDATE comments SET author_name = n.name FROM n WHERE comments.author_id = n.id AND comments.author_name IS NOT n.name`,
+        )
+        .run(names);
+      this.db
+        .query(
+          `WITH n AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.name') AS name FROM json_each(?))
+           UPDATE memory_items SET author_name = n.name FROM n WHERE memory_items.author_id = n.id AND memory_items.author_name IS NOT n.name`,
+        )
+        .run(names);
+      this.db
+        .query(
+          `WITH n AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.name') AS name FROM json_each(?))
+           UPDATE team_messages SET from_name = n.name FROM n WHERE team_messages.from_id = n.id AND team_messages.from_name IS NOT n.name`,
+        )
+        .run(names);
+      this.db
+        .query(
+          `WITH n AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.name') AS name FROM json_each(?))
+           UPDATE board_tasks SET assignee_name = n.name FROM n
+           WHERE board_tasks.assignee_kind = 'person' AND board_tasks.assignee_id = n.id AND board_tasks.assignee_name IS NOT n.name`,
+        )
+        .run(names);
+      this.db
+        .query(
+          `WITH n AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.name') AS name FROM json_each(?))
+           UPDATE board_tasks SET claimed_name = n.name FROM n WHERE board_tasks.claimed_by = n.id AND board_tasks.claimed_name IS NOT n.name`,
+        )
+        .run(names);
+      this.db
+        .query(
+          `WITH n AS (SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.name') AS name FROM json_each(?))
+           UPDATE chat_reactions SET member_name = n.name FROM n WHERE chat_reactions.member = n.id AND chat_reactions.member_name IS NOT n.name`,
+        )
+        .run(names);
+    })();
   }
 
   private cursor(scope: string, key: string): number {
@@ -1284,6 +1344,11 @@ export class Sync {
           .query("UPDATE comments SET sent = 1 WHERE id = ? AND task_id IS ?")
           .run(String(cm.id), (cm.task_id as string | null) ?? null);
     }
+    // Reactions after the messages they are on, which teammates must have first.
+    for (const r of this.chat?.unsentReactions(projectId) ?? []) {
+      const ok = await this.publish(key, "reaction", `r-${r.messageId}-${r.reaction}-${r.at}`, r);
+      if (ok) this.chat?.markReactionSent(r.messageId, r.reaction, r.at);
+    }
   }
 
   /** This computer's AI accounts and week for the team's Company page, when the user lets it. */
@@ -1356,7 +1421,10 @@ export class Sync {
     }
     if (msg.op === "online") {
       this.online = new Set(msg.users as string[]);
-      this.bus.publish({ type: "team-changed" });
+      // Someone came or went: a good moment to pick up renamed or new teammates.
+      void this.loadMembers();
+    } else if (msg.op === "members") {
+      await this.loadMembers();
     } else if (msg.op === "key-wraps") {
       await this.refreshKeys().catch(() => false);
     } else if (msg.op === "key-request" || msg.op === "alert") {
@@ -1480,6 +1548,7 @@ export class Sync {
             .run(String(value.id ?? ""), event.author);
         else if (event.kind === "comment") this.applyComment(projectId, value, author, event.at);
         else if (event.kind === "channel") this.chat?.applyRemote(projectId, value, author.name);
+        else if (event.kind === "reaction") this.chat?.applyReaction(value, author);
         else if (event.kind === "message") {
           // Only the person it's addressed to keeps it.
           if (value.to === this.config?.user.id)

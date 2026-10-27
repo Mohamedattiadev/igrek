@@ -980,6 +980,19 @@ export const migrations: string[] = [
      data TEXT NOT NULL,
      at INTEGER NOT NULL
    );`,
+  // Reactions on team chat messages (team-chat.ts), like WhatsApp's under a message. "member" is a
+  // hub user id ("" for this computer's user before they joined a team); one row per reaction given.
+  // A reaction taken back stays as "removed" until teammates heard of it, then the row goes.
+  `CREATE TABLE chat_reactions (
+     comment_id TEXT NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+     member TEXT NOT NULL,
+     member_name TEXT,
+     reaction TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     sent INTEGER NOT NULL DEFAULT 1,
+     removed INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (comment_id, member, reaction)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

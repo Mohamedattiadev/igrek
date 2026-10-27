@@ -80,6 +80,60 @@ describe("team chat", () => {
     expect(thread.map((m) => m.text)).toEqual(["Me", "Thanks"]);
   });
 
+  test("reactions: one per kind and person, a second tap takes mine back, teammates' arrive and leave", async () => {
+    const { call, chat } = setup();
+    const general = encodeURIComponent(channelId("p1", "general"));
+    const msg = (await (await call(`/api/chat/channels/${general}/messages`, { text: "Shipped" })).json()) as {
+      id: string;
+    };
+    expect((await call(`/api/chat/messages/${msg.id}/react`, { reaction: "wave" })).status).toBe(400);
+    await call(`/api/chat/messages/${msg.id}/react`, { reaction: "like" });
+    chat.applyReaction({ messageId: msg.id, reaction: "like", at: 2 }, { id: "u-kerim", name: "Kerim" });
+    chat.applyReaction({ messageId: msg.id, reaction: "celebrate", at: 3 }, { id: "u-kerim", name: "Kerim" });
+    chat.applyReaction({ messageId: "not-here", reaction: "like", at: 3 }, { id: "u-kerim", name: "Kerim" });
+    let shown = chat.message(msg.id)?.reactions;
+    expect(shown).toEqual([
+      { reaction: "like", count: 2, mine: true, names: ["Kerim", "Ati"] },
+      { reaction: "celebrate", count: 1, mine: false, names: ["Kerim"] },
+    ]);
+    // Mine goes out once; taken back, it goes out again as removed and is then gone.
+    const [out] = chat.unsentReactions("p1");
+    expect(out).toMatchObject({ messageId: msg.id, reaction: "like", removed: false });
+    chat.markReactionSent(out?.messageId ?? "", "like", out?.at ?? 0);
+    expect(chat.unsentReactions("p1")).toEqual([]);
+    await call(`/api/chat/messages/${msg.id}/react`, { reaction: "like" });
+    const [back] = chat.unsentReactions("p1");
+    expect(back?.removed).toBe(true);
+    chat.applyReaction({ messageId: msg.id, reaction: "celebrate", removed: true }, { id: "u-kerim", name: "Kerim" });
+    shown = chat.message(msg.id)?.reactions;
+    expect(shown).toEqual([{ reaction: "like", count: 1, mine: false, names: ["Kerim"] }]);
+  });
+
+  test("the timeline puts sessions, commits, cards and messages of shared projects in one list, newest first", async () => {
+    const { call, sqlite, board } = setup();
+    const now = Date.now();
+    sqlite.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p2', 'private', '/tmp/p2', 1)").run();
+    sqlite
+      .query(
+        "INSERT INTO sessions (id, project_id, tool, title, updated_at, author_id, author_name) VALUES ('s1', 'p1', 'claude', 'Fix the cart', ?, 'u-kerim', 'Kerim'), ('s2', 'p2', 'claude', 'Not shared', ?, NULL, NULL)",
+      )
+      .run(now - 3000, now);
+    sqlite
+      .query(
+        "INSERT INTO commits (project_id, hash, author, subject, at) VALUES ('p1', 'abc', 'kerim', 'Cart fixed', ?)",
+      )
+      .run(now - 2000);
+    const card = board.add({ projectId: "p1", title: "Coupons", description: "", origin: "chat" });
+    sqlite.query("UPDATE board_tasks SET updated_at = ? WHERE id = ?").run(now - 1000, card.id);
+    await call(`/api/chat/channels/${encodeURIComponent(channelId("p1", "general"))}/messages`, {
+      text: "Done?\nmore",
+    });
+    const items = (await (await call("/api/team/timeline")).json()) as { kind: string; who: string; title: string }[];
+    expect(items.map((i) => i.kind)).toEqual(["message", "task", "commit", "session"]);
+    expect(items[0]?.title).toBe("Done?");
+    expect(items[3]).toMatchObject({ who: "Kerim", title: "Fix the cart" });
+  });
+
   test("@ai is noticed anywhere in a message, not inside a word or an address", () => {
     expect(asksIgrek("@ai what changed this week?")).toBe(true);
     expect(asksIgrek("can you check @Igrek")).toBe(true);

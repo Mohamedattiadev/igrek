@@ -6,6 +6,7 @@ import { dateTime, relativeTime } from "../../lib/format";
 import { Markdown } from "../Markdown";
 import { TeamAvatar } from "../TeamAvatar";
 import { Badge } from "../ui";
+import { MentionTask, ReactionChips, ReactionPicker } from "./Reactions";
 
 const STATUS_TONE: Record<TaskStatus, "neutral" | "accent" | "warning" | "success"> = {
   todo: "neutral",
@@ -84,23 +85,25 @@ function RepliesLink({ message, onThread }: { message: ChatMessage; onThread?: (
   );
 }
 
-/** Reply and "turn into a card", shown over the message while the pointer or focus is on it. */
+/** React, reply and "turn into a card", shown over the message while the pointer or focus is on it. */
 function Actions({
+  message,
   canThread,
   canTask,
   onThread,
   onTask,
 }: {
+  message: ChatMessage;
   canThread: boolean;
   canTask: boolean;
   onThread?: () => void;
   onTask?: () => void;
 }) {
   const { t } = useTranslation();
-  if (!canThread && !canTask) return null;
   const action = "rounded px-2 py-1 text-[12px] hover:bg-bg-hover";
   return (
     <div className="absolute -top-3 end-2 hidden gap-0.5 rounded-ui border border-border bg-bg p-0.5 shadow-ui group-focus-within:flex group-hover:flex">
+      <ReactionPicker message={message} className={action} />
       {canThread && (
         <button
           type="button"
@@ -130,7 +133,8 @@ function Actions({
 function useAuthorName(message: ChatMessage, member?: TeamMember): string {
   const { t } = useTranslation();
   if (message.bot) return t("teamChat.aiFor", { name: message.mine ? t("team.you") : (message.author ?? "") });
-  if (message.mine) return message.author ?? t("team.you");
+  // My name as the team knows it now, not as it was when I wrote.
+  if (message.mine) return member?.displayName ?? message.author ?? t("team.you");
   return member?.displayName ?? message.author ?? "";
 }
 
@@ -175,9 +179,12 @@ export function MessageItem({
         </p>
         <Markdown text={highlight(message.text)} className="prose-igrek text-[13.5px]" />
         {message.task && <TaskChip task={message.task} projectId={projectId} />}
+        <MentionTask message={message} members={members} meId={meId} />
+        <ReactionChips message={message} />
         {!compact && message.replies > 0 && <RepliesLink message={message} onThread={onThread} />}
       </div>
       <Actions
+        message={message}
         canThread={!!onThread && !compact}
         canTask={!!onTask && !message.task && !message.bot}
         onThread={onThread}

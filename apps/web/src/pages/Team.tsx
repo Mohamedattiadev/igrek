@@ -432,35 +432,54 @@ export function Sharing() {
   if (!projects) return null;
   return (
     <div className="space-y-2">
+      {/* One card per project: what the team sees, said in words, with the three choices side by side. */}
       {projects
         .filter((p) => !p.hidden)
+        .sort((a, b) => Number(b.share !== "off") - Number(a.share !== "off") || a.name.localeCompare(b.name))
         .map((p) => (
-          <div key={p.id} className="flex items-center gap-3">
-            <span className="min-w-0 flex-1 truncate text-[13px]">
-              {p.name}
-              {p.workspace === "team" && <span className="ms-2 text-[11px] text-fg-subtle">{t("team.fromTeam")}</span>}
-            </span>
-            {p.share !== "off" && (
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={Eye}
-                onClick={() => void api.sharePreview(p.id).then((r) => setPreview({ name: p.name, data: r }))}
-                data-tip={t("team.previewTip")}
-              >
-                {t("team.preview")}
-              </Button>
-            )}
-            <Segmented
-              value={p.share}
-              onChange={(share) => {
-                void api.setShare(p.id, share).then(load);
-              }}
-              options={SHARES.map((s) => ({ value: s, label: t(`team.share_${s}`), tip: t(`team.shareTip_${s}`) }))}
-            />
+          <div key={p.id} className="space-y-2 rounded-ui border border-border p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13.5px] font-medium">{p.name}</span>
+                <span className="block truncate font-mono text-[11px] text-fg-subtle">{p.path}</span>
+              </span>
+              {p.teamLinked && <Badge tone="accent">{t("team.alsoShared")}</Badge>}
+              {p.share !== "off" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={Eye}
+                  onClick={() => void api.sharePreview(p.id).then((r) => setPreview({ name: p.name, data: r }))}
+                  data-tip={t("team.previewTip")}
+                >
+                  {t("team.preview")}
+                </Button>
+              )}
+            </div>
+            <fieldset className="grid gap-2 sm:grid-cols-3" aria-label={p.name}>
+              {SHARES.map((level) => (
+                <label
+                  key={level}
+                  className={cn(
+                    "cursor-pointer rounded-ui border px-3 py-2 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent",
+                    p.share === level ? "border-accent bg-accent-soft" : "border-border hover:border-border-strong",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name={`share-${p.id}`}
+                    className="sr-only"
+                    checked={p.share === level}
+                    onChange={() => void api.setShare(p.id, level).then(load)}
+                  />
+                  <span className="block text-[13px] font-medium">{t(`team.share_${level}`)}</span>
+                  <span className="block text-[11.5px] leading-snug text-fg-muted">{t(`team.sees_${level}`)}</span>
+                </label>
+              ))}
+            </fieldset>
           </div>
         ))}
-      <p className="pt-1 text-[11px] leading-relaxed text-fg-subtle">{t("team.shareHint")}</p>
+      <p className="pt-1 text-[11px] leading-relaxed text-fg-subtle">{t("team.secretsNever")}</p>
       <Dialog open={!!preview} onClose={() => setPreview(undefined)} label={t("team.preview")} wide>
         {preview && (
           <div className="space-y-3 p-5">

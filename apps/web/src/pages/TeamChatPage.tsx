@@ -7,6 +7,7 @@ import { ChannelList } from "../components/chat/ChannelList";
 import { Composer } from "../components/chat/Composer";
 import { MessageItem } from "../components/chat/MessageItem";
 import { TaskDialog } from "../components/chat/TaskDialog";
+import { TeamTimeline } from "../components/chat/Timeline";
 import { Markdown } from "../components/Markdown";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { Button, EmptyState } from "../components/ui";
@@ -151,6 +152,36 @@ function ChannelHeader({ channel }: { channel: ChatChannel }) {
   );
 }
 
+/** On a phone the channel list is a picker, with the team's timeline first. */
+function ChannelSelect({
+  channels,
+  value,
+  onPick,
+  onTimeline,
+}: {
+  channels: ChatChannel[];
+  value: string;
+  onPick: (id: string) => void;
+  onTimeline: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <select
+      value={value}
+      onChange={(e) => (e.target.value === "timeline" ? onTimeline() : onPick(e.target.value))}
+      aria-label={t("teamChat.channels")}
+      className="m-2 h-8 rounded-ui border border-border bg-bg px-2 text-[13px] md:hidden"
+    >
+      <option value="timeline">{t("timeline.title")}</option>
+      {channels.map((c) => (
+        <option key={c.id} value={c.id}>
+          # {c.name} · {c.project}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 /**
  * The team chat (team-chat.ts): channels per shared project, threads, @teammate and @ai, and any
  * message can become a card on the board. Everything goes to the team end-to-end encrypted.
@@ -192,6 +223,7 @@ export function TeamChatPage() {
   const list = useStickToBottom(messages.length);
   const thread = messages.find((m) => m.id === params.get("thread"));
   const open = (id: string, threadId?: string) => setParams(threadId ? { c: id, thread: threadId } : { c: id });
+  const timeline = params.get("view") === "timeline";
 
   if (channels && !channels.length)
     return (
@@ -210,6 +242,8 @@ export function TeamChatPage() {
         <ChannelList
           channels={channels ?? []}
           selected={channel?.id}
+          timeline={timeline}
+          onTimeline={() => setParams({ view: "timeline" })}
           onPick={(id) => open(id)}
           onMade={(id) => {
             loadChannels();
@@ -217,20 +251,20 @@ export function TeamChatPage() {
           }}
         />
       </div>
-      {channel && (
+      {timeline && (
+        <div className="flex min-w-0 flex-1 flex-col">
+          <ChannelSelect channels={channels ?? []} value="timeline" onPick={open} onTimeline={() => undefined} />
+          <TeamTimeline />
+        </div>
+      )}
+      {channel && !timeline && (
         <section className={`min-w-0 flex-1 flex-col ${thread ? "hidden lg:flex" : "flex"}`}>
-          <select
+          <ChannelSelect
+            channels={channels ?? []}
             value={channel.id}
-            onChange={(e) => open(e.target.value)}
-            aria-label={t("teamChat.channels")}
-            className="m-2 h-8 rounded-ui border border-border bg-bg px-2 text-[13px] md:hidden"
-          >
-            {(channels ?? []).map((c) => (
-              <option key={c.id} value={c.id}>
-                # {c.name} · {c.project}
-              </option>
-            ))}
-          </select>
+            onPick={open}
+            onTimeline={() => setParams({ view: "timeline" })}
+          />
           <ChannelHeader key={channel.id} channel={channel} />
           <div ref={list} className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
             {messages.length === 0 && (

@@ -49,6 +49,11 @@ export function createHubServer(
   const app = new Hono<{ Variables: { auth: Ctx }; Bindings: BunServer }>();
   const logins = new RateLimiter(8, 60_000);
   const sockets = new Set<ServerWebSocket<SocketData>>();
+  // A name, picture or role changed: every open Igrek reloads the member list, so a rename shows
+  // everywhere at once instead of with the next five-minute refresh.
+  const membersChanged = () => {
+    for (const ws of sockets) ws.send(JSON.stringify({ op: "members" }));
+  };
   /** Latest encrypted presence per device, relayed but never stored. */
   const presence = new Map<
     string,
@@ -149,9 +154,12 @@ export function createHubServer(
   );
   app.patch("/api/me", async (c) => {
     try {
-      return c.json(
-        hub.updateProfile(c.get("auth").user.id, (await c.req.json().catch(() => ({}))) as Record<string, unknown>),
+      const updated = hub.updateProfile(
+        c.get("auth").user.id,
+        (await c.req.json().catch(() => ({}))) as Record<string, unknown>,
       );
+      membersChanged();
+      return c.json(updated);
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
@@ -285,6 +293,7 @@ export function createHubServer(
     try {
       if (body.password) await hub.setPassword(id, body.password, true);
       hub.updateUser(id, body);
+      membersChanged();
       hub.audit(c.get("auth").user.id, "user-updated", `${target?.username}: ${Object.keys(body).join(",")}`);
       if (body.disabled || body.password)
         for (const ws of sockets) if (ws.data.user.id === id) ws.close(4001, "signed out");

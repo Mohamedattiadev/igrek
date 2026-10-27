@@ -543,7 +543,12 @@ export function ProjectsPage() {
     const q = filter.trim().toLowerCase();
     return (projects ?? []).filter(
       (p) =>
-        (workspace === "all" || p.workspace === workspace) &&
+        // "Team" is what the team works on together: a project on this computer counts too once it
+        // is shared or a teammate shares the same repository; "This computer" is everything local.
+        (workspace === "all" ||
+          (workspace === "team"
+            ? p.workspace === "team" || p.share !== "off" || p.teamLinked
+            : p.workspace === "local")) &&
         !p.hidden &&
         (q ? true : p.status === statusView) &&
         (!q || `${p.name} ${p.path}`.toLowerCase().includes(q)),

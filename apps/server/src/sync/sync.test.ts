@@ -318,6 +318,19 @@ describe("team sync", () => {
     });
   });
 
+  test("a teammate renamed on the hub is shown with the new name, on what they sent before too", async () => {
+    const id = a.sync.identity().id ?? "";
+    // The hub tells every open Igrek at once; no waiting for the next refresh.
+    await a.sync.admin(`/users/${id}`, { method: "PATCH", body: JSON.stringify({ displayName: "Ati" }) });
+    await until(
+      () =>
+        (b.db.query("SELECT author_name FROM comments WHERE id = 'ch1'").get() as { author_name: string })
+          .author_name === "Ati",
+    );
+    // My own name follows too, for what I write next.
+    await until(() => a.sync.identity().name === "Ati");
+  });
+
   test("disconnect forgets the hub and the key", async () => {
     b.sync.disconnect();
     expect(b.sync.status()).toMatchObject({ configured: false, connected: false });

@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { ChatMessage, SessionSummaryData } from "@igrek/core";
+import { CHAT_REACTIONS, type ChatMessage, type SessionSummaryData } from "@igrek/core";
 import { languages } from "@igrek/i18n";
 import type { Hono } from "hono";
 import type { Board } from "./board";
@@ -161,6 +161,24 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
     const posted = chat.message(id);
     if (posted && asksIgrek(text)) void answer(deps, project.id, channel, posted);
     return c.json(posted);
+  });
+
+  // The team's timeline of the last days (7 unless asked), across every shared project.
+  app.get("/api/team/timeline", (c) => {
+    const days = Math.min(Math.max(Number(c.req.query("days")) || 7, 1), 60);
+    return c.json(chat.timeline(shared(), Date.now() - days * 86_400_000));
+  });
+
+  // A reaction under a message, given or taken back.
+  app.post("/api/chat/messages/:id/react", async (c) => {
+    const message = chat.message(c.req.param("id"));
+    if (!message || !projectOf(message.channelId)) return c.json({ error: "Message not found" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { reaction?: string };
+    const reaction = CHAT_REACTIONS.find((r) => r === body.reaction);
+    if (!reaction) return c.json({ error: "Unknown reaction" }, 400);
+    chat.react(message.id, reaction, sync.identity().name);
+    void sync.flush();
+    return c.json(chat.message(message.id));
   });
 
   // A message becomes a card, for the teammate it names (or the one picked).

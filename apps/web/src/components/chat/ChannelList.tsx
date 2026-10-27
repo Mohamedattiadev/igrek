@@ -1,5 +1,5 @@
 import type { ChatChannel } from "@igrek/core";
-import { FolderKanban, Hash, Plus } from "lucide-react";
+import { Activity, FolderKanban, Hash, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
@@ -90,11 +90,15 @@ function NewChannel({
 export function ChannelList({
   channels,
   selected,
+  timeline,
+  onTimeline,
   onPick,
   onMade,
 }: {
   channels: ChatChannel[];
   selected?: string;
+  timeline: boolean;
+  onTimeline: () => void;
   onPick: (id: string) => void;
   onMade: (id: string) => void;
 }) {
@@ -103,6 +107,20 @@ export function ChannelList({
   const projects = [...new Map(channels.map((c) => [c.projectId, { id: c.projectId, name: c.project }])).values()];
   return (
     <nav aria-label={t("teamChat.channels")} className="flex h-full flex-col">
+      <div className="px-2 pt-3">
+        <button
+          type="button"
+          onClick={onTimeline}
+          aria-current={timeline ? "page" : undefined}
+          className={cn(
+            "flex w-full items-center gap-1.5 rounded-ui px-2 py-1.5 text-start text-[13px] font-medium",
+            timeline ? "bg-accent-soft text-accent" : "text-fg-muted hover:bg-bg-hover",
+          )}
+        >
+          <Activity size={14} aria-hidden="true" />
+          {t("timeline.title")}
+        </button>
+      </div>
       <div className="flex items-center justify-between px-3 pt-3 pb-2">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">{t("teamChat.channels")}</h2>
         <Button
@@ -129,10 +147,12 @@ export function ChannelList({
                     <button
                       type="button"
                       onClick={() => onPick(c.id)}
-                      aria-current={selected === c.id ? "page" : undefined}
+                      aria-current={!timeline && selected === c.id ? "page" : undefined}
                       className={cn(
                         "flex w-full items-center gap-1.5 rounded-ui px-2 py-1 text-start text-[13px]",
-                        selected === c.id ? "bg-accent-soft text-accent" : "text-fg-muted hover:bg-bg-hover",
+                        !timeline && selected === c.id
+                          ? "bg-accent-soft text-accent"
+                          : "text-fg-muted hover:bg-bg-hover",
                         c.unread > 0 && selected !== c.id && "font-semibold text-fg",
                       )}
                     >

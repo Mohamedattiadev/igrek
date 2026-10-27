@@ -12,6 +12,7 @@ import type {
   ChatInfo,
   ChatMessage,
   ChatMode,
+  ChatReaction,
   ChatTodo,
   Checkpoint,
   CommandRisk,
@@ -97,6 +98,7 @@ import type {
   TeamDevice,
   TeamInvite,
   TeamStatus,
+  TeamTimelineItem,
   TeamUser,
   TelegramStatus,
   TerminalInfo,
@@ -1045,6 +1047,8 @@ export const api = {
       method: "POST",
       body: "{}",
     }),
+  reactToMessage: (id: string, reaction: ChatReaction) =>
+    request<ChatMessage>(`/api/chat/messages/${id}/react`, { method: "POST", body: JSON.stringify({ reaction }) }),
   messageToTask: (id: string, body: { assignee?: string; title?: string }) =>
     request<BoardTask>(`/api/chat/messages/${id}/task`, { method: "POST", body: JSON.stringify(body) }),
   sessionToChat: (sessionId: string, body: { channel: string; text: string; assignee?: string; task?: boolean }) =>
@@ -1056,6 +1060,7 @@ export const api = {
       method: "POST",
       body: "{}",
     }),
+  teamTimeline: (days = 7) => request<TeamTimelineItem[]>(`/api/team/timeline?days=${days}`),
   teamMessages: () =>
     request<
       {
