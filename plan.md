@@ -1332,6 +1332,21 @@ god-eye/
 - [x] "bunu da kullanalim bos kalmasin iste acik olan mesajlar panolar fln filen orada kullanabiliriz sanki en altta vim kelimesinin yaninda" — *alt durum çubuğunun boş yerinde: açık sohbet sayısı, okunmamış mesaj, bana atanan kartlar, çalışan takım işleri; her biri tıklanınca ilgili sayfaya gider*
 - [ ] Önceki konuşmalardan kalan — *Cloudflare Tunnel (PoultryCare'in Caddyfile'ındaki Igrek satırları kalksın; teknisyenden token bekleniyor); kişi başı bütçe uyarıları ve fatura görünümü (Max planının 5x/20x olduğu bilinmeden fiyat yok); telefon arayüzü şimdilik değil (kullanıcı, 28 Ekim 2026)*
 
+#### 19.9 Takım sohbeti WhatsApp gibi: kalanlar (28 Ekim 2026)
+- [ ] "emoji ekledin mi react her mesaj icin sohbetlerde? ... whatsapp gibi ne kaldiysa artik plana ekle" — *Tepkiler 0.1.11'de var (her mesajda beğen, sevdim, tamam, komik, gördüm, kutla; kural gereği emoji değil ikon). WhatsApp'ta olup bizde olmayanlar, sırayla:*
+  - [ ] Bir mesaja cevap verirken alıntılama (mesajın üstünde kimden ve ne olduğu küçük bir kutu); şimdilik sadece konu (thread) var
+  - [ ] Kendi mesajını düzenleme ve silme ("düzenlendi", "bu mesaj silindi"), takım arkadaşlarında da güncellenir
+  - [ ] Görüldü bilgisi: mesajı kimin gördüğü (iki tik gibi), üzerine gelince isimler
+  - [ ] "Kerim yazıyor..." göstergesi (Igrek'in "AI yazıyor" göstergesi gibi)
+  - [ ] Doğrudan mesaj: iki kişi arasında kanal dışı özel sohbet
+  - [ ] Dosya, resim ve sesli mesaj gönderme (uçtan uca şifreli, hub üzerinden; 19.1'deki yerel Whisper ile yazıya çevrilir)
+  - [ ] Okunmamışların başladığı yerde "Okunmamış mesajlar" çizgisi ve oraya kaydırma
+  - [ ] Mesajı sabitleme ve yıldızlama; kanalda arama
+  - [ ] İleri gönderme (bir mesajı başka bir kanala)
+  - [ ] Bağlantı önizlemesi (başlık ve görsel; sadece kullanıcının istediği adresler, takip yok)
+  - [ ] Bildirim sesi ve masaüstü bildirimi (kanal başına sessize alma)
+  - [ ] Hub'ın web sayfasında (Kerim'in tarayıcıdan kullandığı) tepkileri göstermek ve vermek; şimdilik sadece masaüstü uygulamasında
+
 **Bitti sayılır:** Sohbete bir PDF atıp içinden hesap yaptırabiliyorum, sesle mesaj yazabiliyorum; takıma bir bot ekleyip ona kart verebiliyorum; PoultryCare'in bütün servislerini bir tıkla başlatıyorum; önizlemede beğenmediğim yere yorum yazıp sonra hepsini uygulatabiliyorum; Limitler sayfası ne kadar tasarruf edildiğini gösteriyor.
 
 ---
