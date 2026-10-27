@@ -34,6 +34,7 @@ import type { Worktree } from "./worktrees";
 
 /** UI modes → Claude Code permission modes. */
 const PERMISSION_MODE: Record<ChatMode, string> = {
+  full: "bypassPermissions",
   normal: "manual",
   acceptEdits: "acceptEdits",
   auto: "auto",
@@ -653,6 +654,7 @@ export class Chats {
   /** Outside content came in: back to asking, and say why. */
   private taint(chat: Chat, now: number): void {
     chat.tainted = true;
+    // Full control is the user's explicit choice to be asked nothing: it keeps going, with the notice.
     if (chat.info.mode === "auto" || chat.info.mode === "acceptEdits") this.setMode(chat.info.id, "normal");
     this.upsert(chat, { kind: "notice", id: `taint-${now}`, at: now, text: "", tone: "neutral", code: "external" });
   }

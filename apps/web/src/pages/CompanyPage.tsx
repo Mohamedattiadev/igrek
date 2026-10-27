@@ -21,13 +21,15 @@ function Meter({ label, value }: { label: string; value?: number }) {
   const pct = Math.round(value * 100);
   const tone = value >= 0.95 ? "bg-danger" : value >= 0.8 ? "bg-warning" : "bg-success";
   return (
-    <span className="flex items-center gap-1.5 text-[11px] text-fg-muted">
-      <span className="w-16 shrink-0">{label}</span>
-      <span className="h-1.5 w-20 overflow-hidden rounded-full bg-bg-muted">
-        <span className={cn("block h-full rounded-full", tone)} style={{ width: `${Math.max(3, pct)}%` }} />
-      </span>
-      <span className="w-8 text-end font-mono">{pct}%</span>
-    </span>
+    <div className="space-y-1">
+      <p className="flex justify-between text-[12px] text-fg-muted">
+        <span>{label}</span>
+        <span className={cn("font-medium", value >= 0.8 ? "text-fg" : "text-fg-muted")}>{pct}%</span>
+      </p>
+      <div className="h-2 overflow-hidden rounded-full bg-bg-muted">
+        <div className={cn("h-full rounded-full", tone)} style={{ width: `${Math.max(3, pct)}%` }} />
+      </div>
+    </div>
   );
 }
 
@@ -44,66 +46,70 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 const nearFull = (s: Seat) => s.accounts.some((a) => (a.fiveHour ?? 0) >= FULL || (a.week ?? 0) >= FULL);
 const topModel = (s: Seat) => Object.entries(s.week.models).sort((a, b) => b[1] - a[1])[0]?.[0];
 
-function SeatRow({ seat, newest }: { seat: Seat; newest?: string }) {
+/** One person as a card (plan.md 19.8): who, their accounts with big limit bars, their week. */
+function SeatCard({ seat, newest }: { seat: Seat; newest?: string }) {
   const { t } = useTranslation();
   const model = topModel(seat);
   const old = newest && seat.version && seat.version !== newest;
   return (
-    <tr className="align-top">
-      <td className="py-3 pe-4">
-        <p className="flex items-center gap-2 text-[13.5px] font-medium">
-          <StatusDot tone={seat.online ? "success" : "neutral"} />
-          {seat.name}
-          {seat.role === "admin" && <Badge>{t("company.admin")}</Badge>}
-        </p>
-        <p className="ps-4 text-[11.5px] text-fg-subtle">
-          {seat.online
-            ? t("company.online")
-            : seat.lastSeen
-              ? t("company.seen", { when: relativeTime(seat.lastSeen) })
-              : t("company.neverSeen")}
-        </p>
-      </td>
-      <td className="py-3 pe-4">
-        {seat.at === 0 ? (
-          <p className="text-[12px] text-fg-subtle">{t("company.noReport")}</p>
-        ) : (
-          <ul className="space-y-2">
-            {seat.accounts.map((a) => (
-              <li key={`${a.provider}:${a.label}`} className="space-y-0.5">
-                <p className="flex items-center gap-1.5 text-[12.5px]">
-                  <span className="font-medium">{a.provider === "claude" ? "Claude" : "Codex"}</span>
-                  <span className="text-fg-muted">· {a.label}</span>
-                  {a.plan && <Badge>{a.plan}</Badge>}
-                  {a.active && <Badge tone="accent">{t("company.inUse")}</Badge>}
-                  {!a.loggedIn && <Badge tone="warning">{t("company.loggedOut")}</Badge>}
-                </p>
-                <Meter label={t("company.fiveHour")} value={a.fiveHour} />
-                <Meter label={t("company.week")} value={a.week} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </td>
-      <td className="py-3 pe-4 text-[12.5px]">
-        <p className="font-medium">{t("company.sessions", { count: seat.week.sessions })}</p>
-        <p className="text-fg-muted">
-          {t("company.tokens", { tokens: compactNumber(seat.week.input + seat.week.output) })}
-        </p>
-        {model && <p className="text-[11.5px] text-fg-subtle">{modelName(model)}</p>}
-      </td>
-      <td className="py-3 text-[12px] text-fg-muted">
+    <Card className="space-y-4 p-pad">
+      <div className="flex items-center gap-3">
+        <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-muted text-[15px] font-semibold">
+          {seat.name.slice(0, 1).toUpperCase()}
+          <span className="absolute -end-0.5 -bottom-0.5">
+            <StatusDot tone={seat.online ? "success" : "neutral"} />
+          </span>
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-2 text-[15px] font-semibold">
+            <span className="truncate">{seat.name}</span>
+            {seat.role === "admin" && <Badge>{t("company.admin")}</Badge>}
+          </p>
+          <p className="text-[12px] text-fg-subtle">
+            {seat.online
+              ? t("company.online")
+              : seat.lastSeen
+                ? t("company.seen", { when: relativeTime(seat.lastSeen) })
+                : t("company.neverSeen")}
+          </p>
+        </div>
+        <div className="text-end">
+          <p className="text-[18px] font-semibold">{seat.week.sessions}</p>
+          <p className="text-[11px] text-fg-subtle">{t("company.thisWeek")}</p>
+        </div>
+      </div>
+      {seat.at === 0 ? (
+        <p className="text-[12.5px] text-fg-subtle">{t("company.noReport")}</p>
+      ) : (
+        <ul className="space-y-3">
+          {seat.accounts.map((a) => (
+            <li key={`${a.provider}:${a.label}`} className="space-y-2 rounded-ui bg-bg-subtle p-3">
+              <p className="flex flex-wrap items-center gap-1.5 text-[13px]">
+                <span className="font-medium">{a.provider === "claude" ? "Claude" : "Codex"}</span>
+                <span className="text-fg-muted">· {a.label}</span>
+                {a.plan && <Badge>{a.plan}</Badge>}
+                {a.active && <Badge tone="accent">{t("company.inUse")}</Badge>}
+                {!a.loggedIn && <Badge tone="warning">{t("company.loggedOut")}</Badge>}
+              </p>
+              <Meter label={t("company.fiveHour")} value={a.fiveHour} />
+              <Meter label={t("company.week")} value={a.week} />
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border pt-3 text-[12px] text-fg-muted">
+        <span>{t("company.sessions", { count: seat.week.sessions })}</span>
+        <span>{t("company.tokens", { tokens: compactNumber(seat.week.input + seat.week.output) })}</span>
+        {model && <span>{modelName(model)}</span>}
+        <span className="flex-1" />
         {seat.version && (
-          <p className={cn(old && "text-warning")}>
+          <span className={cn(old && "text-warning")}>
             Igrek {seat.version}
             {old && ` · ${t("company.oldVersion")}`}
-          </p>
+          </span>
         )}
-        {seat.at > 0 && (
-          <p className="text-[11.5px] text-fg-subtle">{t("company.reported", { when: relativeTime(seat.at) })}</p>
-        )}
-      </td>
-    </tr>
+      </p>
+    </Card>
   );
 }
 
@@ -225,23 +231,11 @@ function CompanyOverview() {
             <Watch seats={list} newest={newest} />
             <Plans seats={list} />
           </div>
-          <Card className="overflow-x-auto p-pad">
-            <table className="w-full min-w-[720px] text-start">
-              <thead>
-                <tr className="border-b border-border text-[11px] uppercase tracking-wide text-fg-subtle">
-                  <th className="pb-2 text-start font-semibold">{t("company.person")}</th>
-                  <th className="pb-2 text-start font-semibold">{t("company.accounts")}</th>
-                  <th className="pb-2 text-start font-semibold">{t("company.thisWeek")}</th>
-                  <th className="pb-2 text-start font-semibold">{t("company.app")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {list.map((s) => (
-                  <SeatRow key={s.memberId} seat={s} newest={newest} />
-                ))}
-              </tbody>
-            </table>
-          </Card>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {list.map((s) => (
+              <SeatCard key={s.memberId} seat={s} newest={newest} />
+            ))}
+          </div>
           <Card className="flex flex-wrap items-center justify-between gap-3 p-pad">
             <div className="max-w-2xl">
               <p className="text-[13.5px] font-medium">{t("company.shareTitle")}</p>

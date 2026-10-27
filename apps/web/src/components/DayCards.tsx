@@ -9,9 +9,7 @@ export function DayCards({ projects, onChange }: { projects: ProjectListItem[]; 
     <>
       <BriefingCard />
       <RecapCard />
-      <div className="md:col-span-2">
-        <FocusBanner projects={projects} onChange={onChange} />
-      </div>
+      <FocusBanner projects={projects} onChange={onChange} />
     </>
   );
 }

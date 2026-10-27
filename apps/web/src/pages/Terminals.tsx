@@ -1,20 +1,18 @@
-import type { RecentChat, TerminalInfo } from "@igrek/core";
-import { ArrowLeft, History, MessageSquare, RotateCcw, SquareTerminal, X } from "lucide-react";
+import type { TerminalInfo } from "@igrek/core";
+import { ArrowLeft, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
-import { ChatPill } from "../components/ChatPill";
 import { EnhanceButton, EnhanceDialog } from "../components/Enhance";
 import { NewSession } from "../components/NewSession";
 import { PromptPicker } from "../components/PromptPicker";
 import { TerminalView } from "../components/TerminalView";
-import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui";
+import { Badge, PageHeader, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
-import { shownTitle } from "../lib/chat";
 import { cn } from "../lib/cn";
-import { relativeTime } from "../lib/format";
 import { useChats, useLiveData, useServerEvent, useTerminals } from "../lib/live";
+import { ChatList, ChatPeek, type ChatRow, pastRows } from "./ChatsList";
 
 const TONE = { running: "success", idle: "neutral", attention: "warning", exited: "neutral" } as const;
 
@@ -96,147 +94,40 @@ function Tabs({ terminals, active }: { terminals: TerminalInfo[]; active?: strin
   );
 }
 
-/** One project's past chats; the same title more than once (a chat continued again and again) shows once. */
-function folded(list: RecentChat[]): { chat: RecentChat; count: number }[] {
-  const byTitle = new Map<string, { chat: RecentChat; count: number }>();
-  for (const chat of list) {
-    const seen = byTitle.get(chat.title);
-    if (seen) seen.count++;
-    else byTitle.set(chat.title, { chat, count: 1 });
-  }
-  return [...byTitle.values()];
-}
-
-/** Chats that ended or outlived a restart, kept by the server, by project: continue any of them. */
-function RecentChats() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { data: recent, reload } = useLiveData(() => api.recentChats(), []);
-  useServerEvent("chats", reload);
-  if (!recent?.length) return <p className="text-[12.5px] text-fg-subtle">{t("term.noHistory")}</p>;
-  const groups = new Map<string, RecentChat[]>();
-  for (const chat of recent) {
-    const name = chat.projectId === "chief" ? t("nav.chief") : (chat.projectName ?? t("term.noProject"));
-    groups.set(name, [...(groups.get(name) ?? []), chat]);
-  }
-  return (
-    <div className="space-y-3">
-      {[...groups].map(([name, list]) => (
-        <details key={name} open={groups.size <= 3} className="rounded-ui border border-border bg-bg">
-          <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-[13px] font-medium">
-            <span className="min-w-0 flex-1 truncate">{name}</span>
-            <span className="text-[11.5px] font-normal text-fg-subtle">
-              {t("term.chatCount", { count: list.length })}
-            </span>
-          </summary>
-          <div className="divide-y divide-border border-t border-border">
-            {folded(list).map(({ chat, count }) => (
-              <div key={chat.id} className="group flex items-center gap-3 px-3 py-2 hover:bg-bg-hover">
-                <MessageSquare size={14} className="shrink-0 text-fg-subtle" aria-hidden="true" />
-                <Link to={`/c/${chat.id}`} data-nav-item className="min-w-0 flex-1">
-                  <p className="truncate text-[13px]">
-                    {shownTitle(chat.title, t)}
-                    {count > 1 && <span className="ms-1.5 text-[11px] text-fg-subtle">×{count}</span>}
-                  </p>
-                  <p className="text-[11px] text-fg-subtle">{relativeTime(chat.updatedAt)}</p>
-                </Link>
-                <button
-                  type="button"
-                  aria-label={t("chat.goneResume")}
-                  data-tip={t("chat.goneResume")}
-                  onClick={async () => {
-                    const next = await api.startChat({ projectId: chat.projectId, resume: chat.sessionId });
-                    void navigate(`/c/${next.id}`);
-                  }}
-                  className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[12px] text-accent hover:bg-bg-active"
-                >
-                  <RotateCcw size={13} aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  aria-label={t("chat.forget")}
-                  data-tip={t("chat.forget")}
-                  onClick={async () => {
-                    await api.forgetChat(chat.id);
-                    reload();
-                  }}
-                  className="shrink-0 text-fg-subtle hover:text-danger sm:opacity-0 sm:group-hover:opacity-100"
-                >
-                  <X size={13} aria-hidden="true" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </details>
-      ))}
-    </div>
-  );
-}
-
 /**
- * Everything that runs or ran: what is open now (chats and terminals, with what each is doing) on one
- * side, the past by project on the other, and a way to start something at the top (testers found the
- * old list of identical rows empty and unclear).
+ * Every chat in one list (plan.md 19.7): open ones first, then the past, newest first; the one under
+ * the pointer is described in a card on the right (project, what was done, who, files). Two columns
+ * of different things and project folders made people look in the wrong place.
  */
 export function TerminalsPage() {
   const { t } = useTranslation();
   const terminals = useTerminals();
   const chats = useChats();
-  const nothingOpen = terminals.length === 0 && chats.length === 0;
+  const { data: recent, reload } = useLiveData(() => api.recentChats(), []);
+  const { data: projects } = useLiveData(() => api.projects(), []);
+  useServerEvent("chats", reload);
+  const openSessions = new Set(chats.map((c) => c.sessionId).filter(Boolean));
+  const rows: ChatRow[] = [
+    ...chats.map((chat) => ({ key: `o-${chat.id}`, kind: "open" as const, at: chat.startedAt, chat })),
+    ...terminals.map((term) => ({ key: `t-${term.id}`, kind: "term" as const, at: term.lastOutputAt, term })),
+    ...pastRows((recent ?? []).filter((r) => !openSessions.has(r.sessionId))),
+  ];
+  const [hovered, setHovered] = useState<string>();
+  const shown = rows.find((r) => r.key === hovered) ?? rows[0];
+  const projectName = (id: string) => projects?.find((p) => p.id === id)?.name ?? "";
   return (
     <>
       <PageHeader title={t("term.title")} actions={<StartHere />} />
-      <div className="mx-auto grid w-full max-w-6xl gap-6 p-6 lg:grid-cols-2">
-        <section aria-labelledby="open-now" className="space-y-2">
-          <h2 id="open-now" className="text-[13px] font-semibold">
-            {t("term.openNow")}
-          </h2>
-          <p className="text-[12px] text-fg-subtle">{t("term.openNowHint")}</p>
-          {nothingOpen ? (
-            <EmptyState icon={SquareTerminal} title={t("term.empty")} body={t("term.emptyBody")} />
-          ) : (
-            <Card>
-              <div className="divide-y divide-border">
-                {chats.map((chat) => (
-                  <Link
-                    key={chat.id}
-                    to={chat.projectId === "chief" ? "/chief" : `/c/${chat.id}`}
-                    data-nav-item
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
-                  >
-                    <MessageSquare size={15} className="shrink-0 text-accent" aria-hidden="true" />
-                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{shownTitle(chat.title, t)}</span>
-                    <ChatPill chat={chat} />
-                  </Link>
-                ))}
-                {terminals.map((term) => (
-                  <Link
-                    key={term.id}
-                    to={`/t/${term.id}`}
-                    data-nav-item
-                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
-                  >
-                    <SquareTerminal size={15} className="shrink-0 text-fg-subtle" aria-hidden="true" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium">{term.title}</p>
-                      <p className="truncate font-mono text-[11px] text-fg-subtle">{term.cwd}</p>
-                    </div>
-                    <Badge>{t(`term.${term.tool}`)}</Badge>
-                    <TerminalStatus term={term} />
-                  </Link>
-                ))}
-              </div>
-            </Card>
-          )}
-        </section>
-        <section aria-labelledby="past" className="space-y-2">
-          <h2 id="past" className="flex items-center gap-1.5 text-[13px] font-semibold">
-            <History size={14} aria-hidden="true" />
-            {t("chat.recent")}
-          </h2>
-          <p className="text-[12px] text-fg-subtle">{t("term.pastHint")}</p>
-          <RecentChats />
-        </section>
+      <div className="mx-auto grid w-full max-w-6xl items-start gap-4 p-4 sm:p-6 lg:grid-cols-[1fr_320px]">
+        <ChatList
+          rows={rows}
+          hovered={shown?.key}
+          onHover={setHovered}
+          onForget={(id) => void api.forgetChat(id).then(reload)}
+        />
+        <aside className="sticky top-4 hidden lg:block">
+          <ChatPeek row={shown} projectName={projectName} />
+        </aside>
       </div>
     </>
   );

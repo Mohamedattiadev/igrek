@@ -13,7 +13,7 @@ import type { Store } from "./store";
 import { isTrusted, projectExtensions, trust } from "./trust";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
 
-const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
+const MODES: ChatMode[] = ["full", "normal", "acceptEdits", "auto", "plan"];
 
 /**
  * What a session said, for a new chat that goes on with it because Claude's own file of it is not
@@ -131,7 +131,8 @@ export function registerChatRoutes(
     const goOn = continuation(store, body.resume, session);
     if (body.resume && !capabilitiesOf(session?.tool ?? "").chat)
       return c.json({ error: "Only Claude sessions can be continued in chat" }, 400);
-    const mode = MODES.find((m) => m === body.mode);
+    // A new chat starts in full control unless another mode was picked (plan.md 19.8).
+    const mode = MODES.find((m) => m === body.mode) ?? "full";
     if (body.focus === "reverse" && body.authorized !== true)
       return c.json({ error: "Confirm that you own the software or may examine it" }, 400);
     // A session that ran as a persona continues as that persona.

@@ -6,7 +6,7 @@ import { request } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { duration } from "../pages/tools/Time";
 import { LazyMarkdown as Markdown } from "./LazyMarkdown";
-import { Button, Card } from "./ui";
+import { Button } from "./ui";
 
 const localDay = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -55,7 +55,8 @@ export function RecapCard() {
   // Quiet days don't need a card at all, unless you are looking back.
   if (day === today && stats && !stats.projects.length && !data?.recap) return null;
   return (
-    <Card className="p-pad">
+    // A row inside the day section, not a card of its own: the section is the frame.
+    <div className="px-3 py-2">
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -137,6 +138,6 @@ export function RecapCard() {
           )}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

@@ -426,7 +426,7 @@ function SummariesOff() {
   const [busy, setBusy] = useState(false);
   if (settings.autoSummarize) return null;
   return (
-    <p className="flex flex-wrap items-center gap-2 text-[12px] text-fg-subtle">
+    <p className="flex flex-wrap items-center gap-2 px-3 py-2 text-[12px] text-fg-subtle">
       <FileText size={13} className="shrink-0" aria-hidden="true" />
       <span className="min-w-0 flex-1">{t("projects.summariesOff")}</span>
       <button
@@ -492,7 +492,8 @@ function DaySection({ children }: { children: ReactNode }) {
         </Button>
         <DayEndButton />
       </div>
-      {open && <div className="grid gap-3 border-t border-border p-3 md:grid-cols-2">{children}</div>}
+      {/* Rows under the line, not cards in a grid: the same things in a third of the height. */}
+      {open && <div className="divide-y divide-border border-t border-border">{children}</div>}
     </section>
   );
 }
@@ -659,9 +660,7 @@ export function ProjectsPage() {
               <Suspense fallback={null}>
                 <DayCards projects={projects ?? []} onChange={reload} />
               </Suspense>
-              <div className="md:col-span-2">
-                <SummariesOff />
-              </div>
+              <SummariesOff />
             </DaySection>
           </div>
         </div>

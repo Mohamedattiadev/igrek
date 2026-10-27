@@ -20,6 +20,7 @@ import { useDesktopTray, useDesktopUpdateCheck } from "../lib/desktop";
 import {
   dispatchServerMessage,
   useApprovals,
+  useChats,
   useIndexStatus,
   useLiveData,
   useServerEvent,
@@ -40,6 +41,7 @@ import { Helper } from "./Helper";
 import { IdeaCapture } from "./IdeaCapture";
 import { LanguagePackBanner, useLanguagePackSync } from "./LanguagePack";
 import { Logo } from "./Logo";
+import { NavColorMenu } from "./NavColors";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
@@ -133,7 +135,7 @@ function PinnableLink({
   const label = pinned ? t("nav.unpin", { page: t(item.label) }) : t("nav.pin", { page: t(item.label) });
   return (
     <div className={cn("group/pin relative", wide && "w-full")}>
-      <ToolStripLink item={item} badge={badge} wide={wide} onPick={onPick} />
+      <ToolStripLink item={item} badge={badge} wide={wide} onPick={onPick} dense />
       {wide && (
         <button
           type="button"
@@ -158,6 +160,7 @@ function ToolStripLink({
   badge,
   badgeTip,
   badgeTone = "warning",
+  dense,
   wide,
   onPick,
 }: {
@@ -167,6 +170,8 @@ function ToolStripLink({
   badgeTip?: string;
   /** The count's colour by what is waiting: red needs an answer, blue is from people, amber the rest. */
   badgeTone?: "danger" | "accent" | "warning";
+  /** Two to a row under "More": a smaller gap and text so the label still fits. */
+  dense?: boolean;
   wide: boolean;
   onPick?: () => void;
 }) {
@@ -180,11 +185,17 @@ function ToolStripLink({
       onClick={onPick}
       data-tip={wide ? undefined : t(item.label)}
       data-tip-side="right"
+      data-nav-color={item.to}
       aria-label={t(item.label)}
       className={({ isActive }) =>
         cn(
-          "relative flex h-9 shrink-0 items-center rounded-ui transition-colors",
-          wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
+          // 32 px rows: the whole strip, "More" open, fits a laptop screen without scrolling.
+          "relative flex h-8 shrink-0 items-center rounded-ui transition-colors",
+          wide
+            ? dense
+              ? "w-full gap-1.5 px-2 text-[12px]"
+              : "w-full gap-2.5 px-2.5 text-[13px]"
+            : "w-9 justify-center",
           isActive ? "bg-bg-active font-medium text-accent-hover" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
         )
       }
@@ -195,7 +206,11 @@ function ToolStripLink({
         className="shrink-0"
         style={{ color: color ? NAV_COLORS[color] : undefined }}
       />
-      {wide && <span className="min-w-0 flex-1 truncate">{t(item.label)}</span>}
+      {wide && (
+        <span className="min-w-0 flex-1 truncate" style={{ color: color ? NAV_COLORS[color] : undefined }}>
+          {t(item.label)}
+        </span>
+      )}
       {!!badge && (
         <span
           data-tip={badgeTip}
@@ -265,17 +280,37 @@ function useMyCards(): number {
 }
 
 /** A heading over a few items when the strip is wide; a thin line between them when it is narrow. */
-function NavGroup({ label, wide, children }: { label: string; wide: boolean; children: ReactNode }) {
+function NavGroup({
+  id,
+  label,
+  wide,
+  columns,
+  children,
+}: {
+  /** Its key in the colour store ("group:team"); right-click on the heading to colour it. */
+  id: string;
+  label: string;
+  wide: boolean;
+  /** Two items a row when wide: "More" open then fits without scrolling. */
+  columns?: boolean;
+  children: ReactNode;
+}) {
+  const [colors] = useNavColors();
+  const color = colors[`group:${id}`];
   return (
     <div className={cn("mt-2 flex flex-col gap-0.5", !wide && "items-center")}>
       {wide ? (
-        <span className="px-2.5 pb-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-fg-subtle">
+        <span
+          data-nav-color={`group:${id}`}
+          className="px-2.5 pb-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-fg-subtle"
+          style={{ color: color ? NAV_COLORS[color] : undefined }}
+        >
           {label}
         </span>
       ) : (
         <span className="mb-1 h-px w-6 bg-border" aria-hidden="true" />
       )}
-      {children}
+      {columns && wide ? <div className="grid grid-cols-2 gap-0.5">{children}</div> : children}
     </div>
   );
 }
@@ -316,15 +351,11 @@ function WidthToggle({ wide, onClick }: { wide: boolean; onClick: () => void }) 
       type="button"
       onClick={onClick}
       aria-label={wide ? t("nav.narrow") : t("nav.wide")}
-      data-tip={wide ? undefined : t("nav.wide")}
+      data-tip={wide ? t("nav.narrow") : t("nav.wide")}
       data-tip-side="right"
-      className={cn(
-        "flex h-9 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
-        stripRow(wide),
-      )}
+      className="flex size-8 shrink-0 items-center justify-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg"
     >
-      {wide ? <PanelLeftClose size={18} strokeWidth={1.75} /> : <PanelLeftOpen size={18} strokeWidth={1.75} />}
-      {wide && <span>{t("nav.narrow")}</span>}
+      {wide ? <PanelLeftClose size={17} strokeWidth={1.75} /> : <PanelLeftOpen size={18} strokeWidth={1.75} />}
     </button>
   );
 }
@@ -408,10 +439,17 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
     />
   );
   const pinnedItems = visible.filter((item) => folded(item) && pinned.has(item.to));
+  const [colorMenu, setColorMenu] = useState<{ x: number; y: number; key: string }>();
   return (
     <nav
       data-tour="nav"
       aria-label={t("nav.menu")}
+      onContextMenu={(e) => {
+        const el = (e.target as HTMLElement).closest<HTMLElement>("[data-nav-color]");
+        if (!el?.dataset.navColor) return;
+        e.preventDefault();
+        setColorMenu({ x: e.clientX, y: e.clientY, key: el.dataset.navColor });
+      }}
       className={cn(
         "flex shrink-0 flex-col overflow-hidden border-e border-border bg-bg-subtle py-2 print:hidden",
         wide ? "w-48 items-stretch px-2" : "w-12 items-center",
@@ -430,30 +468,71 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
         )}
       >
         {visible.filter((item) => !item.bottom && !item.group).map(link)}
-        <NavGroup label={t("nav.groupTeam")} wide={wide}>
+        <NavGroup id="team" label={t("nav.groupTeam")} wide={wide}>
           {visible.filter((item) => item.group === "team").map(link)}
         </NavGroup>
         {!showMore && pinnedItems.length > 0 && (
-          <NavGroup label={t("nav.groupPinned")} wide={wide}>
+          <NavGroup id="pinned" label={t("nav.groupPinned")} wide={wide}>
             {pinnedItems.map(pinnable)}
           </NavGroup>
         )}
         <MoreToggle open={showMore} wide={wide} onClick={flipMore} />
         {showMore && (
           <>
-            <NavGroup label={t("nav.groupWork")} wide={wide}>
+            <NavGroup id="work" label={t("nav.groupWork")} wide={wide} columns>
               {visible.filter((item) => item.group === "work").map(pinnable)}
             </NavGroup>
-            <NavGroup label={t("nav.groupKnow")} wide={wide}>
+            <NavGroup id="know" label={t("nav.groupKnow")} wide={wide} columns>
               {visible.filter((item) => item.group === "know").map(pinnable)}
             </NavGroup>
           </>
         )}
       </div>
-      <div className={cn("flex shrink-0 flex-col gap-0.5 border-t border-border pt-2", !wide && "items-center")}>
-        {visible.filter((item) => item.bottom).map(link)}
+      {/* Profile, settings and the width toggle share one row when wide (they took three). */}
+      <div
+        className={cn(
+          "flex shrink-0 gap-0.5 border-t border-border pt-2",
+          wide ? "items-center" : "flex-col items-center",
+        )}
+      >
+        {visible
+          .filter((item) => item.bottom && item.to !== "/settings")
+          .map((item) =>
+            wide ? (
+              // Takes what is left of the row, so settings and the width toggle stay beside it.
+              <div key={item.to} className="min-w-0 flex-1">
+                {link(item)}
+              </div>
+            ) : (
+              link(item)
+            ),
+          )}
+        {visible
+          .filter((item) => item.to === "/settings")
+          .map((item) =>
+            wide ? (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={onClose}
+                aria-label={t(item.label)}
+                data-tip={t(item.label)}
+                className={({ isActive }) =>
+                  cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-ui transition-colors",
+                    isActive ? "bg-bg-active text-accent-hover" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
+                  )
+                }
+              >
+                <item.icon size={17} strokeWidth={1.75} />
+              </NavLink>
+            ) : (
+              link(item)
+            ),
+          )}
         {!drawer && <WidthToggle wide={wide} onClick={flip} />}
       </div>
+      <NavColorMenu at={colorMenu} onClose={() => setColorMenu(undefined)} />
     </nav>
   );
 }
@@ -537,6 +616,31 @@ function UpdateChip({ version }: { version?: string }) {
   );
 }
 
+/**
+ * What is going on, in the status bar's empty middle (plan.md 19.8): chats at work, unread team
+ * messages, my cards. Each one is a link; nothing shows when it is zero.
+ */
+function StatusLinks() {
+  const { t } = useTranslation();
+  const working = useChats().filter((c) => c.status === "working").length;
+  const unread = useChatUnread().count;
+  const mine = useMyCards();
+  const items = [
+    { to: "/terminals", count: working, label: t("status.chatsWorking", { count: working }) },
+    { to: "/chat", count: unread, label: t("status.unread", { count: unread }) },
+    { to: "/mine", count: mine, label: t("status.myCards", { count: mine }) },
+  ].filter((i) => i.count > 0);
+  return (
+    <span className="hidden items-center gap-3 sm:flex">
+      {items.map((i) => (
+        <Link key={i.to} to={i.to} className="hover:text-fg hover:underline">
+          {i.label}
+        </Link>
+      ))}
+    </span>
+  );
+}
+
 function StatusBar({ status }: { status: SocketStatus }) {
   const { t } = useTranslation();
   const { settings } = useSettings();
@@ -556,6 +660,7 @@ function StatusBar({ status }: { status: SocketStatus }) {
       )}
       {index?.summarizing && <span className="animate-pulse text-accent">{t("session.summarizing")}</span>}
       <div className="flex-1" />
+      <StatusLinks />
       {settings.keymap === "vim" && <span className="font-mono font-semibold text-accent">VIM</span>}
       <span>Igrek {APP_VERSION}</span>
     </footer>

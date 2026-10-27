@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { DETAIL_LEVELS, type DetailLevel } from "../lib/chat-log";
 import { modelName } from "../lib/format";
 import { usePersonaLabel, usePersonas } from "../lib/personas";
-import { Dialog, field } from "./ui";
+import { Badge, Dialog, field } from "./ui";
 
-const CHAT_MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
+const CHAT_MODES: ChatMode[] = ["full", "auto", "normal", "acceptEdits", "plan"];
 export const CHAT_MODELS = ["", "opus", "sonnet", "haiku"];
 
 interface Props {
@@ -30,7 +30,7 @@ export function ChatSettings({ info, fresh, detail, onDetail, onMode, onModel, o
   const [open, setOpen] = useState(false);
   const { personas } = usePersonas();
   const personaLabel = usePersonaLabel();
-  const mode = info?.mode ?? "normal";
+  const mode = info?.mode ?? "full";
   const model = CHAT_MODELS.find((m) => m && info?.model?.includes(m)) ?? "";
   const id = useId();
   /** `name` ties the label to the select inside `control`, which carries the same id. */
@@ -52,10 +52,11 @@ export function ChatSettings({ info, fresh, detail, onDetail, onMode, onModel, o
         className="flex h-8 min-w-0 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
       >
         <SlidersHorizontal size={14} aria-hidden="true" />
-        <span className="truncate">
-          {t("chat.settings")}
-          {mode !== "normal" && <span className="text-fg"> · {t(`chat.mode_${mode}`)}</span>}
-        </span>
+        <span className="truncate">{t("chat.settings")}</span>
+        {/* The mode as a badge beside the button: in full control it is always plain to see. */}
+        <Badge tone={mode === "full" ? "danger" : mode === "normal" ? "neutral" : "accent"}>
+          {t(`chat.modeShort_${mode}`)}
+        </Badge>
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("chat.settings")}>
         <div className="space-y-4 p-5">

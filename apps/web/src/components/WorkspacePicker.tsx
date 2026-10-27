@@ -100,9 +100,19 @@ export function WorkspacePicker() {
         type="button"
         onClick={() => setOpen(!open)}
         data-tip={t("workspace.pickerTip")}
-        className="flex h-7 items-center gap-2 whitespace-nowrap rounded-ui px-2 text-[13px] font-medium hover:bg-bg-hover"
+        // A framed control with its label, not plain text: people did not see they could switch here.
+        className={cn(
+          "flex h-7 items-center gap-1.5 whitespace-nowrap rounded-ui border px-2 text-[13px] font-medium hover:bg-bg-hover",
+          ws === "all" ? "border-border" : "border-accent bg-accent-soft text-accent",
+        )}
       >
-        <Icon size={15} strokeWidth={1.75} className="text-fg-muted" aria-hidden="true" />
+        <Icon
+          size={15}
+          strokeWidth={1.75}
+          className={ws === "all" ? "text-fg-muted" : "text-accent"}
+          aria-hidden="true"
+        />
+        <span className="hidden font-normal text-fg-subtle sm:inline">{t("workspace.label")}</span>
         {t(`workspace.${ws}`)}
         <ChevronDown size={13} className="text-fg-subtle" aria-hidden="true" />
       </button>

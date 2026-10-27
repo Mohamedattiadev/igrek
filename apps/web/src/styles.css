@@ -40,9 +40,10 @@
   --series-6: #6250d6;
   --series-other: #b5b8bf;
 
+  /* Roomier than before (plan.md 19.8: "too cramped"); Settings > Density "compact" brings it back. */
   --row-h: 2.25rem;
-  --pad: 1rem;
-  --gap: 0.75rem;
+  --pad: 1.25rem;
+  --gap: 1rem;
   --radius: 8px;
   --text: 14px;
   color-scheme: light;

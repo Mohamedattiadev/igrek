@@ -2,7 +2,7 @@ import type { SystemStatus } from "@igrek/core";
 import { AlertTriangle, AppWindow, Check, CheckCircle2, Circle, Compass, Palette, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { AutostartPanel, DesktopUpdatePanel } from "../components/DesktopPanels";
 import { EnhanceSettings } from "../components/EnhanceSettings";
 import { ExtensionPanel } from "../components/ExtensionPanel";
@@ -204,308 +204,337 @@ function AiMay({ gateway }: { gateway: boolean }) {
 }
 
 /** The page's four parts, so a long page can be jumped through (a screen reader user could not find privacy). */
-const GROUPS = ["look", "ai", "privacy", "data"] as const;
+const GROUPS = ["look", "ai", "privacy", "data", "system"] as const;
 
-function GroupIndex() {
+function GroupIndex({ tab, onPick }: { tab: (typeof GROUPS)[number]; onPick: (tab: (typeof GROUPS)[number]) => void }) {
   const { t } = useTranslation();
   return (
-    <nav aria-label={t("settings.groupsLabel")} className="flex flex-wrap gap-1.5 pt-4">
-      {GROUPS.map((id) => (
-        <a
-          key={id}
-          href={`#settings-${id}`}
-          onClick={(event) => {
-            // The router owns the address: move to the part and put focus on its heading.
-            event.preventDefault();
-            const heading = document.getElementById(`settings-${id}`);
-            heading?.scrollIntoView({ block: "start" });
-            heading?.focus();
+    <div className="sticky top-0 z-10 -mx-6 border-b border-border bg-bg px-6 py-2">
+      <Segmented
+        label={t("settings.groupsLabel")}
+        value={tab}
+        onChange={onPick}
+        options={GROUPS.map((id) => ({ value: id, label: t(`settings.group_${id}`) }))}
+      />
+    </div>
+  );
+}
+
+function PartLook() {
+  const { t } = useTranslation();
+  const { settings, update } = useSettings();
+  const pro = settings.mode === "pro";
+  return (
+    <>
+      <Section title={t("settings.language")} hint={t("settings.languageHint")}>
+        <LanguagePicker value={settings.language} onChange={(language) => void update({ language })} />
+        <LanguagePackPanel code={settings.language} />
+      </Section>
+      <AppSection />
+      <Section title={t("settings.theme")}>
+        <Segmented
+          value={settings.theme}
+          onChange={(theme) => update({ theme })}
+          options={[
+            { value: "system", label: t("settings.themeSystem") },
+            { value: "light", label: t("settings.themeLight") },
+            { value: "dark", label: t("settings.themeDark") },
+            { value: "darcula", label: "Darcula", tip: t("settings.themeDarculaTip") },
+            { value: "notion", label: t("settings.themeNotion"), tip: t("settings.themeNotionTip") },
+          ]}
+        />
+      </Section>
+      <Section title={t("navColors.title")} hint={t("navColors.hint")}>
+        <NavColors />
+      </Section>
+      {pro && (
+        <Section title={t("nav.design")} hint={t("settings.designHint")}>
+          <Link
+            to="/design"
+            className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-1.5 text-[13px] font-medium hover:border-accent"
+          >
+            <Palette size={14} className="text-accent" aria-hidden="true" />
+            {t("settings.openDesign")}
+          </Link>
+        </Section>
+      )}
+      <Section title={t("tour.title")} hint={t("tour.hint")}>
+        <Button icon={Compass} onClick={startTour}>
+          {t("tour.start")}
+        </Button>
+      </Section>
+      <Section title={t("settings.textSize")} hint={t("settings.textSizeHint")}>
+        <Segmented
+          value={settings.textSize ?? "normal"}
+          onChange={(textSize) => update({ textSize })}
+          options={[
+            { value: "normal", label: t("settings.textNormal") },
+            { value: "large", label: t("settings.textLarge") },
+            { value: "larger", label: t("settings.textLarger") },
+          ]}
+        />
+      </Section>
+      {pro && (
+        <Section title={t("settings.density")}>
+          <Segmented
+            value={settings.density}
+            onChange={(density) => update({ density })}
+            options={[
+              { value: "comfortable", label: t("settings.densityComfortable") },
+              { value: "compact", label: t("settings.densityCompact") },
+            ]}
+          />
+        </Section>
+      )}
+      <Section
+        title={t("settings.mode")}
+        hint={settings.mode === "simple" ? t("settings.modeSimpleHint") : t("settings.modeProHint")}
+      >
+        <Segmented
+          value={settings.mode}
+          onChange={(mode) => update({ mode })}
+          options={[
+            { value: "simple", label: t("settings.modeSimple") },
+            { value: "pro", label: t("settings.modePro") },
+          ]}
+        />
+      </Section>
+      {pro && (
+        <Section title={t("settings.keymap")} hint={t("settings.keymapVimHint")}>
+          <Segmented
+            value={settings.keymap}
+            onChange={(keymap) => update({ keymap })}
+            options={[
+              { value: "default", label: t("settings.keymapDefault") },
+              { value: "vim", label: t("settings.keymapVim") },
+            ]}
+          />
+        </Section>
+      )}
+      <Section title={t("notify.setting")} hint={t("notify.settingHint")}>
+        <Segmented
+          value={settings.notifications ? "on" : "off"}
+          onChange={async (value) => {
+            if (value === "on" && !(await askNotificationPermission())) return;
+            await update({ notifications: value === "on" });
           }}
-          className="rounded-full border border-border px-3 py-1 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
-        >
-          {t(`settings.group_${id}`)}
-        </a>
-      ))}
-    </nav>
+          options={[
+            { value: "on", label: t("settings.on") },
+            { value: "off", label: t("settings.off") },
+          ]}
+        />
+      </Section>
+    </>
   );
 }
 
-function Group({ id }: { id: (typeof GROUPS)[number] }) {
-  const { t } = useTranslation();
-  return (
-    <h2
-      id={`settings-${id}`}
-      tabIndex={-1}
-      className="scroll-mt-4 border-b border-border pt-8 pb-2 text-[15px] font-semibold outline-none"
-    >
-      {t(`settings.group_${id}`)}
-    </h2>
-  );
-}
-
-export function SettingsPage() {
+function PartAi() {
   const { t } = useTranslation();
   const modelTip = useModelTip();
   const { settings, update } = useSettings();
-  // Simple mode (the default) leaves out what only developers set: MCP, keymaps, local models...
   const pro = settings.mode === "pro";
+  return (
+    <>
+      <Section title={t("settings.autoSummarize")} hint={t("settings.autoSummarizeHint")}>
+        <Segmented
+          value={settings.autoSummarize ? "on" : "off"}
+          onChange={(value) => update({ autoSummarize: value === "on" })}
+          options={[
+            { value: "on", label: t("settings.on") },
+            { value: "off", label: t("settings.off") },
+          ]}
+        />
+      </Section>
+      <Section title={t("settings.richAnswers")} hint={t("settings.richAnswersHint")}>
+        <Segmented
+          value={settings.richAnswers ? "on" : "off"}
+          onChange={(value) => update({ richAnswers: value === "on" })}
+          options={[
+            { value: "on", label: t("settings.on") },
+            { value: "off", label: t("settings.off") },
+          ]}
+        />
+      </Section>
+      <Section title={t("settings.autoProjects")} hint={t("settings.autoProjectsHint")}>
+        <Segmented
+          value={settings.autoProjects ? "on" : "off"}
+          onChange={(value) => update({ autoProjects: value === "on" })}
+          options={[
+            { value: "on", label: t("settings.on") },
+            { value: "off", label: t("settings.off") },
+          ]}
+        />
+      </Section>
+      <Section title={t("settings.consultExperts")} hint={t("settings.consultExpertsHint")}>
+        <Segmented
+          value={settings.consultExperts ? "on" : "off"}
+          onChange={(value) => update({ consultExperts: value === "on" })}
+          options={[
+            { value: "on", label: t("settings.on") },
+            { value: "off", label: t("settings.off") },
+          ]}
+        />
+      </Section>
+      <Section title={t("settings.autoReview")} hint={modelTip(t("settings.autoReviewHint"))}>
+        <Segmented
+          value={settings.autoReview ? "on" : "off"}
+          onChange={(value) => update({ autoReview: value === "on" })}
+          options={[
+            { value: "on", label: t("settings.on") },
+            { value: "off", label: t("settings.off") },
+          ]}
+        />
+      </Section>
+      {pro && (
+        <Section title={t("settings.turnGate")} hint={t("settings.turnGateHint")}>
+          <Segmented
+            value={settings.turnGate}
+            onChange={(turnGate) => update({ turnGate })}
+            options={[
+              { value: "off", label: t("settings.off") },
+              { value: "check", label: t("settings.turnGateCheck") },
+              { value: "sendBack", label: t("settings.turnGateSendBack") },
+            ]}
+          />
+        </Section>
+      )}
+      {pro && (
+        <Section title={t("settings.tone")} hint={t("settings.toneHint")}>
+          <Segmented
+            value={settings.summaryTone}
+            onChange={(summaryTone) => update({ summaryTone })}
+            options={[
+              { value: "plain", label: t("settings.tonePlain") },
+              { value: "technical", label: t("settings.toneTechnical") },
+            ]}
+          />
+        </Section>
+      )}
+      <Section title={t("settings.enhance")} hint={t("settings.enhanceHint")}>
+        <div className="space-y-3">
+          <Segmented
+            value={settings.enhanceMode}
+            onChange={(enhanceMode) => update({ enhanceMode })}
+            options={(["off", "suggest", "auto"] as const).map((m) => ({
+              value: m,
+              label: t(`settings.enhance_${m}`),
+              tip: t(`settings.enhanceTip_${m}`),
+            }))}
+          />
+          <div className="flex items-center gap-3 text-xs text-fg-muted">
+            <span>{t("settings.enhanceLanguage")}</span>
+            <Segmented
+              value={settings.enhanceLanguage}
+              onChange={(enhanceLanguage) => update({ enhanceLanguage })}
+              options={[
+                { value: "en", label: "English", tip: t("settings.enhanceLangTip_en") },
+                { value: "user", label: t("settings.enhanceLang_user"), tip: t("settings.enhanceLangTip_user") },
+              ]}
+            />
+          </div>
+          <EnhanceSettings />
+        </div>
+      </Section>
+      {pro && (
+        <Section title={t("mcp.title")} hint={t("mcp.hint")}>
+          <McpSetup />
+        </Section>
+      )}
+      {pro && (
+        <Section title={t("bridges.title")} hint={t("bridges.hint")}>
+          <BridgesPanel />
+        </Section>
+      )}
+      {pro && (
+        <Section title={t("mcpServers.title")} hint={t("mcpServers.hint")}>
+          <McpServersPanel />
+        </Section>
+      )}
+      {pro && (
+        <Section title={t("localModel.title")} hint={t("localModel.hint")}>
+          <LocalModelPanel />
+        </Section>
+      )}
+    </>
+  );
+}
+
+function PartPrivacy() {
+  const { t } = useTranslation();
+  const { settings } = useSettings();
+  return (
+    <>
+      <Section title={t("settings.aiMay")}>
+        <AiMay gateway={settings.privacyGateway} />
+      </Section>
+      <Section title={t("private.title")} hint={t("private.hint")}>
+        <PrivatePanel />
+      </Section>
+      <Section title={t("extension.title")} hint={t("extension.hint")}>
+        <ExtensionPanel />
+      </Section>
+      <Section title={t("network.title")} hint={t("network.hint")}>
+        <NetworkPanel />
+      </Section>
+    </>
+  );
+}
+
+function PartData() {
+  const { t } = useTranslation();
+  const { settings } = useSettings();
+  const pro = settings.mode === "pro";
+  return (
+    <>
+      <Section title={t("backup.title")} hint={t("backup.hint")}>
+        <BackupPanel />
+      </Section>
+      {pro && (
+        <Section title={t("move.title")} hint={t("move.hint")}>
+          <MovePanel />
+        </Section>
+      )}
+      {pro && (
+        <Section title={t("disk.title")} hint={t("disk.hint")}>
+          <DiskPanel />
+        </Section>
+      )}
+    </>
+  );
+}
+
+function PartSystem() {
+  const { t } = useTranslation();
+  const { settings } = useSettings();
+  const pro = settings.mode === "pro";
+  return (
+    <>
+      <UpdateSection pro={pro} />
+      <Section title={t("settings.system")} hint={t("settings.systemHint")}>
+        <SystemCheck />
+      </Section>
+    </>
+  );
+}
+
+/** Settings in parts; in simple mode (the default) each leaves out what only developers set. */
+export function SettingsPage() {
+  const { t } = useTranslation();
+  // One part at a time (plan.md 19.8): the whole page was a long scroll. The update chip opens System.
+  const [params, setParams] = useSearchParams();
+  const tab = GROUPS.find((g) => g === params.get("tab")) ?? (window.location.hash === "#update" ? "system" : "look");
+  const setTab = (next: (typeof GROUPS)[number]) => setParams(next === "look" ? {} : { tab: next }, { replace: true });
 
   return (
     <>
       <PageHeader title={t("settings.title")} />
       <div className="mx-auto w-full max-w-4xl px-6">
-        <GroupIndex />
-        <Group id="look" />
-        <Section title={t("settings.language")} hint={t("settings.languageHint")}>
-          <LanguagePicker value={settings.language} onChange={(language) => void update({ language })} />
-          <LanguagePackPanel code={settings.language} />
-        </Section>
-        <AppSection />
-        <Section title={t("settings.theme")}>
-          <Segmented
-            value={settings.theme}
-            onChange={(theme) => update({ theme })}
-            options={[
-              { value: "system", label: t("settings.themeSystem") },
-              { value: "light", label: t("settings.themeLight") },
-              { value: "dark", label: t("settings.themeDark") },
-              { value: "darcula", label: "Darcula", tip: t("settings.themeDarculaTip") },
-              { value: "notion", label: t("settings.themeNotion"), tip: t("settings.themeNotionTip") },
-            ]}
-          />
-        </Section>
-        <Section title={t("navColors.title")} hint={t("navColors.hint")}>
-          <NavColors />
-        </Section>
-        {pro && (
-          <Section title={t("nav.design")} hint={t("settings.designHint")}>
-            <Link
-              to="/design"
-              className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-1.5 text-[13px] font-medium hover:border-accent"
-            >
-              <Palette size={14} className="text-accent" aria-hidden="true" />
-              {t("settings.openDesign")}
-            </Link>
-          </Section>
-        )}
-        <Section title={t("tour.title")} hint={t("tour.hint")}>
-          <Button icon={Compass} onClick={startTour}>
-            {t("tour.start")}
-          </Button>
-        </Section>
-        <Section title={t("settings.textSize")} hint={t("settings.textSizeHint")}>
-          <Segmented
-            value={settings.textSize ?? "normal"}
-            onChange={(textSize) => update({ textSize })}
-            options={[
-              { value: "normal", label: t("settings.textNormal") },
-              { value: "large", label: t("settings.textLarge") },
-              { value: "larger", label: t("settings.textLarger") },
-            ]}
-          />
-        </Section>
-        {pro && (
-          <Section title={t("settings.density")}>
-            <Segmented
-              value={settings.density}
-              onChange={(density) => update({ density })}
-              options={[
-                { value: "comfortable", label: t("settings.densityComfortable") },
-                { value: "compact", label: t("settings.densityCompact") },
-              ]}
-            />
-          </Section>
-        )}
-        <Section
-          title={t("settings.mode")}
-          hint={settings.mode === "simple" ? t("settings.modeSimpleHint") : t("settings.modeProHint")}
-        >
-          <Segmented
-            value={settings.mode}
-            onChange={(mode) => update({ mode })}
-            options={[
-              { value: "simple", label: t("settings.modeSimple") },
-              { value: "pro", label: t("settings.modePro") },
-            ]}
-          />
-        </Section>
-        {pro && (
-          <Section title={t("settings.keymap")} hint={t("settings.keymapVimHint")}>
-            <Segmented
-              value={settings.keymap}
-              onChange={(keymap) => update({ keymap })}
-              options={[
-                { value: "default", label: t("settings.keymapDefault") },
-                { value: "vim", label: t("settings.keymapVim") },
-              ]}
-            />
-          </Section>
-        )}
-        <Section title={t("notify.setting")} hint={t("notify.settingHint")}>
-          <Segmented
-            value={settings.notifications ? "on" : "off"}
-            onChange={async (value) => {
-              if (value === "on" && !(await askNotificationPermission())) return;
-              await update({ notifications: value === "on" });
-            }}
-            options={[
-              { value: "on", label: t("settings.on") },
-              { value: "off", label: t("settings.off") },
-            ]}
-          />
-        </Section>
-        <Group id="ai" />
-        <Section title={t("settings.autoSummarize")} hint={t("settings.autoSummarizeHint")}>
-          <Segmented
-            value={settings.autoSummarize ? "on" : "off"}
-            onChange={(value) => update({ autoSummarize: value === "on" })}
-            options={[
-              { value: "on", label: t("settings.on") },
-              { value: "off", label: t("settings.off") },
-            ]}
-          />
-        </Section>
-        <Section title={t("settings.richAnswers")} hint={t("settings.richAnswersHint")}>
-          <Segmented
-            value={settings.richAnswers ? "on" : "off"}
-            onChange={(value) => update({ richAnswers: value === "on" })}
-            options={[
-              { value: "on", label: t("settings.on") },
-              { value: "off", label: t("settings.off") },
-            ]}
-          />
-        </Section>
-        <Section title={t("settings.autoProjects")} hint={t("settings.autoProjectsHint")}>
-          <Segmented
-            value={settings.autoProjects ? "on" : "off"}
-            onChange={(value) => update({ autoProjects: value === "on" })}
-            options={[
-              { value: "on", label: t("settings.on") },
-              { value: "off", label: t("settings.off") },
-            ]}
-          />
-        </Section>
-        <Section title={t("settings.consultExperts")} hint={t("settings.consultExpertsHint")}>
-          <Segmented
-            value={settings.consultExperts ? "on" : "off"}
-            onChange={(value) => update({ consultExperts: value === "on" })}
-            options={[
-              { value: "on", label: t("settings.on") },
-              { value: "off", label: t("settings.off") },
-            ]}
-          />
-        </Section>
-        <Section title={t("settings.autoReview")} hint={modelTip(t("settings.autoReviewHint"))}>
-          <Segmented
-            value={settings.autoReview ? "on" : "off"}
-            onChange={(value) => update({ autoReview: value === "on" })}
-            options={[
-              { value: "on", label: t("settings.on") },
-              { value: "off", label: t("settings.off") },
-            ]}
-          />
-        </Section>
-        {pro && (
-          <Section title={t("settings.turnGate")} hint={t("settings.turnGateHint")}>
-            <Segmented
-              value={settings.turnGate}
-              onChange={(turnGate) => update({ turnGate })}
-              options={[
-                { value: "off", label: t("settings.off") },
-                { value: "check", label: t("settings.turnGateCheck") },
-                { value: "sendBack", label: t("settings.turnGateSendBack") },
-              ]}
-            />
-          </Section>
-        )}
-        {pro && (
-          <Section title={t("settings.tone")} hint={t("settings.toneHint")}>
-            <Segmented
-              value={settings.summaryTone}
-              onChange={(summaryTone) => update({ summaryTone })}
-              options={[
-                { value: "plain", label: t("settings.tonePlain") },
-                { value: "technical", label: t("settings.toneTechnical") },
-              ]}
-            />
-          </Section>
-        )}
-        <Section title={t("settings.enhance")} hint={t("settings.enhanceHint")}>
-          <div className="space-y-3">
-            <Segmented
-              value={settings.enhanceMode}
-              onChange={(enhanceMode) => update({ enhanceMode })}
-              options={(["off", "suggest", "auto"] as const).map((m) => ({
-                value: m,
-                label: t(`settings.enhance_${m}`),
-                tip: t(`settings.enhanceTip_${m}`),
-              }))}
-            />
-            <div className="flex items-center gap-3 text-xs text-fg-muted">
-              <span>{t("settings.enhanceLanguage")}</span>
-              <Segmented
-                value={settings.enhanceLanguage}
-                onChange={(enhanceLanguage) => update({ enhanceLanguage })}
-                options={[
-                  { value: "en", label: "English", tip: t("settings.enhanceLangTip_en") },
-                  { value: "user", label: t("settings.enhanceLang_user"), tip: t("settings.enhanceLangTip_user") },
-                ]}
-              />
-            </div>
-            <EnhanceSettings />
-          </div>
-        </Section>
-        {pro && (
-          <Section title={t("mcp.title")} hint={t("mcp.hint")}>
-            <McpSetup />
-          </Section>
-        )}
-        {pro && (
-          <Section title={t("bridges.title")} hint={t("bridges.hint")}>
-            <BridgesPanel />
-          </Section>
-        )}
-        {pro && (
-          <Section title={t("mcpServers.title")} hint={t("mcpServers.hint")}>
-            <McpServersPanel />
-          </Section>
-        )}
-        {pro && (
-          <Section title={t("localModel.title")} hint={t("localModel.hint")}>
-            <LocalModelPanel />
-          </Section>
-        )}
-        <Group id="privacy" />
-        <Section title={t("settings.aiMay")}>
-          <AiMay gateway={settings.privacyGateway} />
-        </Section>
-        <Section title={t("private.title")} hint={t("private.hint")}>
-          <PrivatePanel />
-        </Section>
-        <Section title={t("extension.title")} hint={t("extension.hint")}>
-          <ExtensionPanel />
-        </Section>
-        <Section title={t("network.title")} hint={t("network.hint")}>
-          <NetworkPanel />
-        </Section>
-        <Group id="data" />
-        <Section title={t("backup.title")} hint={t("backup.hint")}>
-          <BackupPanel />
-        </Section>
-        {pro && (
-          <Section title={t("move.title")} hint={t("move.hint")}>
-            <MovePanel />
-          </Section>
-        )}
-        {pro && (
-          <Section title={t("disk.title")} hint={t("disk.hint")}>
-            <DiskPanel />
-          </Section>
-        )}
-        <UpdateSection pro={pro} />
-        <Section title={t("settings.system")} hint={t("settings.systemHint")}>
-          <SystemCheck />
-        </Section>
+        <GroupIndex tab={tab} onPick={setTab} />
+        {tab === "look" && <PartLook />}
+        {tab === "ai" && <PartAi />}
+        {tab === "privacy" && <PartPrivacy />}
+        {tab === "data" && <PartData />}
+        {tab === "system" && <PartSystem />}
       </div>
     </>
   );

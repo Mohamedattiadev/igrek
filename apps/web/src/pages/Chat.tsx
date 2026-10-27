@@ -119,6 +119,8 @@ const STARTERS = [
   { key: "bugs", icon: Bug },
   { key: "tests", icon: FlaskConical },
   { key: "review", icon: Search },
+  // Writes the README when the repo has none, brings it up to date when it has one.
+  { key: "readme", icon: FileText },
   // Shown only where experts can be asked; it puts "@all" and a question in the box.
   { key: "experts", icon: UsersRound },
 ] as const;
@@ -1572,7 +1574,11 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                           key={key}
                           type="button"
                           onClick={() => {
-                            setText(key === "experts" ? t("chat.starterText_experts") : t(`chat.starter_${key}`));
+                            setText(
+                              key === "experts" || key === "readme"
+                                ? t(`chat.starterText_${key}`)
+                                : t(`chat.starter_${key}`),
+                            );
                             input.current?.focus();
                           }}
                           className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg"

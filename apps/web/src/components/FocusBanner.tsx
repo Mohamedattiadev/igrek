@@ -47,7 +47,7 @@ export function FocusBanner({ projects, onChange }: { projects: ProjectListItem[
   const pick = focusPick(active, dates);
   const rest = active.filter((p) => !pick.includes(p));
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft/40 px-3 py-2 text-[13px]">
+    <div className="flex flex-wrap items-center gap-2 bg-warning-soft/40 px-3 py-1.5 text-[13px]">
       <Crosshair size={15} className="text-warning" aria-hidden="true" />
       <span className="min-w-0 flex-1">
         {t("focus.message", { count: active.length, names: pick.map((p) => p.name).join(", ") })}

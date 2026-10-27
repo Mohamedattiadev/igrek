@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, RefreshCw, Sunrise, Volume2, VolumeX } from 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
-import { Button, Card } from "./ui";
+import { Button } from "./ui";
 
 /** The morning briefing (plan.md 11): yesterday, today, where it's stuck; can be read aloud by the browser. */
 export function BriefingCard() {
@@ -53,7 +53,8 @@ export function BriefingCard() {
   };
   const empty = briefing && !briefing.yesterday.length && !briefing.today.length && !briefing.stuck.length;
   return (
-    <Card className="p-pad">
+    // A row inside the day section, not a card of its own: the section is the frame.
+    <div className="px-3 py-2">
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -109,6 +110,6 @@ export function BriefingCard() {
         </div>
       )}
       {open && briefing === null && <p className="mt-2 text-xs text-fg-muted">{t("briefing.none")}</p>}
-    </Card>
+    </div>
   );
 }

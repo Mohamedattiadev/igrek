@@ -1,67 +1,71 @@
-import { KanbanSquare, MessagesSquare, SquareCheckBig, Users, X } from "lucide-react";
-import { useState } from "react";
+import type { TeamTimelineItem } from "@igrek/core";
+import { KanbanSquare, MessagesSquare, SquareCheckBig, Users } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Card } from "./ui";
-
-const KEY = "igrek.teamWelcome.seen";
-
-function seen(): boolean {
-  try {
-    return localStorage.getItem(KEY) === "1";
-  } catch {
-    return false;
-  }
-}
+import { api } from "../lib/api";
+import { relativeTime } from "../lib/format";
+import { useServerEvent } from "../lib/live";
 
 /**
- * The first look after joining a team (plan.md 18.3): a teammate went straight to Messages and never
- * found the shared project. Three places, one line each, until it is closed.
+ * The team on the Projects page in a few lines (plan.md 18.3, 19.7): the latest messages from
+ * teammates (who, what, when), and the three places to go. A teammate went straight to Messages and
+ * never found the shared project; a whole card for that took too much room.
  */
 export function TeamWelcome({ team }: { team: boolean }) {
   const { t } = useTranslation();
-  const [hidden, setHidden] = useState(seen);
-  if (!team || hidden) return null;
-  const close = () => {
-    try {
-      localStorage.setItem(KEY, "1");
-    } catch {
-      // Storage disabled: it shows again next time, which is harmless.
-    }
-    setHidden(true);
-  };
+  const [latest, setLatest] = useState<TeamTimelineItem[]>([]);
+  const load = useCallback(() => {
+    if (!team) return;
+    void api
+      .teamTimeline(7)
+      .then((items) => setLatest(items.filter((i) => i.kind === "message" && !i.mine).slice(0, 3)))
+      .catch(() => undefined);
+  }, [team]);
+  useEffect(load, [load]);
+  useServerEvent("chat-changed", (m) => m.writing === undefined && load());
+  if (!team) return null;
   const places = [
-    { to: "/", icon: KanbanSquare, key: "projects" },
     { to: "/chat", icon: MessagesSquare, key: "messages" },
     { to: "/mine", icon: SquareCheckBig, key: "mine" },
+    { to: "/company?tab=work", icon: KanbanSquare, key: "projects" },
   ] as const;
   return (
-    <Card className="space-y-2 p-pad">
-      <p className="flex items-center gap-2 text-[13.5px] font-semibold">
-        <Users size={15} className="text-accent" aria-hidden="true" />
-        {t("teamWelcome.title")}
-        <button
-          type="button"
-          onClick={close}
-          aria-label={t("teamWelcome.close")}
-          className="ms-auto rounded p-1 text-fg-subtle hover:bg-bg-hover hover:text-fg"
-        >
-          <X size={14} aria-hidden="true" />
-        </button>
-      </p>
-      <ul className="grid gap-2 sm:grid-cols-3">
+    <section className="rounded-ui border border-border">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-1.5">
+        <Users size={14} className="shrink-0 text-accent" aria-hidden="true" />
+        <span className="text-[13px] font-medium">{t("teamWelcome.title")}</span>
+        <span className="flex-1" />
         {places.map((p) => (
-          <li key={p.key}>
-            <Link to={p.to} className="flex h-full gap-2 rounded-ui border border-border p-2.5 hover:border-accent">
-              <p.icon size={16} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
-              <span className="text-[12.5px]">
-                <span className="block font-medium">{t(`teamWelcome.${p.key}`)}</span>
-                <span className="text-fg-muted">{t(`teamWelcome.${p.key}Hint`)}</span>
-              </span>
-            </Link>
-          </li>
+          <Link
+            key={p.key}
+            to={p.to}
+            data-tip={t(`teamWelcome.${p.key}Hint`)}
+            className="inline-flex items-center gap-1 rounded-ui px-2 py-1 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
+          >
+            <p.icon size={13} aria-hidden="true" />
+            {t(`teamWelcome.${p.key}`)}
+          </Link>
         ))}
-      </ul>
-    </Card>
+      </div>
+      {latest.length > 0 && (
+        <ul className="divide-y divide-border border-t border-border">
+          {latest.map((m) => (
+            <li key={m.id}>
+              <Link
+                to={`/chat?c=${encodeURIComponent(m.channelId ?? "")}`}
+                className="flex items-center gap-2 px-3 py-1.5 text-[12.5px] hover:bg-bg-hover"
+              >
+                <span className="shrink-0 font-semibold">{m.who}</span>
+                <span className="min-w-0 flex-1 truncate text-fg-muted">{m.title}</span>
+                <span className="shrink-0 text-[11.5px] text-fg-subtle">
+                  {m.project} · {relativeTime(m.at)}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

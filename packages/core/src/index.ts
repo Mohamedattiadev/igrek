@@ -123,10 +123,13 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   autoSummarize: true,
   shareUsage: true,
-  richAnswers: false,
+  // What AI can do by itself is on unless turned off (plan.md 19.8: "auto olabilecek ne varsa").
+  richAnswers: true,
   consultExperts: true,
   privacyGateway: true,
-  autoReview: false,
+  autoReview: true,
+  // Not this one: every folder Claude touched (home, Downloads) became a project, the clutter the
+  // Projects page was cleaned of. Found folders stay one click away instead.
   autoProjects: false,
   turnGate: "off",
   summaryTone: "plain",
@@ -529,7 +532,8 @@ export interface Approval {
   requestedAt: number;
 }
 
-export type ChatMode = "normal" | "acceptEdits" | "auto" | "plan";
+/** "full": Claude Code asks nothing (the default for a new chat, plan.md 19.8); "auto": it decides what is safe. */
+export type ChatMode = "full" | "normal" | "acceptEdits" | "auto" | "plan";
 export type ChatStatus = "idle" | "working" | "waiting" | "exited";
 
 /** Limit usage as Claude reports it (0–1), with reset times. */
