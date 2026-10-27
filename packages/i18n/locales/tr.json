@@ -31,7 +31,8 @@
     "company": "Şirket",
     "groupPinned": "Sabitlenenler",
     "pin": "{{page}} sabitle: Daha fazla kapalıyken de burada kalır",
-    "unpin": "{{page}} sabitlemesini kaldır"
+    "unpin": "{{page}} sabitlemesini kaldır",
+    "profile": "Profilim"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -1289,7 +1290,11 @@
     "editEmail": "Davet ve şifre sıfırlama için e-posta adresi",
     "addEmail": "e-posta ekle",
     "linkedBanner": "Takımın bu repoyu paylaşıyor: onların oturumlarını ve kararlarını burada görüyorsun. Seninkiler paylaşmayı açana kadar bu bilgisayarda kalır.",
-    "linkedShare": "Benimkileri de paylaş"
+    "linkedShare": "Benimkileri de paylaş",
+    "manageTitle": "Takımı yönetmek ve hesabın",
+    "manageHint": "Kişiler, roller, kurallar ve hub Şirket sayfasında; adın, şifren ve AI hesapların profilinde.",
+    "toCompany": "Şirket",
+    "toProfile": "Profilim"
   },
   "enhance": {
     "button": "Prompt'u güçlendir",
@@ -5123,7 +5128,13 @@
     "reported": "{{when}} raporladı",
     "shareTitle": "Kullanımımı takımla paylaş",
     "shareHint": "Hesaplarının adları ve planları, limitlerinin doluluğu, bu haftanın oturum ve token sayısı. Sohbetlerin, kodun ve e-posta adresin asla.",
-    "manage": "Kişiler, roller ve cihazlar Takım sayfasında"
+    "manage": "Kişiler, roller ve cihazlar Takım sayfasında",
+    "tab_overview": "Genel bakış",
+    "tab_people": "Kişiler",
+    "tab_rules": "Kurallar",
+    "tab_sharing": "Paylaşım",
+    "tab_audit": "Kayıt",
+    "tab_hub": "Hub ve anahtar"
   },
   "serverAudit": {
     "title": "Güvenlik ve sağlık",
@@ -5185,5 +5196,79 @@
     "tab_files": "Dosyalar",
     "tab_commands": "Komutlar",
     "tab_ai": "AI sohbeti"
+  },
+  "quickCmd": {
+    "title": "Sık bakılanlar",
+    "hint": "Tek tıkla sadece okuyan bir komut çalışır; çıktısı aşağıda görünür ve geçmişe yazılır. Başka bir şey için kutuya yaz.",
+    "group_system": "Sistem",
+    "group_processes": "İşlemler ve servisler",
+    "group_docker": "Docker",
+    "group_network": "Ağ ve girişler",
+    "group_updates": "Güncellemeler ve güvenlik duvarı",
+    "disk": "Disk alanı",
+    "disk_hint": "Her diskin ne kadar dolu olduğu",
+    "memory": "Bellek",
+    "memory_hint": "Kullanılan, boş ve swap",
+    "bigdirs": "En büyük klasörler",
+    "bigdirs_hint": "/ altında en çok yer kaplayanlar",
+    "uptime": "Çalışma süresi ve yük",
+    "uptime_hint": "Ne zamandır açık ve ne kadar meşgul",
+    "cpu": "En meşgul işlemler",
+    "cpu_hint": "En çok işlemci kullanan 15 işlem",
+    "ram": "En çok bellek kullananlar",
+    "ram_hint": "En çok bellek kullanan 15 işlem",
+    "failed": "Başarısız servisler",
+    "failed_hint": "Hatayla durmuş servisler",
+    "errors": "Son hatalar",
+    "errors_hint": "Sistem logundaki son 60 hata satırı",
+    "containers": "Container'lar",
+    "containers_hint": "Bütün container'lar, durumları ve portları",
+    "usage": "Container kullanımı",
+    "usage_hint": "Her container'ın şu anki işlemci ve belleği",
+    "space": "Docker alanı",
+    "space_hint": "İmajların, container'ların ve volume'ların kapladığı yer ve boşaltılabilecek olan",
+    "ports": "Dinleyen portlar",
+    "ports_hint": "Hangi program hangi portu dinliyor",
+    "logins": "Son girişler",
+    "logins_hint": "Kim, nereden, ne zaman girdi",
+    "failedLogins": "Başarısız girişler",
+    "failedLogins_hint": "Son 24 saatteki yanlış şifreler",
+    "upgradable": "Bekleyen güncellemeler",
+    "upgradable_hint": "Yeni sürümü olan paketler",
+    "firewall": "Güvenlik duvarı kuralları",
+    "firewall_hint": "ufw açık mı ve neye izin veriyor"
+  },
+  "profile": {
+    "title": "Profilim",
+    "noTeam": "Henüz bir takımda değilsin",
+    "noTeamHint": "Adın, şifren ve iki adımlı girişin takımınla birlikte tutulur. Takım sayfasından birine katıl.",
+    "connect": "Takım sayfasına git",
+    "language": "Dil",
+    "languageHint": "Igrek'in seninle konuştuğu ve özetleri yazdığı dil.",
+    "moreSettings": "Igrek'in nasıl çalıştığına dair geri kalan her şey Ayarlar'da"
+  },
+  "rules": {
+    "intro": "Takımın girişlerde ve eski verilerde ne kadar dikkatli olduğu. Bir seviye seç; her biri ne anlama geldiğini söyler. İzin verilen adresler listesi senin ayarladığın gibi kalır.",
+    "standard": "Standart",
+    "standardHint": "Bilgisayarlarına güvenen küçük bir takım için.",
+    "standardPoints": [
+      "Şifreler en az 10 karakter",
+      "İki adımlı giriş her kişinin kendi tercihi",
+      "Cihazlar girişli kalır",
+      "Paylaşılan işler biri silene kadar saklanır"
+    ],
+    "strict": "Sıkı",
+    "strictHint": "Müşteri işi, para ya da kişisel veri için.",
+    "strictPoints": [
+      "Şifreler en az 14 karakter",
+      "Herkes iki adımlı giriş kullanmak zorunda",
+      "30 gün kullanılmayan cihazın oturumu kapanır",
+      "Bir yıldan eski paylaşılan işler hub'dan silinir"
+    ],
+    "inUse": "Kullanımda",
+    "use": "{{level}} kullan",
+    "customNow": "Takımın kendi ayarlarını kullanıyor, aşağıda.",
+    "showCustom": "Her kuralı kendin ayarla",
+    "hideCustom": "Ayrı kuralları gizle"
   }
 }

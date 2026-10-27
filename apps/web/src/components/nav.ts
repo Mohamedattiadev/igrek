@@ -16,6 +16,7 @@ import {
   Server,
   Settings,
   SquareTerminal,
+  UserRound,
   Users,
   UsersRound,
   Wrench,
@@ -56,5 +57,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/ideas", label: "nav.ideas", icon: Lightbulb, group: "know" },
   // A page for building Igrek's own look: reached from Settings and the command palette, not the strip.
   { to: "/design", label: "nav.design", icon: Palette, bottom: true, proOnly: true, offStrip: true },
+  { to: "/me", label: "nav.profile", icon: UserRound, bottom: true },
   { to: "/settings", label: "nav.settings", icon: Settings, bottom: true },
 ];

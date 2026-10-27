@@ -240,7 +240,8 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   app.post("/api/mcp", (c) => {
     if (existsSync("/.dockerenv")) return c.json({ error: "Run the command on your computer, not in Docker" }, 409);
     const env = [`IGREK_PORT=${deps.publicPort}`, `IGREK_HOME=${deps.dataDir}`].flatMap((e) => ["-e", e]);
-    const result = runClaudeCli(["mcp", "add", "--scope", "user", ...env, "igrek", "--", MCP.command, ...MCP.args]);
+    // The name before the -e options: -e takes several values and would swallow "igrek" as one.
+    const result = runClaudeCli(["mcp", "add", "--scope", "user", "igrek", ...env, "--", MCP.command, ...MCP.args]);
     // The entry from before the rename would give the same tools twice.
     if (result.ok) runClaudeCli(["mcp", "remove", "--scope", "user", "godeye"]);
     // 502: Claude Code's own command failed (or is missing), not Igrek.

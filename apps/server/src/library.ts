@@ -398,7 +398,9 @@ export class Library {
         )
         .run(parts.length, title.slice(0, 300), extracted.author ?? null, extracted.publishedAt ?? null, id);
       this.setStatus(id, "embedding", 0.3);
-      await this.embedItem(id);
+      // The meaning model can be missing where its runtime does not travel (the desktop app):
+      // the item is still read and found by its words, it is not a failed read.
+      await this.embedItem(id).catch((err: Error) => this.embedder.unavailable?.(err.message));
       this.setStatus(id, "ready", 1);
     } catch (err) {
       this.setStatus(id, "failed", 0, (err as Error).message.slice(0, 400));

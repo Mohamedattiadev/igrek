@@ -142,6 +142,24 @@ describe("library", () => {
     expect((await library.search("SECRET abc")).length).toBe(0);
   });
 
+  test("when the meaning model cannot load here (the desktop app), an item is still read and found by words", async () => {
+    const reasons: string[] = [];
+    const broken: Embed = {
+      status: () => ({ state: "ready", model: "e5", sizeMb: 0 }),
+      ready: () => reasons.length === 0,
+      embed: async () => {
+        throw new Error("Cannot find package 'onnxruntime-node'");
+      },
+      unavailable: (reason) => reasons.push(reason),
+    };
+    const { library } = setup(broken);
+    const repo = library.addUrl("https://github.com/acme/tiny");
+    await library.idle();
+    expect(library.get(repo.id)).toMatchObject({ status: "ready", embedded: false });
+    expect(reasons).toEqual(["Cannot find package 'onnxruntime-node'"]);
+    expect((await library.search("routes order"))[0]?.location).toBe("docs/guide.md > Routing");
+  });
+
   test("Igrek's own texts replace themselves and lessons are for everyone", async () => {
     const embedder = new FakeEmbedder();
     const { library } = setup(embedder);

@@ -128,7 +128,7 @@ interface Policies {
   retentionDays: number;
 }
 
-export function PoliciesSection() {
+export function PoliciesSection({ onSaved }: { onSaved?: (policies: Policies) => void } = {}) {
   const { t } = useTranslation();
   const [p, setP] = useState<Policies>();
   const [saved, setSaved] = useState(false);
@@ -142,7 +142,10 @@ export function PoliciesSection() {
   const save = (next: Policies) => {
     setP(next);
     setSaved(false);
-    void api.teamSetPolicies(next).then(() => setSaved(true));
+    void api.teamSetPolicies(next).then(() => {
+      setSaved(true);
+      onSaved?.(next);
+    });
   };
   return (
     <Section title={t("policy.title")} hint={t("policy.hint")}>

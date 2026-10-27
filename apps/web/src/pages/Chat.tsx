@@ -811,16 +811,22 @@ interface PaneProps {
   autoSend?: boolean;
   /** Put another chat in this pane's place (a restart on a new model, persona or mode). */
   go: (chatId: string, draft?: string) => void;
+  /**
+   * Inside another page (a server's AI tab): fullscreen takes only this chat, so the page around it
+   * is not rebuilt and the chat does not close.
+   */
+  embedded?: boolean;
   /** Two chats side by side: open a second one, or close this one. */
   split?: () => void;
   close?: () => void;
 }
 
-function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, close }: PaneProps) {
+function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, close, embedded }: PaneProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const chat = useChat(chatId);
-  const [full, toggleFull] = useFullscreen();
+  const pane = useRef<HTMLDivElement>(null);
+  const [full, toggleFull] = useFullscreen(embedded ? pane : undefined);
   const [comments, setComments] = useState<LineComment[]>([]);
   // A button in an answer (OpenUI) asks a follow-up in this chat.
   // biome-ignore lint/correctness/useExhaustiveDependencies: one listener per chat
@@ -1450,7 +1456,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div ref={pane} className="flex h-full min-h-0 flex-col bg-bg">
       <header className="flex h-12 shrink-0 items-center gap-2 px-4">
         <BackLink
           to={info?.focus === "chief" ? "/" : info ? `/p/${info.projectId}` : "/terminals"}
@@ -1839,7 +1845,17 @@ function AiRuleNotice({
   );
 }
 
-export function ChiefChat({ chatId, draft, autoSend }: { chatId: string; draft?: string; autoSend?: boolean }) {
+export function ChiefChat({
+  chatId,
+  draft,
+  autoSend,
+  embedded,
+}: {
+  chatId: string;
+  draft?: string;
+  autoSend?: boolean;
+  embedded?: boolean;
+}) {
   const navigate = useNavigate();
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -1850,6 +1866,7 @@ export function ChiefChat({ chatId, draft, autoSend }: { chatId: string; draft?:
         primary
         draft={draft}
         autoSend={autoSend}
+        embedded={embedded}
         go={(id) => void navigate(`/c/${id}`)}
       />
     </div>

@@ -31,7 +31,8 @@
     "company": "Company",
     "groupPinned": "Pinned",
     "pin": "Pin {{page}}: it stays here when More is folded",
-    "unpin": "Unpin {{page}}"
+    "unpin": "Unpin {{page}}",
+    "profile": "My profile"
   },
   "workspace": {
     "local": "My computer",
@@ -1289,7 +1290,11 @@
     "editEmail": "Email address for invites and password resets",
     "addEmail": "add email",
     "linkedBanner": "Your team shares this repo: you see their sessions and decisions here. Yours stay on this computer until you share them.",
-    "linkedShare": "Share mine too"
+    "linkedShare": "Share mine too",
+    "manageTitle": "Running the team, and your account",
+    "manageHint": "People, roles, rules and the hub are on the Company page; your name, password and AI accounts on your profile.",
+    "toCompany": "Company",
+    "toProfile": "My profile"
   },
   "enhance": {
     "button": "Enhance prompt",
@@ -5123,7 +5128,13 @@
     "reported": "reported {{when}}",
     "shareTitle": "Share my usage with the team",
     "shareHint": "Your accounts' names and plans, how full their limits are, and this week's sessions and tokens. Never your chats, code or email address.",
-    "manage": "People, roles and devices are on the Team page"
+    "manage": "People, roles and devices are on the Team page",
+    "tab_overview": "Overview",
+    "tab_people": "People",
+    "tab_rules": "Rules",
+    "tab_sharing": "Sharing",
+    "tab_audit": "Record",
+    "tab_hub": "Hub and key"
   },
   "serverAudit": {
     "title": "Security and health",
@@ -5185,5 +5196,79 @@
     "tab_files": "Files",
     "tab_commands": "Commands",
     "tab_ai": "AI chat"
+  },
+  "quickCmd": {
+    "title": "Common checks",
+    "hint": "One click runs a command that only reads; its output shows below and it goes into the history. For anything else, type it in the box.",
+    "group_system": "System",
+    "group_processes": "Processes and services",
+    "group_docker": "Docker",
+    "group_network": "Network and sign-ins",
+    "group_updates": "Updates and firewall",
+    "disk": "Disk space",
+    "disk_hint": "How full each disk is",
+    "memory": "Memory",
+    "memory_hint": "Used, free and swap",
+    "bigdirs": "Biggest folders",
+    "bigdirs_hint": "What takes the most space on /",
+    "uptime": "Uptime and load",
+    "uptime_hint": "How long it has run and how busy it is",
+    "cpu": "Busiest processes",
+    "cpu_hint": "The 15 using the most CPU",
+    "ram": "Hungriest processes",
+    "ram_hint": "The 15 using the most memory",
+    "failed": "Failed services",
+    "failed_hint": "Services that stopped with an error",
+    "errors": "Recent errors",
+    "errors_hint": "The last 60 error lines of the system log",
+    "containers": "Containers",
+    "containers_hint": "All containers, their state and ports",
+    "usage": "Container usage",
+    "usage_hint": "CPU and memory of each container now",
+    "space": "Docker space",
+    "space_hint": "What images, containers and volumes take, and what could be freed",
+    "ports": "Listening ports",
+    "ports_hint": "Which program listens on which port",
+    "logins": "Last sign-ins",
+    "logins_hint": "Who signed in, from where, when",
+    "failedLogins": "Failed sign-ins",
+    "failedLogins_hint": "Wrong passwords in the last 24 hours",
+    "upgradable": "Waiting updates",
+    "upgradable_hint": "Packages with a newer version",
+    "firewall": "Firewall rules",
+    "firewall_hint": "Whether ufw is on and what it allows"
+  },
+  "profile": {
+    "title": "My profile",
+    "noTeam": "Not in a team yet",
+    "noTeamHint": "Your name, password and two-step sign-in live with your team. Join one on the Team page.",
+    "connect": "Go to the Team page",
+    "language": "Language",
+    "languageHint": "The language Igrek speaks to you, and writes summaries in.",
+    "moreSettings": "Everything else about how Igrek works is in Settings"
+  },
+  "rules": {
+    "intro": "How careful the team is with sign-ins and old data. Pick a level; each says what it means. The list of allowed addresses stays as you set it.",
+    "standard": "Standard",
+    "standardHint": "For a small team that trusts its computers.",
+    "standardPoints": [
+      "Passwords of at least 10 characters",
+      "Two-step sign-in is up to each person",
+      "Devices stay signed in",
+      "Shared work is kept until someone deletes it"
+    ],
+    "strict": "Strict",
+    "strictHint": "For client work, money or people's data.",
+    "strictPoints": [
+      "Passwords of at least 14 characters",
+      "Everyone must use two-step sign-in",
+      "A device unused for 30 days is signed out",
+      "Shared work older than a year is removed from the hub"
+    ],
+    "inUse": "In use",
+    "use": "Use {{level}}",
+    "customNow": "Your team uses its own settings, shown below.",
+    "showCustom": "Set each rule yourself",
+    "hideCustom": "Hide the separate rules"
   }
 }

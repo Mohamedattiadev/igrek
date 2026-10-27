@@ -28,6 +28,8 @@ export interface Embed {
   status(): EmbedderStatus;
   ready(): boolean;
   embed(texts: string[], kind: "query" | "passage"): Promise<Float32Array[]>;
+  /** The model could not load here (its runtime is missing): words only from now on. */
+  unavailable?(reason: string): void;
 }
 
 /**
@@ -104,6 +106,13 @@ export class Embedder implements Embed {
       model: EMBED_MODEL.id,
       sizeMb: EMBED_MODEL.sizeMb,
     };
+  }
+
+  /** The model's runtime could not load here: search goes on by words, and the page says why. */
+  unavailable(reason: string): void {
+    this.state = "failed";
+    this.error = reason;
+    this.onChange();
   }
 
   ready(): boolean {

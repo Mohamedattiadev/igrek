@@ -2,13 +2,16 @@ import type { Seat } from "@igrek/core";
 import { AlertTriangle, Building2, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
-import { Badge, Card, EmptyState, PageHeader, Segmented, StatusDot } from "../components/ui";
+import { Link, useSearchParams } from "react-router";
+import { useTeamPeople } from "../components/TeamAvatar";
+import { Badge, Card, Dialog, EmptyState, PageHeader, Section, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, modelName, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { useSettings } from "../lib/settings";
+import { CompanyRules } from "./company/CompanyRules";
+import { AdminPanel, RecoveryBody, Sharing } from "./Team";
 
 const FULL = 0.9;
 
@@ -108,7 +111,8 @@ function SeatRow({ seat, newest }: { seat: Seat; newest?: string }) {
  * each limit is, and their week, so whoever runs the team sees who is about to hit a limit and who
  * runs an old Igrek. Each Igrek reports itself, encrypted for the team; no chat or email is in it.
  */
-export function CompanyPage() {
+/** The overview tab: everyone's accounts, limits and week. */
+function CompanyOverview() {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
   const [seats, setSeats] = useState<Seat[]>();
@@ -132,76 +136,122 @@ export function CompanyPage() {
   const tokens = list.reduce((n, s) => n + s.week.input + s.week.output, 0);
   const full = list.filter(nearFull);
   return (
+    <div className="space-y-5">
+      {seats && seats.length === 0 ? (
+        <EmptyState icon={Building2} title={t("company.emptyTitle")} body={t("company.emptyBody")} />
+      ) : (
+        <>
+          <p className="max-w-3xl text-[13px] text-fg-muted">{t("company.intro")}</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat
+              label={t("company.people")}
+              value={String(list.length)}
+              hint={t("company.onlineNow", { count: list.filter((s) => s.online).length })}
+            />
+            <Stat
+              label={t("company.weekSessions")}
+              value={compactNumber(list.reduce((n, s) => n + s.week.sessions, 0))}
+            />
+            <Stat label={t("company.weekTokens")} value={compactNumber(tokens)} />
+            <Stat label={t("company.nearFull")} value={String(full.length)} hint={t("company.nearFullHint")} />
+          </div>
+          {full.length > 0 && (
+            <p className="flex items-center gap-2 rounded-ui border border-warning bg-warning-soft px-3 py-2 text-[13px]">
+              <AlertTriangle size={15} className="shrink-0 text-warning" aria-hidden="true" />
+              {t("company.fullWarning", { names: full.map((s) => s.name).join(", ") })}
+            </p>
+          )}
+          <Card className="overflow-x-auto p-pad">
+            <table className="w-full min-w-[720px] text-start">
+              <thead>
+                <tr className="border-b border-border text-[11px] uppercase tracking-wide text-fg-subtle">
+                  <th className="pb-2 text-start font-semibold">{t("company.person")}</th>
+                  <th className="pb-2 text-start font-semibold">{t("company.accounts")}</th>
+                  <th className="pb-2 text-start font-semibold">{t("company.thisWeek")}</th>
+                  <th className="pb-2 text-start font-semibold">{t("company.app")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {list.map((s) => (
+                  <SeatRow key={s.memberId} seat={s} newest={newest} />
+                ))}
+              </tbody>
+            </table>
+          </Card>
+          <Card className="flex flex-wrap items-center justify-between gap-3 p-pad">
+            <div className="max-w-2xl">
+              <p className="text-[13.5px] font-medium">{t("company.shareTitle")}</p>
+              <p className="text-[12.5px] text-fg-muted">{t("company.shareHint")}</p>
+            </div>
+            <Segmented
+              label={t("company.shareTitle")}
+              value={settings.shareUsage ? "on" : "off"}
+              onChange={(v) => void update({ shareUsage: v === "on" })}
+              options={[
+                { value: "on", label: t("settings.on") },
+                { value: "off", label: t("settings.off") },
+              ]}
+            />
+          </Card>
+          <p className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
+            <Users size={13} aria-hidden="true" />
+            <Link to="/team" className="text-accent hover:underline">
+              {t("company.manage")}
+            </Link>
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+const TABS = ["overview", "people", "rules", "sharing", "audit", "hub"] as const;
+const MEMBER_TABS: (typeof TABS)[number][] = ["overview", "sharing"];
+
+/**
+ * The company (plan.md, 26-27 Oct 2026): an overview for everyone; for admins also its people,
+ * its rules, what is shared, the record of what happened and the hub. One's own account is on
+ * the profile page, the day's work on the Team page.
+ */
+export function CompanyPage() {
+  const { t } = useTranslation();
+  const people = useTeamPeople();
+  const [params, setParams] = useSearchParams();
+  const [recovery, setRecovery] = useState<string>();
+  const me = people.status?.user;
+  const admin = me?.role === "admin";
+  const tabs = admin ? TABS : MEMBER_TABS;
+  const tab = tabs.find((v) => v === params.get("tab")) ?? "overview";
+  return (
     <div className="flex h-full flex-col">
       <PageHeader title={t("company.title")} />
+      {people.status?.configured && (
+        <div className="border-b border-border px-6 py-2">
+          <Segmented
+            label={t("company.title")}
+            value={tab}
+            onChange={(v) => setParams(v === "overview" ? {} : { tab: v }, { replace: true })}
+            options={tabs.map((v) => ({ value: v, label: t(`company.tab_${v}`) }))}
+          />
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-6xl space-y-5 p-4 sm:p-6">
-          {seats && seats.length === 0 ? (
-            <EmptyState icon={Building2} title={t("company.emptyTitle")} body={t("company.emptyBody")} />
-          ) : (
-            <>
-              <p className="max-w-3xl text-[13px] text-fg-muted">{t("company.intro")}</p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Stat
-                  label={t("company.people")}
-                  value={String(list.length)}
-                  hint={t("company.onlineNow", { count: list.filter((s) => s.online).length })}
-                />
-                <Stat
-                  label={t("company.weekSessions")}
-                  value={compactNumber(list.reduce((n, s) => n + s.week.sessions, 0))}
-                />
-                <Stat label={t("company.weekTokens")} value={compactNumber(tokens)} />
-                <Stat label={t("company.nearFull")} value={String(full.length)} hint={t("company.nearFullHint")} />
-              </div>
-              {full.length > 0 && (
-                <p className="flex items-center gap-2 rounded-ui border border-warning bg-warning-soft px-3 py-2 text-[13px]">
-                  <AlertTriangle size={15} className="shrink-0 text-warning" aria-hidden="true" />
-                  {t("company.fullWarning", { names: full.map((s) => s.name).join(", ") })}
-                </p>
-              )}
-              <Card className="overflow-x-auto p-pad">
-                <table className="w-full min-w-[720px] text-start">
-                  <thead>
-                    <tr className="border-b border-border text-[11px] uppercase tracking-wide text-fg-subtle">
-                      <th className="pb-2 text-start font-semibold">{t("company.person")}</th>
-                      <th className="pb-2 text-start font-semibold">{t("company.accounts")}</th>
-                      <th className="pb-2 text-start font-semibold">{t("company.thisWeek")}</th>
-                      <th className="pb-2 text-start font-semibold">{t("company.app")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {list.map((s) => (
-                      <SeatRow key={s.memberId} seat={s} newest={newest} />
-                    ))}
-                  </tbody>
-                </table>
-              </Card>
-              <Card className="flex flex-wrap items-center justify-between gap-3 p-pad">
-                <div className="max-w-2xl">
-                  <p className="text-[13.5px] font-medium">{t("company.shareTitle")}</p>
-                  <p className="text-[12.5px] text-fg-muted">{t("company.shareHint")}</p>
-                </div>
-                <Segmented
-                  label={t("company.shareTitle")}
-                  value={settings.shareUsage ? "on" : "off"}
-                  onChange={(v) => void update({ shareUsage: v === "on" })}
-                  options={[
-                    { value: "on", label: t("settings.on") },
-                    { value: "off", label: t("settings.off") },
-                  ]}
-                />
-              </Card>
-              <p className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
-                <Users size={13} aria-hidden="true" />
-                <Link to="/team" className="text-accent hover:underline">
-                  {t("company.manage")}
-                </Link>
-              </p>
-            </>
+        <div className="mx-auto max-w-6xl p-4 sm:p-6">
+          {tab === "overview" && <CompanyOverview />}
+          {tab === "rules" && <CompanyRules />}
+          {tab === "sharing" && (
+            <Section title={t("team.sharing")} hint={t("team.sharingHint")}>
+              <Sharing />
+            </Section>
+          )}
+          {me && (tab === "people" || tab === "audit" || tab === "hub") && (
+            <AdminPanel me={me.id} part={tab} onRecovery={setRecovery} />
           )}
         </div>
       </div>
+      <Dialog open={!!recovery} onClose={() => setRecovery(undefined)} label={t("team.recoveryTitle")}>
+        {recovery && <RecoveryBody value={recovery} onClose={() => setRecovery(undefined)} />}
+      </Dialog>
     </div>
   );
 }

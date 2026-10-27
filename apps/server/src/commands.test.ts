@@ -12,6 +12,8 @@ describe("server command safety", () => {
       "journalctl -u myapp --since today | grep -i error",
       "docker ps --format '{{.Names}}'",
       "docker compose logs --tail 50 api",
+      "docker system df",
+      "systemctl list-units --state=failed --no-pager",
       "systemctl status nginx",
       "git log --oneline -5",
       "cat /etc/os-release",

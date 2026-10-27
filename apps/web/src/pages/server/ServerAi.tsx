@@ -30,7 +30,7 @@ export function ServerAi({ server }: { server: ServerInfo }) {
   if (!chatId) return <LoadError error={error} onRetry={() => setAttempt((n) => n + 1)} />;
   return (
     <div className="flex h-[calc(100vh-11rem)] min-h-96 flex-col overflow-hidden rounded-ui border border-border">
-      <ChiefChat key={chatId} chatId={chatId} draft={t("serverFix.aiDraft", { name: server.name })} />
+      <ChiefChat key={chatId} chatId={chatId} embedded draft={t("serverFix.aiDraft", { name: server.name })} />
     </div>
   );
 }

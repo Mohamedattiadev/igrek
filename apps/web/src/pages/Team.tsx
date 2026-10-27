@@ -10,6 +10,7 @@ import type {
   TeamUser,
 } from "@igrek/core";
 import {
+  Building2,
   Copy,
   Download,
   Eraser,
@@ -27,6 +28,7 @@ import {
   ShieldCheck,
   Smartphone,
   Trash2,
+  UserRound,
   Users,
   UserX,
 } from "lucide-react";
@@ -41,15 +43,7 @@ import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { TodayInTeam } from "./Person";
-import {
-  AccessSection,
-  AlertsSection,
-  KeyRequestsSection,
-  MyAccountSection,
-  PoliciesSection,
-  RotateKeySection,
-  saveRecoveryFile,
-} from "./TeamSecurity";
+import { AccessSection, AlertsSection, KeyRequestsSection, RotateKeySection, saveRecoveryFile } from "./TeamSecurity";
 
 const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
 const SHARES: ShareLevel[] = ["off", "summary", "full"];
@@ -424,7 +418,7 @@ function Members({ status, presence }: { status: TeamStatus; presence: Presence[
   );
 }
 
-function Sharing() {
+export function Sharing() {
   const { t } = useTranslation();
   const [preview, setPreview] = useState<{ name: string; data: SharePreview }>();
   const [projects, setProjects] = useState<ProjectListItem[]>();
@@ -617,7 +611,19 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) => void }) {
+/**
+ * The admin's parts of the Company page (CompanyPage.tsx): people (users, devices, approvals, who
+ * sees what), the record of what happened, and the hub and its key.
+ */
+export function AdminPanel({
+  me,
+  onRecovery,
+  part,
+}: {
+  me: string;
+  onRecovery: (key: string) => void;
+  part: "people" | "audit" | "hub";
+}) {
   const { t } = useTranslation();
   const [users, setUsers] = useState<TeamUser[]>([]);
   const [devices, setDevices] = useState<TeamDevice[]>([]);
@@ -664,158 +670,164 @@ function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) 
 
   return (
     <>
-      <AlertsSection />
-      <KeyRequestsSection />
-      <Section title={t("team.users")} hint={t("team.usersHint")}>
-        <div className="mb-3 flex gap-2">
-          <Button variant="primary" icon={Plus} onClick={() => setInviting(true)}>
-            {t("team.invite")}
-          </Button>
-          <Button icon={KeyRound} onClick={() => void api.teamRecoveryKey().then((r) => setRecovery(r.key))}>
-            {t("team.showRecovery")}
-          </Button>
-          <Button variant="ghost" icon={RefreshCw} onClick={load} aria-label={t("team.refresh")} />
-          {mail && (
-            <span
-              className="ms-auto flex items-center gap-1.5 self-center text-[11px] text-fg-subtle"
-              data-tip={mail.configured ? t("team.mailFrom", { from: mail.from }) : t("team.mailOff")}
-            >
-              {mail.configured ? <MailCheck size={12} aria-hidden="true" /> : <MailX size={12} aria-hidden="true" />}
-              {mail.configured ? t("team.mailOnShort") : t("team.mailOffShort")}
-            </span>
-          )}
-        </div>
-        {error && <p className="mb-2 text-xs text-danger">{error}</p>}
-        <div className="divide-y divide-border rounded-ui border border-border">
-          {users.map((u) => (
-            <div key={u.id} className="flex flex-wrap items-center gap-2 p-2.5">
-              <div className="min-w-0 flex-1">
-                <div className={cn("text-[13px] font-medium", u.disabled && "text-fg-subtle line-through")}>
-                  {u.displayName}
-                </div>
-                <div className="font-mono text-[11px] text-fg-subtle">
-                  @{u.username}
-                  <button
-                    type="button"
-                    className="ms-2 text-fg-subtle hover:text-fg"
-                    data-tip={t("team.editEmail")}
-                    onClick={() => {
-                      const email = window.prompt(t("team.editEmail"), u.email ?? "");
-                      if (email !== null) act(api.teamUpdateUser(u.id, { email }));
-                    }}
-                  >
-                    {u.email ?? t("team.addEmail")}
-                  </button>
-                  {u.mustChangePassword && <span className="ms-2 text-warning">{t("team.pendingJoin")}</span>}
-                  {u.twoFactor && <span className="ms-2 text-success">2FA</span>}
-                </div>
-              </div>
-              <select
-                className="h-7 rounded-ui border border-border bg-bg px-2 text-xs"
-                value={u.role}
-                aria-label={t("team.role")}
-                onChange={(e) => act(api.teamUpdateUser(u.id, { role: e.target.value }))}
-              >
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {t(`team.role_${r}`)}
-                  </option>
-                ))}
-              </select>
-              {u.id !== me && (
-                <>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={LogOut}
-                    aria-label={t("team.signOutUser")}
-                    data-tip={t("team.signOutUserTip")}
-                    onClick={() =>
-                      window.confirm(t("team.signOutUserConfirm", { name: u.displayName })) &&
-                      act(api.teamSignOutUser(u.id))
-                    }
-                  />
-                  {u.twoFactor && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      icon={Smartphone}
-                      aria-label={t("team.clear2fa")}
-                      data-tip={t("team.clear2faTip")}
-                      onClick={() =>
-                        window.confirm(t("team.clear2faConfirm", { name: u.displayName })) &&
-                        act(api.teamClear2fa(u.id))
-                      }
-                    />
+      {part === "people" && (
+        <>
+          <AlertsSection />
+          <KeyRequestsSection />
+          <Section title={t("team.users")} hint={t("team.usersHint")}>
+            <div className="mb-3 flex gap-2">
+              <Button variant="primary" icon={Plus} onClick={() => setInviting(true)}>
+                {t("team.invite")}
+              </Button>
+              <Button icon={KeyRound} onClick={() => void api.teamRecoveryKey().then((r) => setRecovery(r.key))}>
+                {t("team.showRecovery")}
+              </Button>
+              <Button variant="ghost" icon={RefreshCw} onClick={load} aria-label={t("team.refresh")} />
+              {mail && (
+                <span
+                  className="ms-auto flex items-center gap-1.5 self-center text-[11px] text-fg-subtle"
+                  data-tip={mail.configured ? t("team.mailFrom", { from: mail.from }) : t("team.mailOff")}
+                >
+                  {mail.configured ? (
+                    <MailCheck size={12} aria-hidden="true" />
+                  ) : (
+                    <MailX size={12} aria-hidden="true" />
                   )}
-                  <Button
-                    size="sm"
-                    icon={KeyRound}
-                    onClick={() =>
-                      api
-                        .teamResetUser(u.id, !!u.email && !!mail?.configured)
-                        .then(setReset)
-                        .catch((e: Error) => setError(e.message))
-                    }
-                  >
-                    {t("team.resetPassword")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={UserX}
-                    onClick={() =>
-                      act(
-                        api
-                          .teamUpdateUser(u.id, { disabled: !u.disabled })
-                          .then(() => !u.disabled && suggestRotate(u.displayName)),
-                      )
-                    }
-                  >
-                    {u.disabled ? t("team.enable") : t("team.disable")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={Trash2}
-                    aria-label={t("team.remove")}
-                    onClick={() =>
-                      window.confirm(t("team.removeConfirm", { name: u.displayName })) &&
-                      act(api.teamDeleteUser(u.id).then(() => suggestRotate(u.displayName)))
-                    }
-                  />
-                </>
+                  {mail.configured ? t("team.mailOnShort") : t("team.mailOffShort")}
+                </span>
               )}
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <AccessSection users={users} />
-      <PoliciesSection />
-      <RotateKeySection onRecovery={onRecovery} />
-      <Section title={t("team.devices")} hint={t("team.devicesHint")}>
-        <div className="divide-y divide-border rounded-ui border border-border">
-          {devices.map((d) => (
-            <div key={d.id} className="flex items-center gap-3 p-2.5 text-[13px]">
-              <div className="min-w-0 flex-1">
-                <div className="truncate">
-                  {nameOf(d.userId)} · {d.name}
+            {error && <p className="mb-2 text-xs text-danger">{error}</p>}
+            <div className="divide-y divide-border rounded-ui border border-border">
+              {users.map((u) => (
+                <div key={u.id} className="flex flex-wrap items-center gap-2 p-2.5">
+                  <div className="min-w-0 flex-1">
+                    <div className={cn("text-[13px] font-medium", u.disabled && "text-fg-subtle line-through")}>
+                      {u.displayName}
+                    </div>
+                    <div className="font-mono text-[11px] text-fg-subtle">
+                      @{u.username}
+                      <button
+                        type="button"
+                        className="ms-2 text-fg-subtle hover:text-fg"
+                        data-tip={t("team.editEmail")}
+                        onClick={() => {
+                          const email = window.prompt(t("team.editEmail"), u.email ?? "");
+                          if (email !== null) act(api.teamUpdateUser(u.id, { email }));
+                        }}
+                      >
+                        {u.email ?? t("team.addEmail")}
+                      </button>
+                      {u.mustChangePassword && <span className="ms-2 text-warning">{t("team.pendingJoin")}</span>}
+                      {u.twoFactor && <span className="ms-2 text-success">2FA</span>}
+                    </div>
+                  </div>
+                  <select
+                    className="h-7 rounded-ui border border-border bg-bg px-2 text-xs"
+                    value={u.role}
+                    aria-label={t("team.role")}
+                    onChange={(e) => act(api.teamUpdateUser(u.id, { role: e.target.value }))}
+                  >
+                    {ROLES.map((r) => (
+                      <option key={r} value={r}>
+                        {t(`team.role_${r}`)}
+                      </option>
+                    ))}
+                  </select>
+                  {u.id !== me && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={LogOut}
+                        aria-label={t("team.signOutUser")}
+                        data-tip={t("team.signOutUserTip")}
+                        onClick={() =>
+                          window.confirm(t("team.signOutUserConfirm", { name: u.displayName })) &&
+                          act(api.teamSignOutUser(u.id))
+                        }
+                      />
+                      {u.twoFactor && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          icon={Smartphone}
+                          aria-label={t("team.clear2fa")}
+                          data-tip={t("team.clear2faTip")}
+                          onClick={() =>
+                            window.confirm(t("team.clear2faConfirm", { name: u.displayName })) &&
+                            act(api.teamClear2fa(u.id))
+                          }
+                        />
+                      )}
+                      <Button
+                        size="sm"
+                        icon={KeyRound}
+                        onClick={() =>
+                          api
+                            .teamResetUser(u.id, !!u.email && !!mail?.configured)
+                            .then(setReset)
+                            .catch((e: Error) => setError(e.message))
+                        }
+                      >
+                        {t("team.resetPassword")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={UserX}
+                        onClick={() =>
+                          act(
+                            api
+                              .teamUpdateUser(u.id, { disabled: !u.disabled })
+                              .then(() => !u.disabled && suggestRotate(u.displayName)),
+                          )
+                        }
+                      >
+                        {u.disabled ? t("team.enable") : t("team.disable")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={Trash2}
+                        aria-label={t("team.remove")}
+                        onClick={() =>
+                          window.confirm(t("team.removeConfirm", { name: u.displayName })) &&
+                          act(api.teamDeleteUser(u.id).then(() => suggestRotate(u.displayName)))
+                        }
+                      />
+                    </>
+                  )}
                 </div>
-                <div className="text-[11px] text-fg-subtle">
-                  {t("team.lastSeen", { when: relativeTime(d.lastSeen) })}
-                  {d.ip && <span className="ms-2 font-mono">{d.ip}</span>}
-                </div>
-              </div>
-              <Button size="sm" variant="ghost" icon={LogOut} onClick={() => act(api.teamRevokeDevice(d.id))}>
-                {t("team.signOutDevice")}
-              </Button>
+              ))}
             </div>
-          ))}
-        </div>
-      </Section>
+          </Section>
 
-      {stats && (
+          <AccessSection users={users} />
+          <Section title={t("team.devices")} hint={t("team.devicesHint")}>
+            <div className="divide-y divide-border rounded-ui border border-border">
+              {devices.map((d) => (
+                <div key={d.id} className="flex items-center gap-3 p-2.5 text-[13px]">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate">
+                      {nameOf(d.userId)} · {d.name}
+                    </div>
+                    <div className="text-[11px] text-fg-subtle">
+                      {t("team.lastSeen", { when: relativeTime(d.lastSeen) })}
+                      {d.ip && <span className="ms-2 font-mono">{d.ip}</span>}
+                    </div>
+                  </div>
+                  <Button size="sm" variant="ghost" icon={LogOut} onClick={() => act(api.teamRevokeDevice(d.id))}>
+                    {t("team.signOutDevice")}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </>
+      )}
+      {part === "hub" && <RotateKeySection onRecovery={onRecovery} />}
+      {part === "hub" && stats && (
         <Section title={t("team.hubStats")}>
           <div className="flex flex-wrap gap-6 text-[13px]">
             <Stat label={t("team.statUsers")} value={String(stats.users)} />
@@ -827,21 +839,23 @@ function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) 
         </Section>
       )}
 
-      <Section title={t("team.audit")} hint={t("team.auditHint")}>
-        <div className="max-h-72 overflow-auto rounded-ui border border-border">
-          {audit.map((a) => (
-            <div
-              key={`${a.at}-${a.action}-${a.detail ?? ""}`}
-              className="flex gap-3 border-b border-border px-2.5 py-1.5 text-xs last:border-b-0"
-            >
-              <span className="w-24 shrink-0 text-fg-subtle">{relativeTime(a.at)}</span>
-              <span className="w-28 shrink-0 truncate">{nameOf(a.userId)}</span>
-              <span className="font-mono">{a.action}</span>
-              <span className="min-w-0 flex-1 truncate text-fg-subtle">{a.detail}</span>
-            </div>
-          ))}
-        </div>
-      </Section>
+      {part === "audit" && (
+        <Section title={t("team.audit")} hint={t("team.auditHint")}>
+          <div className="max-h-72 overflow-auto rounded-ui border border-border">
+            {audit.map((a) => (
+              <div
+                key={`${a.at}-${a.action}-${a.detail ?? ""}`}
+                className="flex gap-3 border-b border-border px-2.5 py-1.5 text-xs last:border-b-0"
+              >
+                <span className="w-24 shrink-0 text-fg-subtle">{relativeTime(a.at)}</span>
+                <span className="w-28 shrink-0 truncate">{nameOf(a.userId)}</span>
+                <span className="font-mono">{a.action}</span>
+                <span className="min-w-0 flex-1 truncate text-fg-subtle">{a.detail}</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       <InviteDialog
         open={inviting}
@@ -881,7 +895,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function RecoveryBody({ value, onClose }: { value: string; onClose: () => void }) {
+export function RecoveryBody({ value, onClose }: { value: string; onClose: () => void }) {
   const { t } = useTranslation();
   // It can't be skipped: closing needs the key copied or downloaded first.
   const [kept, setKept] = useState(false);
@@ -1004,11 +1018,25 @@ export function TeamPage() {
             <Section title={t("person.today")} hint={t("person.todayHint")}>
               <TodayInTeam />
             </Section>
-            <Section title={t("team.sharing")} hint={t("team.sharingHint")}>
-              <Sharing />
+            {/* Running the team and one's own account have their own pages now. */}
+            <Section title={t("team.manageTitle")} hint={t("team.manageHint")}>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  to="/company"
+                  className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-2 text-[13px] font-medium hover:border-accent"
+                >
+                  <Building2 size={15} className="text-accent" aria-hidden="true" />
+                  {t("team.toCompany")}
+                </Link>
+                <Link
+                  to="/me"
+                  className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-2 text-[13px] font-medium hover:border-accent"
+                >
+                  <UserRound size={15} className="text-accent" aria-hidden="true" />
+                  {t("team.toProfile")}
+                </Link>
+              </div>
             </Section>
-            <MyAccountSection />
-            {status.user?.role === "admin" && <AdminPanel me={status.user.id} onRecovery={setRecovery} />}
           </div>
         )}
       </div>

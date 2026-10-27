@@ -334,7 +334,7 @@ function AddAccount({ onAdded }: { onAdded: (account: Account) => void }) {
   );
 }
 
-function AccountsSection({ accounts, reload }: { accounts: Account[]; reload: () => void }) {
+export function AccountsSection({ accounts, reload }: { accounts: Account[]; reload: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const login = async (account: Account) => navigate(`/t/${(await api.loginAccount(account.id)).id}`);

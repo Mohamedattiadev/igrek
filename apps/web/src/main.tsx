@@ -65,6 +65,7 @@ const router = createBrowserRouter([
       { path: "team", ...page(() => import("./pages/Team"), "TeamPage") },
       { path: "chat", ...page(() => import("./pages/TeamChatPage"), "TeamChatPage") },
       { path: "company", ...page(() => import("./pages/CompanyPage"), "CompanyPage") },
+      { path: "me", ...page(() => import("./pages/ProfilePage"), "ProfilePage") },
       { path: "team/:userId", ...page(() => import("./pages/Person"), "PersonPage") },
       { path: "settings", ...page(() => import("./pages/Settings"), "SettingsPage") },
       { path: "design", ...page(() => import("./pages/Design"), "DesignPage") },

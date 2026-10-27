@@ -45,7 +45,7 @@ const READ_SUBCOMMANDS: Record<string, RegExp> = {
   systemctl: /^(status|is-active|is-enabled|is-failed|list-units|list-unit-files|list-timers|show|cat)\b/,
   service: /^\S+\s+status\b/,
   docker:
-    /^(ps|logs|inspect|images|stats|top|version|info|port|diff|events|history|network\s+(ls|inspect)|volume\s+(ls|inspect)|compose\s+(ps|logs|config|ls|top|images))\b/,
+    /^(ps|logs|inspect|images|stats|top|version|info|port|diff|events|history|system\s+df|network\s+(ls|inspect)|volume\s+(ls|inspect)|compose\s+(ps|logs|config|ls|top|images))\b/,
   "docker-compose": /^(ps|logs|config|top|images)\b/,
   git: /^(status|log|diff|show|branch|remote(\s+-v)?|rev-parse|describe|tag(\s+-l)?|blame|ls-files|fetch)\b/,
   npm: /^(ls|list|view|outdated|audit(?!\s+fix)|config\s+get|-v|--version)\b/,

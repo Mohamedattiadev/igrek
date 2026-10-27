@@ -13,6 +13,7 @@ import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { deferDelete, usePendingDeletes } from "../lib/undo";
 import { PersonaChatDialog } from "./PersonaDetail";
+import { QuickCommands } from "./server/QuickCommands";
 import { ServerAi } from "./server/ServerAi";
 import { ServerContainers } from "./server/ServerContainers";
 import { ServerSecurity } from "./server/ServerSecurity";
@@ -446,6 +447,13 @@ function ServerCommands({ server }: { server: ServerInfo }) {
   useEffect(loadAudit, [server.id]);
   return (
     <>
+      <QuickCommands
+        server={server}
+        onRan={(run) => {
+          setSelected(run);
+          loadAudit();
+        }}
+      />
       <RunBox
         server={server}
         onRan={(run) => {
