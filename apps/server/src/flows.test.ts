@@ -384,6 +384,13 @@ describe("shared task board", () => {
     expect(() => board.claim(card.id, { id: "u2", name: "Kerim" })).toThrow("Mohamed already took this card");
     board.claim(card.id, null);
     expect(board.get(card.id)?.claimedBy).toBeUndefined();
+    // Mine to see on every project while I have it; a card dropped on another goes just before it.
+    board.assign(card.id, { kind: "person", id: "u1", name: "Mohamed" });
+    expect(board.mine("u1").map((x) => x.id)).toEqual([card.id]);
+    const second = board.add({ projectId, title: "Second" });
+    board.move(second.id, "todo", (board.get(card.id)?.order ?? 0) - 1);
+    expect(board.list(projectId).map((x) => x.title)).toEqual(["Second", "Rate limit the login"]);
+    board.remove(second.id);
 
     const personaCard = board.add({ projectId, title: "Fix the flaky test" });
     board.assign(personaCard.id, { kind: "persona", id: "backend", name: "Backend" });

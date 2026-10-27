@@ -21,6 +21,7 @@ import {
   RICH_BLOCKS_HINT,
   STEP_CUT,
   type TurnSpend,
+  WRITING_STYLE,
 } from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
 import { aiEnv, cleanEnv } from "./env";
@@ -269,7 +270,7 @@ function systemPrompt(
       ? `${drawing}\n\n${options.igrekMcp.hint}`
       : drawing;
   const focused = options.focus ? { reverse: REVERSE_HINT, chief: CHIEF_HINT }[options.focus] : undefined;
-  const base = [plain, focused, options.note].filter(Boolean).join("\n\n");
+  const base = [plain, focused, options.note, WRITING_STYLE].filter(Boolean).join("\n\n");
   // Only when the user keeps private details: the AI is told what the placeholders are.
   return privateDetails ? `${base}\n\n${PRIVATE_HINT}` : base;
 }

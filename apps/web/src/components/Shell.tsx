@@ -1,16 +1,35 @@
 import type { ServerMessage } from "@igrek/core";
 import { APP_VERSION } from "@igrek/core";
-import { ChevronDown, Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Search } from "lucide-react";
+import {
+  ChevronDown,
+  Download,
+  Menu,
+  Minimize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Pin,
+  PinOff,
+  Search,
+} from "lucide-react";
 import { lazy, type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet, useLocation } from "react-router";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useDesktopTray, useDesktopUpdateCheck } from "../lib/desktop";
-import { dispatchServerMessage, useApprovals, useIndexStatus, useServerEvent, useTerminals } from "../lib/live";
+import {
+  dispatchServerMessage,
+  useApprovals,
+  useIndexStatus,
+  useLiveData,
+  useServerEvent,
+  useTerminals,
+} from "../lib/live";
+import { NAV_COLORS, useNavColors } from "../lib/nav-colors";
 import { useDesktopNotifications } from "../lib/notify";
 import { runPageShortcut } from "../lib/page-actions";
 import { useSettings } from "../lib/settings";
+import { isSnoozed } from "../lib/snooze";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
 import { readZen, saveZen } from "../lib/zen";
@@ -137,15 +156,23 @@ function PinnableLink({
 function ToolStripLink({
   item,
   badge,
+  badgeTip,
+  badgeTone = "warning",
   wide,
   onPick,
 }: {
   item: NavItem;
   badge?: number;
+  /** What the count is made of, e.g. "Kerim, Ati". */
+  badgeTip?: string;
+  /** The count's colour by what is waiting: red needs an answer, blue is from people, amber the rest. */
+  badgeTone?: "danger" | "accent" | "warning";
   wide: boolean;
   onPick?: () => void;
 }) {
   const { t } = useTranslation();
+  const [colors] = useNavColors();
+  const color = colors[item.to];
   return (
     <NavLink
       to={item.to}
@@ -162,12 +189,19 @@ function ToolStripLink({
         )
       }
     >
-      <item.icon size={18} strokeWidth={1.75} className="shrink-0" />
+      <item.icon
+        size={18}
+        strokeWidth={1.75}
+        className="shrink-0"
+        style={{ color: color ? NAV_COLORS[color] : undefined }}
+      />
       {wide && <span className="min-w-0 flex-1 truncate">{t(item.label)}</span>}
       {!!badge && (
         <span
+          data-tip={badgeTip}
           className={cn(
-            "flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-on-strong",
+            "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-on-strong",
+            badgeTone === "danger" ? "bg-danger" : badgeTone === "accent" ? "bg-accent" : "bg-warning",
             !wide && "absolute -end-0.5 -top-0.5",
           )}
         >
@@ -178,20 +212,56 @@ function ToolStripLink({
   );
 }
 
-/** Unread team chat messages, for the strip's badge; read ones clear when their channel is opened. */
-function useChatUnread(): number {
-  const [unread, setUnread] = useState(0);
+/** Unread team chat messages and who wrote them, for the strip's badge; they clear when their channel is opened. */
+function useChatUnread(): { count: number; from: string[] } {
+  const [unread, setUnread] = useState<{ count: number; from: string[] }>({ count: 0, from: [] });
   const load = useCallback(
     () =>
       void api
         .chatChannels()
-        .then((list) => setUnread(list.reduce((n, c) => n + c.unread, 0)))
+        .then((list) =>
+          setUnread({
+            count: list.reduce((n, c) => n + c.unread, 0),
+            from: [...new Set(list.flatMap((c) => c.unreadFrom))],
+          }),
+        )
         .catch(() => undefined),
     [],
   );
   useEffect(load, [load]);
   useServerEvent("chat-changed", (m) => m.writing === undefined && load());
   return unread;
+}
+
+/** Messages from teammates and @mentions of me waiting in the inbox, for its badge. */
+function useInboxPeople(): { messages: number; mentions: number } {
+  const { data: messages, reload: reloadMessages } = useLiveData(() => api.teamMessages(), []);
+  const { data: notices, reload: reloadNotices } = useLiveData(() => api.inboxNotices(), []);
+  useServerEvent("chat-changed", (m) => m.writing === undefined && reloadNotices());
+  useServerEvent("team-changed", () => {
+    reloadMessages();
+    reloadNotices();
+  });
+  return {
+    messages: messages?.length ?? 0,
+    mentions: (notices ?? []).filter((n) => n.kind === "mention" && !isSnoozed(n.id)).length,
+  };
+}
+
+/** Cards given to me or taken by me and not done, on every project, for the strip's badge. */
+function useMyCards(): number {
+  const [count, setCount] = useState(0);
+  const load = useCallback(
+    () =>
+      void api
+        .myCards()
+        .then((list) => setCount(list.length))
+        .catch(() => undefined),
+    [],
+  );
+  useEffect(load, [load]);
+  useServerEvent("board-changed", load);
+  return count;
 }
 
 /** A heading over a few items when the strip is wide; a thin line between them when it is narrow. */
@@ -268,7 +338,29 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
   const waiting = useTerminals().filter((term) => term.status === "attention").length;
   const approvals = useApprovals().length;
   const unread = useChatUnread();
-  const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting + approvals, "/chat": unread };
+  const mine = useMyCards();
+  const people = useInboxPeople();
+  const badges: Record<string, number> = {
+    "/terminals": waiting,
+    "/inbox": waiting + approvals + people.messages + people.mentions,
+    "/chat": unread.count,
+    "/mine": mine,
+  };
+  const inboxParts = [
+    approvals && t("nav.inboxApprovals", { count: approvals }),
+    waiting && t("nav.inboxWaiting", { count: waiting }),
+    people.mentions && t("nav.inboxMentions", { count: people.mentions }),
+    people.messages && t("nav.inboxMessages", { count: people.messages }),
+  ].filter(Boolean);
+  const badgeTips: Record<string, string> = {
+    "/chat": t("nav.unreadFrom", { names: unread.from.join(", ") }),
+    "/inbox": inboxParts.join(", "),
+  };
+  const badgeTones: Record<string, "danger" | "accent" | "warning"> = {
+    "/inbox": approvals ? "danger" : people.messages + people.mentions ? "accent" : "warning",
+    "/chat": "accent",
+    "/mine": "accent",
+  };
   const flip = () =>
     setWide((on) => {
       try {
@@ -294,7 +386,15 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
       return !on;
     });
   const link = (item: NavItem) => (
-    <ToolStripLink key={item.to} item={item} badge={badges[item.to]} wide={wide} onPick={onClose} />
+    <ToolStripLink
+      key={item.to}
+      item={item}
+      badge={badges[item.to]}
+      badgeTip={badgeTips[item.to]}
+      badgeTone={badgeTones[item.to]}
+      wide={wide}
+      onPick={onClose}
+    />
   );
   const pinnable = (item: NavItem) => (
     <PinnableLink
@@ -362,10 +462,13 @@ function TopBar({
   onSearch,
   onToast,
   onMenu,
+  update,
 }: {
   onSearch: () => void;
   onToast: (message: string) => void;
   onMenu?: () => void;
+  /** A newer version of the desktop app, when there is one. */
+  update?: string;
 }) {
   const { t } = useTranslation();
   return (
@@ -400,7 +503,7 @@ function TopBar({
         </span>
       </button>
       <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
-        {/* No "?" here: the helper in the corner answers the same questions and opens the guide and the tour. */}
+        <UpdateChip version={update} />
         <SyncChip />
         <span data-tour="account" className="flex">
           <AccountChip />
@@ -408,8 +511,29 @@ function TopBar({
         <span data-tour="stop" className="flex">
           <StopButton onStopped={onToast} />
         </span>
+        <Helper />
       </div>
     </header>
+  );
+}
+
+/**
+ * A newer version, said where it is seen (plan.md 18.1): a system notification was easy to miss, so
+ * the top bar keeps saying it. Installing is one click in Settings, where it shows its progress; the
+ * data folder is never touched by it.
+ */
+function UpdateChip({ version }: { version?: string }) {
+  const { t } = useTranslation();
+  if (!version) return null;
+  return (
+    <Link
+      to="/settings#update"
+      data-tip={t("update.chipTip")}
+      className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-accent px-2.5 text-[12px] font-medium text-white hover:bg-accent-hover"
+    >
+      <Download size={13} aria-hidden="true" />
+      <span className="hidden sm:inline">{t("update.chip", { version })}</span>
+    </Link>
   );
 }
 
@@ -454,7 +578,7 @@ export function Shell() {
   const [drawer, setDrawer] = useState(false);
   useDesktopNotifications();
   useDesktopTray();
-  useDesktopUpdateCheck();
+  const update = useDesktopUpdateCheck();
   useEffect(() => {
     const flip = () =>
       setZen((on) => {
@@ -539,7 +663,12 @@ export function Shell() {
       )}
       <div className="flex min-w-0 flex-1 flex-col">
         {!zen && (
-          <TopBar onSearch={openPalette} onToast={setToast} onMenu={narrow ? () => setDrawer(true) : undefined} />
+          <TopBar
+            onSearch={openPalette}
+            onToast={setToast}
+            onMenu={narrow ? () => setDrawer(true) : undefined}
+            update={update}
+          />
         )}
         <LanguagePackBanner code={settings.language} />
         <main
@@ -579,8 +708,6 @@ export function Shell() {
       <Suspense fallback={null}>
         <Tour />
       </Suspense>
-      {/* A chat is already a conversation, and the button would sit on its send box. */}
-      {!zen && !location.pathname.startsWith("/c/") && <Helper />}
       <IdeaCapture onSaved={setToast} />
       {toast && (
         <div

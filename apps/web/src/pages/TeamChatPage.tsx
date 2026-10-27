@@ -1,5 +1,5 @@
 import type { ChatChannel, ChatMessage, TeamMember } from "@igrek/core";
-import { FileText, Hash, MessagesSquare, Sparkles, X } from "lucide-react";
+import { FileText, FolderKanban, Hash, KanbanSquare, MessagesSquare, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
@@ -118,6 +118,22 @@ function ChannelHeader({ channel }: { channel: ChatChannel }) {
         <span className="hidden min-w-0 flex-1 truncate text-[12.5px] text-fg-subtle sm:block">
           {channel.topic || channel.project}
         </span>
+        {/* The project and its board one click away: going Messages, Projects, the project, then
+            its board was the long way round. */}
+        <Link
+          to={`/p/${channel.projectId}`}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-ui px-2 py-1 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
+        >
+          <FolderKanban size={14} aria-hidden="true" />
+          <span className="hidden md:inline">{channel.project}</span>
+        </Link>
+        <Link
+          to={`/p/${channel.projectId}?tab=board`}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-ui px-2 py-1 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
+        >
+          <KanbanSquare size={14} aria-hidden="true" />
+          {t("teamChat.board")}
+        </Link>
         <Button
           usesModel
           size="sm"

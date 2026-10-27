@@ -20,13 +20,14 @@ import { HandoffsPanel } from "../components/Handoff";
 import { LoadError } from "../components/LoadError";
 import { StartBox } from "../components/StartBox";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
+import { TeamWelcome } from "../components/TeamWelcome";
 import { Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
 import { DayEndButton } from "../components/Writeups";
 import { ActiveDot, useSummaryText } from "../components/work";
 import { api, request } from "../lib/api";
 import { cn } from "../lib/cn";
-import { relativeTime } from "../lib/format";
+import { firstSentence, relativeTime } from "../lib/format";
 import { useIndexStatus, useLiveData } from "../lib/live";
 import { useSettings } from "../lib/settings";
 
@@ -135,14 +136,17 @@ function ProjectCard({ project, people }: { project: ProjectListItem; people: Re
         )}
       </div>
 
-      <p
-        className={cn(
-          "mt-3 line-clamp-2 flex-1 text-[13px] leading-relaxed",
-          said ? "text-fg-muted" : "text-fg-subtle",
+      <div className="mt-3 flex-1">
+        {said && (
+          <p className="text-[10.5px] font-semibold uppercase tracking-wide text-fg-subtle">{t("projects.lastWork")}</p>
         )}
-      >
-        {said ?? t("projects.noSummary")}
-      </p>
+        <p
+          title={said}
+          className={cn("line-clamp-2 text-[13px] leading-relaxed", said ? "text-fg-muted" : "text-fg-subtle")}
+        >
+          {said ? firstSentence(said) : t("projects.noSummary")}
+        </p>
+      </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px]">
         {git?.branch ? (
@@ -605,6 +609,7 @@ export function ProjectsPage() {
       ) : (
         <div className="p-6">
           <div className="mb-4 space-y-3">
+            <TeamWelcome team={!!people.status?.configured} />
             {projects && visible.length > 0 && <StartBox />}
             {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
               <Segmented

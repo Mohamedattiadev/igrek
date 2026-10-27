@@ -27,7 +27,7 @@ const TONE = { todo: "neutral", doing: "accent", review: "warning", done: "succe
 
 function linkOf(item: TeamTimelineItem): string | undefined {
   if (item.kind === "session") return `/p/${item.projectId}/s/${item.id.slice(2)}`;
-  if (item.kind === "task") return `/p/${item.projectId}?tab=board`;
+  if (item.kind === "task") return `/p/${item.projectId}?tab=board&card=${item.id.slice(2)}`;
   if (item.kind === "message" && item.channelId) return `/chat?c=${encodeURIComponent(item.channelId)}`;
   return undefined;
 }

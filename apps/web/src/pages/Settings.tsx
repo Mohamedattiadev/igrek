@@ -1,6 +1,6 @@
 import type { SystemStatus } from "@igrek/core";
 import { AlertTriangle, AppWindow, Check, CheckCircle2, Circle, Compass, Palette, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { AutostartPanel, DesktopUpdatePanel } from "../components/DesktopPanels";
@@ -19,6 +19,7 @@ import {
   NetworkPanel,
   UpdatePanel,
 } from "../components/MaintenancePanels";
+import { NavColors } from "../components/NavColors";
 import { PrivatePanel } from "../components/PrivatePanel";
 import { Badge, Button, Card, PageHeader, Section, Segmented, useModelTip } from "../components/ui";
 import { api } from "../lib/api";
@@ -165,11 +166,18 @@ function AppSection() {
 /** The desktop app updates itself for everyone; a copy from source shows its git update in Pro mode. */
 function UpdateSection({ pro }: { pro: boolean }) {
   const { t } = useTranslation();
+  // The top bar's "new version" chip links here (#update).
+  const here = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (window.location.hash === "#update") here.current?.scrollIntoView({ block: "center" });
+  }, []);
   if (inDesktopApp)
     return (
-      <Section title={t("update.title")} hint={t("desktop.updateHint")}>
-        <DesktopUpdatePanel />
-      </Section>
+      <div id="update" ref={here}>
+        <Section title={t("update.title")} hint={t("desktop.updateHint")}>
+          <DesktopUpdatePanel />
+        </Section>
+      </div>
     );
   if (!pro) return null;
   return (
@@ -265,6 +273,9 @@ export function SettingsPage() {
               { value: "notion", label: t("settings.themeNotion"), tip: t("settings.themeNotionTip") },
             ]}
           />
+        </Section>
+        <Section title={t("navColors.title")} hint={t("navColors.hint")}>
+          <NavColors />
         </Section>
         {pro && (
           <Section title={t("nav.design")} hint={t("settings.designHint")}>

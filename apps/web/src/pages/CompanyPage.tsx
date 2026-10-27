@@ -11,6 +11,7 @@ import { compactNumber, modelName, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { useSettings } from "../lib/settings";
 import { CompanyRules } from "./company/CompanyRules";
+import { CompanyWork } from "./company/CompanyWork";
 import { AdminPanel, RecoveryBody, Sharing } from "./Team";
 
 const FULL = 0.9;
@@ -111,6 +112,65 @@ function SeatRow({ seat, newest }: { seat: Seat; newest?: string }) {
  * each limit is, and their week, so whoever runs the team sees who is about to hit a limit and who
  * runs an old Igrek. Each Igrek reports itself, encrypted for the team; no chat or email is in it.
  */
+/**
+ * What an admin should look at (plan.md 18.6), beyond full limits: an AI account signed out, an
+ * old Igrek, an Igrek that has not reported for a day.
+ */
+function Watch({ seats, newest }: { seats: Seat[]; newest?: string }) {
+  const { t } = useTranslation();
+  const day = Date.now() - 86_400_000;
+  const items = seats.flatMap((s) => [
+    ...s.accounts
+      .filter((a) => !a.loggedIn)
+      .map((a) => t("company.watchSignedOut", { name: s.name, account: a.label })),
+    ...(s.version && newest && s.version !== newest
+      ? [t("company.watchOld", { name: s.name, version: s.version, newest })]
+      : []),
+    ...(s.at && s.at < day ? [t("company.watchQuiet", { name: s.name, when: relativeTime(s.at) })] : []),
+  ]);
+  return (
+    <Card>
+      <h3 className="border-b border-border px-pad py-2 text-[13px] font-semibold">{t("company.watchTitle")}</h3>
+      <ul className="divide-y divide-border text-[13px]">
+        {items.map((line) => (
+          <li key={line} className="flex items-start gap-2 px-pad py-2">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+            {line}
+          </li>
+        ))}
+        {!items.length && <li className="px-pad py-3 text-fg-subtle">{t("company.watchNone")}</li>}
+      </ul>
+    </Card>
+  );
+}
+
+/** Which AI plans the team pays for, counted, with who has each. */
+function Plans({ seats }: { seats: Seat[] }) {
+  const { t } = useTranslation();
+  const plans = new Map<string, string[]>();
+  for (const s of seats)
+    for (const a of s.accounts) {
+      const name = `${a.provider === "codex" ? "Codex" : "Claude"} ${a.plan ? a.plan.charAt(0).toUpperCase() + a.plan.slice(1) : t("company.planUnknown")}`;
+      plans.set(name, [...(plans.get(name) ?? []), s.name]);
+    }
+  return (
+    <Card>
+      <h3 className="border-b border-border px-pad py-2 text-[13px] font-semibold">{t("company.plansTitle")}</h3>
+      <ul className="divide-y divide-border text-[13px]">
+        {[...plans.entries()].map(([plan, who]) => (
+          <li key={plan} className="flex items-center gap-3 px-pad py-2">
+            <span className="font-medium">
+              {who.length} x {plan}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-end text-fg-subtle">{who.join(", ")}</span>
+          </li>
+        ))}
+        {!plans.size && <li className="px-pad py-3 text-fg-subtle">{t("company.plansNone")}</li>}
+      </ul>
+    </Card>
+  );
+}
+
 /** The overview tab: everyone's accounts, limits and week. */
 function CompanyOverview() {
   const { t } = useTranslation();
@@ -161,6 +221,10 @@ function CompanyOverview() {
               {t("company.fullWarning", { names: full.map((s) => s.name).join(", ") })}
             </p>
           )}
+          <div className="grid gap-3 md:grid-cols-2">
+            <Watch seats={list} newest={newest} />
+            <Plans seats={list} />
+          </div>
           <Card className="overflow-x-auto p-pad">
             <table className="w-full min-w-[720px] text-start">
               <thead>
@@ -205,8 +269,8 @@ function CompanyOverview() {
   );
 }
 
-const TABS = ["overview", "people", "rules", "sharing", "audit", "hub"] as const;
-const MEMBER_TABS: (typeof TABS)[number][] = ["overview", "sharing"];
+const TABS = ["overview", "work", "people", "rules", "sharing", "audit", "hub"] as const;
+const MEMBER_TABS: (typeof TABS)[number][] = ["overview", "work", "sharing"];
 
 /**
  * The company (plan.md, 26-27 Oct 2026): an overview for everyone; for admins also its people,
@@ -238,6 +302,7 @@ export function CompanyPage() {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl p-4 sm:p-6">
           {tab === "overview" && <CompanyOverview />}
+          {tab === "work" && <CompanyWork />}
           {tab === "rules" && <CompanyRules />}
           {tab === "sharing" && (
             <Section title={t("team.sharing")} hint={t("team.sharingHint")}>

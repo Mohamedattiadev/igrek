@@ -346,7 +346,10 @@ export function createHubServer(
     hub.revokeDevice(c.req.param("id"));
     return c.json({ ok: true });
   });
-  app.get("/api/admin/audit", (c) => adminOnly(c) ?? c.json(hub.auditLog()));
+  app.get(
+    "/api/admin/audit",
+    (c) => adminOnly(c) ?? c.json(hub.auditLog(Math.min(Math.max(Number(c.req.query("limit")) || 200, 1), 2000))),
+  );
   app.get("/api/admin/policies", (c) => adminOnly(c) ?? c.json(hub.policies()));
   app.put("/api/admin/policies", async (c) => {
     const denied = adminOnly(c);

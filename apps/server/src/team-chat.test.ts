@@ -134,6 +134,47 @@ describe("team chat", () => {
     expect(items[3]).toMatchObject({ who: "Kerim", title: "Fix the cart" });
   });
 
+  test("unread messages say who wrote them, and opening the channel clears the count at once", async () => {
+    const { call, sqlite, chat } = setup();
+    const id = channelId("p1", "general");
+    sqlite
+      .query(
+        `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read)
+         VALUES ('k1', 'p1', 'channel', ?, 'u-kerim', 'Kerim', 'hi', '[]', 1, 0), ('k2', 'p1', 'channel', ?, 'u-kerim', 'Kerim', 'there', '[]', 2, 0)`,
+      )
+      .run(id, id);
+    expect(chat.channels([{ id: "p1", name: "shop" }])[0]).toMatchObject({ unread: 2, unreadFrom: ["Kerim"] });
+    await call(`/api/chat/channels/${encodeURIComponent(id)}/messages`);
+    expect(chat.channels([{ id: "p1", name: "shop" }])[0]).toMatchObject({ unread: 0, unreadFrom: [] });
+  });
+
+  test("the company's work view has every card of the shared projects and this week's commits and sessions per person", async () => {
+    const { call, sqlite, board } = setup();
+    const now = Date.now();
+    board.add({ projectId: "p1", title: "Coupons", description: "", origin: "chat" });
+    sqlite
+      .query(
+        "INSERT INTO commits (project_id, hash, author, subject, at) VALUES ('p1', 'a', 'Kerim', 'one', ?), ('p1', 'b', 'Kerim', 'two', ?), ('p1', 'c', 'Kerim', 'old', 1)",
+      )
+      .run(now, now);
+    sqlite
+      .query(
+        "INSERT INTO sessions (id, project_id, tool, updated_at, author_id, author_name) VALUES ('s1', 'p1', 'claude', ?, 'u-kerim', 'Kerim'), ('s2', 'p1', 'claude', ?, NULL, NULL)",
+      )
+      .run(now, now);
+    const work = (await (await call("/api/team/work")).json()) as {
+      tasks: { title: string }[];
+      week: { who: string; commits: number; sessions: number }[];
+      me: string;
+    };
+    expect(work.tasks.map((x) => x.title)).toEqual(["Coupons"]);
+    expect(work.week).toEqual([
+      { who: "Kerim", commits: 2, sessions: 1 },
+      { who: "", commits: 0, sessions: 1 },
+    ]);
+    expect(work.me).toBe("Ati");
+  });
+
   test("@ai is noticed anywhere in a message, not inside a word or an address", () => {
     expect(asksIgrek("@ai what changed this week?")).toBe(true);
     expect(asksIgrek("can you check @Igrek")).toBe(true);

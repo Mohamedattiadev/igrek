@@ -156,7 +156,7 @@ export function MemberChat({ client, project }: { client: MemberClient; project:
   const root = thread ? inChannel.find((c) => c.id === thread) : undefined;
   const post = (text: string, parentId?: string) => client.comment(project.key, "channel", channel.id, text, parentId);
   return (
-    <div className="flex min-h-[60vh] overflow-hidden rounded-xl border border-border bg-bg">
+    <div className="flex h-[calc(100vh-12rem)] min-h-80 overflow-hidden rounded-xl border border-border bg-bg">
       <nav
         aria-label={t("teamChat.channels")}
         className="hidden w-48 shrink-0 border-e border-border bg-bg-subtle p-2 sm:block"

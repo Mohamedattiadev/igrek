@@ -42,6 +42,7 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
+import { CompanyAudit } from "./company/CompanyAudit";
 import { TodayInTeam } from "./Person";
 import { AccessSection, AlertsSection, KeyRequestsSection, RotateKeySection, saveRecoveryFile } from "./TeamSecurity";
 
@@ -461,7 +462,7 @@ export function Sharing() {
                 <label
                   key={level}
                   className={cn(
-                    "cursor-pointer rounded-ui border px-3 py-2 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent",
+                    "cursor-pointer rounded-ui border px-3 py-2 focus-within:ring-2 focus-within:ring-accent",
                     p.share === level ? "border-accent bg-accent-soft" : "border-border hover:border-border-strong",
                   )}
                 >
@@ -860,19 +861,7 @@ export function AdminPanel({
 
       {part === "audit" && (
         <Section title={t("team.audit")} hint={t("team.auditHint")}>
-          <div className="max-h-72 overflow-auto rounded-ui border border-border">
-            {audit.map((a) => (
-              <div
-                key={`${a.at}-${a.action}-${a.detail ?? ""}`}
-                className="flex gap-3 border-b border-border px-2.5 py-1.5 text-xs last:border-b-0"
-              >
-                <span className="w-24 shrink-0 text-fg-subtle">{relativeTime(a.at)}</span>
-                <span className="w-28 shrink-0 truncate">{nameOf(a.userId)}</span>
-                <span className="font-mono">{a.action}</span>
-                <span className="min-w-0 flex-1 truncate text-fg-subtle">{a.detail}</span>
-              </div>
-            ))}
-          </div>
+          <CompanyAudit entries={audit} nameOf={nameOf} />
         </Section>
       )}
 

@@ -98,10 +98,11 @@ export class Chat {
       (
         this.db
           .query(
-            `SELECT target_id, MAX(at) AS last, SUM(CASE WHEN read = 0 THEN 1 ELSE 0 END) AS unread, COUNT(*) AS n
+            `SELECT target_id, MAX(at) AS last, SUM(CASE WHEN read = 0 THEN 1 ELSE 0 END) AS unread, COUNT(*) AS n,
+               json_group_array(DISTINCT CASE WHEN read = 0 THEN author_name END) AS from_names
              FROM comments WHERE target_kind = 'channel' GROUP BY target_id`,
           )
-          .all() as { target_id: string; last: number; unread: number; n: number }[]
+          .all() as { target_id: string; last: number; unread: number; n: number; from_names: string }[]
       ).map((r) => [r.target_id, r]),
     );
     const made = this.db.query("SELECT id, project_id, name, topic FROM channels").all() as {
@@ -129,6 +130,7 @@ export class Chat {
           topic: c.topic,
           last: s?.last ?? 0,
           unread: s?.unread ?? 0,
+          unreadFrom: s ? (JSON.parse(s.from_names) as (string | null)[]).filter((n): n is string => !!n) : [],
           messages: s?.n ?? 0,
         };
       })
@@ -257,10 +259,12 @@ export class Chat {
     this.db.query("UPDATE comments SET sent = 1 WHERE id = ?").run(id);
   }
 
+  /** Opened: its count goes, and the sidebar hears of it at once. */
   markRead(channel: string): void {
-    this.db
+    const { changes } = this.db
       .query("UPDATE comments SET read = 1 WHERE target_kind = 'channel' AND target_id = ? AND read = 0")
       .run(channel);
+    if (changes > 0) this.bus.publish({ type: "chat-changed", channelId: channel });
   }
 
   /** The card a message became; the message is sent again so teammates see the link too. */
@@ -396,6 +400,32 @@ export class Chat {
       })),
     ];
     return items.sort((a, b) => b.at - a.at).slice(0, 200);
+  }
+
+  /** Commits and AI sessions per person in the shared projects since a time, for the company's work view. */
+  workSince(projectIds: string[], since: number): { who: string; commits: number; sessions: number }[] {
+    const ids = JSON.stringify(projectIds);
+    const commits = this.db
+      .query(
+        `SELECT author AS who, COUNT(*) AS n FROM commits
+         WHERE project_id IN (SELECT value FROM json_each(?)) AND at > ? GROUP BY author`,
+      )
+      .all(ids, since) as { who: string; n: number }[];
+    const sessions = this.db
+      .query(
+        `SELECT COALESCE(author_name, '') AS who, COUNT(*) AS n FROM sessions
+         WHERE project_id IN (SELECT value FROM json_each(?)) AND private = 0 AND updated_at > ? GROUP BY author_name`,
+      )
+      .all(ids, since) as { who: string; n: number }[];
+    const people = new Map<string, { who: string; commits: number; sessions: number }>();
+    const row = (who: string) => {
+      const found = people.get(who) ?? { who, commits: 0, sessions: 0 };
+      people.set(who, found);
+      return found;
+    };
+    for (const c of commits) row(c.who).commits += c.n;
+    for (const s of sessions) row(s.who).sessions += s.n;
+    return [...people.values()].sort((a, b) => b.commits + b.sessions - (a.commits + a.sessions));
   }
 
   // ---- team sync of channels (messages travel as comments) ------------------------------------

@@ -128,6 +128,11 @@ export function registerFlowRoutes(
   });
 
   // ---- the board ----------------------------------------------------------------
+  // Cards for me across projects, for the count in the sidebar; nothing before joining a team.
+  app.get("/api/board/mine", (c) => {
+    const who = me();
+    return c.json(who ? board.mine(who.id) : []);
+  });
   app.get("/api/projects/:id/board", (c) => c.json(board.list(c.req.param("id"))));
   app.post("/api/projects/:id/board", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { title?: unknown; description?: unknown; origin?: unknown };

@@ -184,6 +184,9 @@ fn window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
         .title("Igrek")
         .inner_size(1280.0, 820.0)
         .min_inner_size(720.0, 480.0)
+        // The page's own drag and drop (board cards, files onto a chat): with Tauri's handler on,
+        // the window takes the drop for itself and the page never sees it (on Windows always).
+        .disable_drag_drop_handler()
         .on_new_window(move |url, _| {
             let _ = opener.opener().open_url(url.as_str(), None::<&str>);
             NewWindowResponse::Deny

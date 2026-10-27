@@ -169,6 +169,19 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
     return c.json(chat.timeline(shared(), Date.now() - days * 86_400_000));
   });
 
+  // The company's work view: every card of the shared projects, and commits and sessions per person
+  // this week ("" is me: my own sessions carry no author here).
+  app.get("/api/team/work", (c) => {
+    const projects = shared();
+    const ids = projects.map((p) => p.id);
+    return c.json({
+      projects,
+      tasks: board.listMany(ids),
+      week: chat.workSince(ids, Date.now() - 7 * 86_400_000),
+      me: sync.identity().name ?? "",
+    });
+  });
+
   // A reaction under a message, given or taken back.
   app.post("/api/chat/messages/:id/react", async (c) => {
     const message = chat.message(c.req.param("id"));

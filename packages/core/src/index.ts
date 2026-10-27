@@ -20,6 +20,7 @@ export * from "./prompt";
 export * from "./schedules";
 export * from "./scrub";
 export * from "./testusers";
+export * from "./writing";
 
 export const APP_NAME = "Igrek";
 export const APP_VERSION = "0.1.11";

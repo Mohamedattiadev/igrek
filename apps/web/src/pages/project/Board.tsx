@@ -1,9 +1,20 @@
 import type { BoardTask, FlowRun, ProjectDetail, TaskStatus } from "@igrek/core";
-import { ArrowRight, Hand, MessageSquarePlus, Plus, Trash2, Users, Workflow } from "lucide-react";
-import { type DragEvent, useEffect, useState } from "react";
+import {
+  ArrowRight,
+  ChevronDown,
+  GripVertical,
+  Hand,
+  MessageSquarePlus,
+  Plus,
+  Trash2,
+  UserRound,
+  Users,
+  Workflow,
+} from "lucide-react";
+import { type DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router";
-import { useTeamPeople } from "../../components/TeamAvatar";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { TeamAvatar, useTeamPeople } from "../../components/TeamAvatar";
 import { Badge, Button, Card, RUN_TONE, Segmented } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
@@ -15,9 +26,60 @@ import { Roadmap } from "./Roadmap";
 
 const COLUMNS: TaskStatus[] = ["todo", "doing", "review", "done"];
 
+/** A job's request as a title: its first line of words, not a Markdown heading like "## Goal". */
+function requestTitle(request: string): string {
+  const lines = request
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return (lines.find((l) => !l.startsWith("#")) ?? lines[0] ?? "").replace(/^#+\s*/, "");
+}
+
+/** "Kerim is on it", with his face, or a clear "I'm taking this" when nobody has the card yet. */
+function Taker({ task, onError }: { task: BoardTask; onError: (message: string) => void }) {
+  const { t } = useTranslation();
+  const people = useTeamPeople();
+  const me = people.status?.user;
+  if (!people.status?.configured || !me) return null;
+  const claim = (on: boolean) => void api.claimCard(task.id, on).catch((e: Error) => onError(e.message));
+  if (!task.claimedBy)
+    return (
+      <button
+        type="button"
+        onClick={() => claim(true)}
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded-ui border border-accent bg-accent-soft py-1 text-[12px] font-medium text-accent hover:bg-accent hover:text-white"
+      >
+        <Hand size={13} aria-hidden="true" />
+        {t("board.take")}
+      </button>
+    );
+  const member = people.status.members.find((m) => m.id === task.claimedBy?.id);
+  const mine = task.claimedBy.id === me.id;
+  return (
+    <div className="flex items-center gap-1.5 rounded-ui bg-bg-subtle px-1.5 py-1 text-[12px]">
+      {member ? (
+        <TeamAvatar member={member} size={20} />
+      ) : (
+        <span className="flex size-5 items-center justify-center rounded-full bg-bg-muted text-[10px] font-semibold">
+          {task.claimedBy.name.slice(0, 1).toUpperCase()}
+        </span>
+      )}
+      <span className="min-w-0 truncate">
+        <span className="font-semibold">{mine ? t("board.you") : task.claimedBy.name}</span>{" "}
+        <span className="text-fg-muted">{t("board.onIt")}</span>
+      </span>
+      {mine && (
+        <button type="button" onClick={() => claim(false)} className="ms-auto text-[11px] text-fg-subtle hover:text-fg">
+          {t("board.release")}
+        </button>
+      )}
+    </div>
+  );
+}
+
 /**
- * Who a card is for and who took it (plan.md 4.4), shown together: "Kerim → Backend persona".
- * A card can go to a teammate or to a persona; teammates take cards so nothing is done twice.
+ * Who a card is for (plan.md 4.4): a teammate or a persona, picked from a small chip instead of a
+ * full drop-down on every card.
  */
 function CardPeople({ task, onError }: { task: BoardTask; onError: (message: string) => void }) {
   const { t } = useTranslation();
@@ -30,7 +92,6 @@ function CardPeople({ task, onError }: { task: BoardTask; onError: (message: str
       id,
     ).name;
   const team = people.status?.configured;
-  const me = people.status?.user;
   const value = task.assignee ? `${task.assignee.kind}:${task.assignee.id}` : "";
   const pick = (choice: string) => {
     const [kind, id = ""] = choice.split(":") as ["person" | "persona", string];
@@ -40,51 +101,37 @@ function CardPeople({ task, onError }: { task: BoardTask; onError: (message: str
       .catch((e: Error) => onError(e.message));
   };
   return (
-    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-fg-muted">
-      {task.claimedBy && <span className="font-medium text-fg">{task.claimedBy.name}</span>}
-      {task.claimedBy && task.assignee?.kind === "persona" && <ArrowRight size={11} aria-hidden="true" />}
-      <select
-        value={value}
-        onChange={(e) => pick(e.target.value)}
-        aria-label={t("board.assign")}
-        className="max-w-36 truncate rounded border border-border bg-bg px-1 py-0.5 text-[11px]"
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-fg-muted">
+      <label
+        className={cn(
+          "relative inline-flex max-w-36 items-center gap-1 rounded-full border px-2 py-0.5",
+          task.assignee ? "border-border text-fg" : "border-dashed border-border",
+        )}
+        data-tip={t("board.assign")}
       >
-        <option value="">{t("board.nobody")}</option>
-        {team &&
-          (people.status?.members ?? []).map((m) => (
-            <option key={m.id} value={`person:${m.id}`}>
-              {m.displayName}
+        <UserRound size={11} aria-hidden="true" />
+        <span className="truncate">{task.assignee?.name ?? t("board.nobody")}</span>
+        <select
+          value={value}
+          onChange={(e) => pick(e.target.value)}
+          aria-label={t("board.assign")}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        >
+          <option value="">{t("board.nobody")}</option>
+          {team &&
+            (people.status?.members ?? []).map((m) => (
+              <option key={m.id} value={`person:${m.id}`}>
+                {m.displayName}
+              </option>
+            ))}
+          {personas.map((p) => (
+            <option key={p.id} value={`persona:${p.id}`}>
+              {personaName(p.id)}
             </option>
           ))}
-        {personas.map((p) => (
-          <option key={p.id} value={`persona:${p.id}`}>
-            {personaName(p.id)}
-          </option>
-        ))}
-      </select>
-      {team &&
-        me &&
-        (task.claimedBy?.id === me.id ? (
-          <button
-            type="button"
-            onClick={() => void api.claimCard(task.id, false).catch((e: Error) => onError(e.message))}
-            className="text-accent hover:underline"
-          >
-            {t("board.release")}
-          </button>
-        ) : (
-          !task.claimedBy && (
-            <button
-              type="button"
-              onClick={() => void api.claimCard(task.id, true).catch((e: Error) => onError(e.message))}
-              className="inline-flex items-center gap-0.5 text-accent hover:underline"
-            >
-              <Hand size={11} aria-hidden="true" />
-              {t("board.take")}
-            </button>
-          )
-        ))}
-      {task.author && <span className="text-fg-subtle">· {t("board.from", { name: task.author })}</span>}
+        </select>
+      </label>
+      {task.author && <span className="truncate text-fg-subtle">{t("board.from", { name: task.author })}</span>}
     </div>
   );
 }
@@ -117,20 +164,59 @@ function WorkOnIt({ task, onError }: { task: BoardTask; onError: (message: strin
   );
 }
 
-function CardView({ task, run, onDragStart }: { task: BoardTask; run?: FlowRun; onDragStart: (e: DragEvent) => void }) {
+function CardView({
+  task,
+  run,
+  focused,
+  onDragStart,
+  onDropHere,
+}: {
+  task: BoardTask;
+  run?: FlowRun;
+  /** Opened from a message or "my cards": shown and marked. */
+  focused: boolean;
+  onDragStart: (e: DragEvent) => void;
+  /** A card dropped on this one goes just before it, in this column. */
+  onDropHere: (e: DragEvent) => void;
+}) {
   const { t } = useTranslation();
   const next = COLUMNS[COLUMNS.indexOf(task.status) + 1];
   const [error, setError] = useState<string>();
+  const [dragging, setDragging] = useState(false);
+  const self = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (focused) self.current?.scrollIntoView({ block: "center" });
+  }, [focused]);
   return (
     <li
+      ref={self}
       draggable
-      onDragStart={onDragStart}
-      className="group space-y-1.5 rounded-ui border border-border bg-bg p-2.5 shadow-sm"
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        setDragging(true);
+        onDragStart(e);
+      }}
+      onDragEnd={() => setDragging(false)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={onDropHere}
+      className={cn(
+        "group cursor-grab space-y-2 rounded-ui border border-border bg-bg p-2.5 shadow-sm transition-shadow hover:shadow-ui",
+        dragging && "opacity-50",
+        focused && "ring-2 ring-accent",
+      )}
       data-nav-item
       tabIndex={-1}
     >
-      <p className="text-[13px] font-medium leading-snug">{task.title}</p>
-      {task.description && <p className="line-clamp-3 text-xs text-fg-muted">{task.description}</p>}
+      <p className="flex items-start gap-1 text-[13px] font-medium leading-snug">
+        <GripVertical
+          size={13}
+          className="mt-0.5 shrink-0 text-fg-subtle opacity-0 group-hover:opacity-100"
+          aria-hidden="true"
+        />
+        <span className="min-w-0 flex-1">{task.title}</span>
+      </p>
+      {task.description && <p className="line-clamp-2 text-xs text-fg-muted">{task.description}</p>}
+      <Taker task={task} onError={setError} />
       <CardPeople task={task} onError={setError} />
       <div className="flex flex-wrap items-center gap-1.5">
         {task.origin && <Badge>{task.origin}</Badge>}
@@ -187,11 +273,32 @@ function StartRun({ projectId }: { projectId: string }) {
       .catch(() => undefined);
   }, [projectId]);
   const chosen = flows.find((f) => f.name === flow);
+  const [open, setOpen] = useState(false);
+  if (!open)
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-expanded={false}
+        className="flex w-full items-center gap-2 rounded-ui border border-dashed border-border px-pad py-2 text-start text-[13px] text-fg-muted hover:border-accent hover:text-fg"
+      >
+        <Users size={14} className="text-accent" aria-hidden="true" />
+        <span className="font-medium text-fg">{t("board.giveTeam")}</span>
+        <span className="hidden min-w-0 flex-1 truncate text-[12px] sm:block">{t("board.giveTeamHint")}</span>
+        <ChevronDown size={14} className="ms-auto" aria-hidden="true" />
+      </button>
+    );
   return (
     <Card className="space-y-2 p-pad">
-      <p className="flex items-center gap-2 text-[13px] font-semibold">
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        aria-expanded={true}
+        className="flex w-full items-center gap-2 text-start text-[13px] font-semibold"
+      >
         <Users size={14} className="text-accent" aria-hidden="true" /> {t("board.giveTeam")}
-      </p>
+        <ChevronDown size={14} className="ms-auto rotate-180 text-fg-subtle" aria-hidden="true" />
+      </button>
       <textarea
         value={request}
         onChange={(e) => setRequest(e.target.value)}
@@ -257,6 +364,7 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
   const [over, setOver] = useState<TaskStatus>();
   const [error, setError] = useState<string>();
   const [view, setView] = useState<"board" | "roadmap">("board");
+  const focus = useSearchParams()[0].get("card");
   const load = () => {
     api
       .board(project.id)
@@ -277,6 +385,19 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
     if (!id) return;
     setError(undefined);
     await api.moveCard(id, status).catch((err: Error) => setError(err.message));
+  };
+  // Dropped on a card: just before it, between it and the one above (orders are fractions).
+  const dropBefore = (target: BoardTask) => async (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOver(undefined);
+    const id = e.dataTransfer.getData("text/plain");
+    if (!id || id === target.id) return;
+    const column = tasks.filter((x) => x.status === target.status && x.id !== id);
+    const above = column[column.findIndex((x) => x.id === target.id) - 1];
+    const order = above ? (above.order + target.order) / 2 : target.order - 1;
+    setError(undefined);
+    await api.moveCard(id, target.status, order).catch((err: Error) => setError(err.message));
   };
   const looseRuns = runs.filter((r) => !r.taskId).slice(0, 5);
 
@@ -355,7 +476,9 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
                     key={task.id}
                     task={task}
                     run={runs.find((r) => r.id === task.runId)}
+                    focused={task.id === focus}
                     onDragStart={(e) => e.dataTransfer.setData("text/plain", task.id)}
+                    onDropHere={dropBefore(task)}
                   />
                 ))}
             </ul>
@@ -370,7 +493,7 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
             {looseRuns.map((r) => (
               <li key={r.id}>
                 <Link to={`/runs/${r.id}`} className="flex items-center gap-2 px-pad py-2 hover:bg-bg-hover">
-                  <span className="min-w-0 flex-1 truncate text-[13px]">{r.request.split("\n")[0]}</span>
+                  <span className="min-w-0 flex-1 truncate text-[13px]">{requestTitle(r.request)}</span>
                   <Badge tone={RUN_TONE[r.status]}>{t(`flows.status_${r.status}`)}</Badge>
                   <span className="text-[11px] text-fg-subtle">{relativeTime(r.createdAt)}</span>
                 </Link>

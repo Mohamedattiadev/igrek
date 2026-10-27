@@ -42,3 +42,16 @@ export function modelName(model: string): string {
 export function mainModel(models: Record<string, number>): string | undefined {
   return Object.entries(models).sort((a, b) => b[1] - a[1])[0]?.[0];
 }
+
+/**
+ * One whole sentence for a card: a summary cut off in the middle ("... toplam 142 gün....") said
+ * little. The full text is in the tooltip and on the project page.
+ */
+export function firstSentence(text: string): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  const end = flat.search(/[.!?](\s|$)/);
+  const sentence = end > 0 ? flat.slice(0, end + 1) : flat;
+  if (sentence.length <= 160) return sentence;
+  const cut = sentence.slice(0, 157);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 100))}...`;
+}

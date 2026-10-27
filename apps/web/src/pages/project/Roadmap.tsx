@@ -6,6 +6,7 @@ import { Link } from "react-router";
 import { Button, Card, field } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { calendarApi } from "../../lib/ops-api";
+import { TeamProgress } from "./TeamProgress";
 
 const DAY = 86_400_000;
 const WEEK = 7 * DAY;
@@ -175,6 +176,7 @@ export function Roadmap({ projectId, tasks, runs }: { projectId: string; tasks: 
           </form>
         </Card>
       </div>
+      <TeamProgress tasks={tasks} />
       <Card className="overflow-x-auto p-pad">
         <div className="min-w-[720px]">
           <div className="relative h-5 border-b border-border text-[10px] text-fg-subtle">

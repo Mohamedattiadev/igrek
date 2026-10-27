@@ -9,6 +9,7 @@ import type {
   Settings,
   SummaryText,
 } from "@igrek/core";
+import { WRITING_STYLE } from "@igrek/core";
 import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { aiEnv, cleanEnv } from "./env";
@@ -152,6 +153,13 @@ export const localModel: {
 
 const SMALL_MODELS = new Set(["haiku", "claude-haiku-4-5"]);
 
+/** The writing rules added to a job's own system prompt, or as its system prompt when it has none. */
+export function withWriting(args: string[]): string[] {
+  const at = args.indexOf("--append-system-prompt");
+  if (at < 0) return [...args, "--append-system-prompt", WRITING_STYLE];
+  return args.map((a, i) => (i === at + 1 ? `${a}\n\n${WRITING_STYLE}` : a));
+}
+
 export async function runClaude(
   prompt: string,
   cwd: string,
@@ -162,6 +170,8 @@ export async function runClaude(
   /** Pictures that go with the prompt (PNG/JPEG, base64): sent as one stream-json message. */
   images: { mediaType: string; data: string }[] = [],
 ): Promise<string> {
+  // Every small job writes for people the same way the chats do (WRITING_STYLE).
+  extraArgs = withWriting(extraArgs);
   // Small text-only jobs can go to the local model (always, or while the limit is full).
   const small =
     SMALL_MODELS.has(model) && !images.length && !extraArgs.includes("--resume") && !extraArgs.includes("--tools");

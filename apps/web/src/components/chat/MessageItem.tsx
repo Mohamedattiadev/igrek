@@ -59,7 +59,7 @@ function TaskChip({ task, projectId }: { task: NonNullable<ChatMessage["task"]>;
   const { t } = useTranslation();
   return (
     <Link
-      to={`/p/${projectId}?tab=board`}
+      to={`/p/${projectId}?tab=board&card=${task.id}`}
       className="mt-1.5 inline-flex max-w-full items-center gap-2 rounded-ui border border-border bg-bg px-2.5 py-1.5 text-[12.5px] hover:border-accent"
     >
       <SquareCheckBig size={13} className="shrink-0 text-accent" aria-hidden="true" />

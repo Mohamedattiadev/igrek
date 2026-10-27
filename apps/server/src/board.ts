@@ -81,6 +81,31 @@ export class Board {
     ).map(toTask);
   }
 
+  /** Every card of the given projects, for the company's view of who is on what. */
+  listMany(projectIds: string[]): BoardTask[] {
+    return (
+      this.db
+        .query(
+          `SELECT id, project_id, title, description, status, run_id, origin, ord, created_at, updated_at, assignee_kind, assignee_id, assignee_name, claimed_by, claimed_name, author_name, deleted FROM board_tasks
+           WHERE project_id IN (SELECT value FROM json_each(?)) AND deleted = 0 ORDER BY updated_at DESC LIMIT 2000`,
+        )
+        .all(JSON.stringify(projectIds)) as Row[]
+    ).map(toTask);
+  }
+
+  /** Cards for me, on every project: given to me or taken by me, not done yet. */
+  mine(memberId: string): BoardTask[] {
+    return (
+      this.db
+        .query(
+          `SELECT id, project_id, title, description, status, run_id, origin, ord, created_at, updated_at, assignee_kind, assignee_id, assignee_name, claimed_by, claimed_name, author_name, deleted FROM board_tasks
+           WHERE deleted = 0 AND status != 'done' AND ((assignee_kind = 'person' AND assignee_id = ?) OR claimed_by = ?)
+           ORDER BY updated_at DESC LIMIT 100`,
+        )
+        .all(memberId, memberId) as Row[]
+    ).map(toTask);
+  }
+
   get(id: string): BoardTask | undefined {
     const row = this.db
       .query(

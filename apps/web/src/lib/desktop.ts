@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -57,22 +57,26 @@ export function useDesktopTray(): void {
   }, [t]);
 }
 
-const DAY = 24 * 60 * 60 * 1000;
+const LOOK_EVERY = 4 * 60 * 60 * 1000;
 const TOLD = "igrek.update.told";
 
 /**
- * Looks for a new version when the app opens and then once a day, and says so once per version with
- * a system notification. Installing stays a click in Settings: it restarts the app.
+ * Looks for a new version when the app opens and then every few hours, says so once per version
+ * with a system notification, and gives the version to the top bar, which shows it until it is
+ * installed. Installing stays a click in Settings: it restarts the app.
  */
-export function useDesktopUpdateCheck(): void {
+export function useDesktopUpdateCheck(): string | undefined {
   const { t } = useTranslation();
+  const [found, setFound] = useState<string>();
   useEffect(() => {
     if (!inDesktopApp) return;
     let live = true;
     const look = () =>
       void desktop<string | null>("update_check")
         .then((version) => {
-          if (!live || !version || readTold() === version) return;
+          if (!live) return;
+          setFound(version ?? undefined);
+          if (!version || readTold() === version) return;
           writeTold(version);
           return desktop("notify", {
             title: t("desktop.updateNoticeTitle"),
@@ -81,12 +85,13 @@ export function useDesktopUpdateCheck(): void {
         })
         .catch(() => undefined);
     look();
-    const timer = setInterval(look, DAY);
+    const timer = setInterval(look, LOOK_EVERY);
     return () => {
       live = false;
       clearInterval(timer);
     };
   }, [t]);
+  return found;
 }
 
 function readTold(): string | null {

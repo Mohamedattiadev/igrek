@@ -580,6 +580,7 @@ export const api = {
   removeCard: (id: string) => request<{ ok: boolean }>(`/api/board/${id}`, { method: "DELETE" }),
   assignCard: (id: string, assignee: BoardTask["assignee"] | null) =>
     request<BoardTask>(`/api/board/${id}/assign`, { method: "POST", body: JSON.stringify(assignee ?? {}) }),
+  myCards: () => request<BoardTask[]>("/api/board/mine"),
   claimCard: (id: string, take: boolean) =>
     request<BoardTask>(`/api/board/${id}/claim`, { method: "POST", body: JSON.stringify({ take }) }),
   knowledge: (persona?: string) => request<KnowledgeOverview>(`/api/knowledge${persona ? `?persona=${persona}` : ""}`),
@@ -1060,6 +1061,13 @@ export const api = {
       method: "POST",
       body: "{}",
     }),
+  teamWork: () =>
+    request<{
+      projects: { id: string; name: string }[];
+      tasks: BoardTask[];
+      week: { who: string; commits: number; sessions: number }[];
+      me: string;
+    }>("/api/team/work"),
   teamTimeline: (days = 7) => request<TeamTimelineItem[]>(`/api/team/timeline?days=${days}`),
   teamMessages: () =>
     request<
@@ -1129,6 +1137,8 @@ export const api = {
   teamUsers: () => request<TeamUser[]>("/api/team/admin/users"),
   teamDevices: () => request<TeamDevice[]>("/api/team/admin/devices"),
   teamAudit: () => request<TeamAuditEntry[]>("/api/team/admin/audit"),
+  askAudit: (question: string) =>
+    request<{ answer: string }>("/api/team/admin/audit/ask", { method: "POST", body: JSON.stringify({ question }) }),
   teamStats: () =>
     request<{ users: number; events: number; bytes: number; online: number; rssMb: number }>("/api/team/admin/stats"),
   teamUpdateUser: (id: string, patch: { role?: string; disabled?: boolean; displayName?: string; email?: string }) =>

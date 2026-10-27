@@ -321,10 +321,13 @@ describe.skipIf(!ready)("the app in a browser", () => {
     expect(errors).toEqual([]);
   }, 30_000);
 
-  test("a chat page has no helper button; other pages do", async () => {
+  test("the helper button sits in the top bar on every page, a chat's too, over nothing", async () => {
     const opened = await open("light", `/c/${await chat({})}`);
     await opened.page.locator("textarea").first().waitFor();
-    expect(await opened.page.getByRole("button", { name: "Helper" }).count()).toBe(0);
+    const helper = opened.page.getByRole("button", { name: "Helper" });
+    expect(await helper.count()).toBe(1);
+    // In the top bar (44 px high), not floating over the send box at the bottom.
+    expect((await helper.boundingBox())?.y ?? 999).toBeLessThan(44);
     await opened.page.goto(`${server.url}/inbox`, { waitUntil: "networkidle" });
     expect(await opened.page.getByRole("button", { name: "Helper" }).count()).toBe(1);
     await opened.ctx.close();

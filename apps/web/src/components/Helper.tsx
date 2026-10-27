@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { api, request } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -46,7 +46,6 @@ interface Message {
 export function Helper() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [text, setText] = useState("");
@@ -247,9 +246,6 @@ export function Helper() {
 
   // On chat and terminal pages the corner holds the send button; sit higher there, and on a phone
   // stay out of the way altogether (the helper is still on every other page).
-  const raised = /^\/(c|t)\//.test(location.pathname);
-  const narrow = typeof window !== "undefined" && window.innerWidth < 768;
-  if (raised && narrow && !open) return null;
   const starters = ["continue", "newChat", "where", "tour"] as const;
 
   let panel: ReactNode = null;
@@ -259,8 +255,8 @@ export function Helper() {
         role="dialog"
         aria-label={t("helper.title")}
         className={cn(
-          "fixed end-4 z-50 flex h-[min(540px,calc(100vh-7rem))] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-border bg-bg shadow-ui",
-          raised ? "bottom-[9.5rem]" : "bottom-24",
+          // Under the top bar, where its button is: nothing on the page is covered until it is opened.
+          "fixed end-3 top-12 z-50 flex h-[min(540px,calc(100vh-5rem))] w-[min(380px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-xl border border-border bg-bg shadow-ui",
         )}
       >
         <header className="flex items-center gap-2 border-b border-border bg-bg-subtle px-3 py-2.5">
@@ -394,14 +390,13 @@ export function Helper() {
         aria-label={t("helper.title")}
         aria-expanded={open}
         data-tip={open ? undefined : t("helper.title")}
-        data-tip-side="left"
         className={cn(
-          // Quiet on purpose: help is there when wanted, not a bright button asking for attention.
-          "fixed end-4 z-50 flex size-10 items-center justify-center rounded-full border border-border bg-bg-subtle text-fg-muted shadow-ui hover:bg-bg-hover hover:text-fg print:hidden",
-          raised ? "bottom-[6rem]" : "bottom-10",
+          // In the top bar, not floating in a corner: it sat on send buttons and the last row of lists.
+          "flex size-8 shrink-0 items-center justify-center rounded-ui text-fg-muted hover:bg-bg-hover hover:text-fg print:hidden",
+          open && "bg-bg-active text-fg",
         )}
       >
-        {open ? <X size={18} aria-hidden="true" /> : <CircleHelp size={19} aria-hidden="true" />}
+        {open ? <X size={17} aria-hidden="true" /> : <CircleHelp size={17} aria-hidden="true" />}
       </button>
     </>
   );

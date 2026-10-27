@@ -10,6 +10,7 @@ import {
   type Persona,
   type RaiseState,
   type ToolResult,
+  WRITING_STYLE,
 } from "@igrek/core";
 import { parse as parseYaml } from "yaml";
 import type { Bus, StopRegistry } from "./bus";
@@ -171,7 +172,8 @@ const runAgent: AgentRun = async (args) => {
         ...(sandboxed ? { sandbox: { enabled: true, autoAllowBashIfSandboxed: false } } : {}),
       }),
       ...(model ? ["--model", model] : []),
-      ...(system ? ["--append-system-prompt", system] : []),
+      "--append-system-prompt",
+      system ? `${system}\n\n${WRITING_STYLE}` : WRITING_STYLE,
       // Unattended work never loads the project's own hooks, MCP servers or skills (plan.md 16.4).
       ...unattendedArgs(cwd),
       ...(readOnly

@@ -170,6 +170,8 @@ export interface ChatChannel {
   topic: string;
   last: number;
   unread: number;
+  /** Who wrote the unread ones, for "2 from Kerim" beside the count. */
+  unreadFrom: string[];
   messages: number;
 }
 

@@ -168,30 +168,46 @@ function BoardView({ client, project }: { client: MemberClient; project: MemberP
             {tasks
               .filter((x) => x.status === col)
               .map((task) => (
-                <Card key={task.id} className="space-y-1 p-2">
+                <Card key={task.id} className="space-y-2 p-2.5">
                   <p className="text-[13px] font-medium">{task.title}</p>
-                  <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-fg-muted">
-                    {task.claimedBy && <span className="font-medium text-fg">{task.claimedBy.name}</span>}
-                    {task.assignee && <Badge>{task.assignee.name}</Badge>}
-                    {me && me.role !== "viewer" && !task.claimedBy && (
+                  {task.claimedBy ? (
+                    <p className="flex items-center gap-1.5 rounded-ui bg-bg-subtle px-1.5 py-1 text-[12px]">
+                      <span className="flex size-5 items-center justify-center rounded-full bg-bg-muted text-[10px] font-semibold">
+                        {task.claimedBy.name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 truncate">
+                        <span className="font-semibold">
+                          {task.claimedBy.id === me?.id ? t("board.you") : task.claimedBy.name}
+                        </span>{" "}
+                        <span className="text-fg-muted">{t("board.onIt")}</span>
+                      </span>
+                      {me && task.claimedBy.id === me.id && (
+                        <button
+                          type="button"
+                          onClick={() => void take(task, false)}
+                          className="ms-auto text-[11px] text-fg-subtle hover:text-fg"
+                        >
+                          {t("board.release")}
+                        </button>
+                      )}
+                    </p>
+                  ) : (
+                    me &&
+                    me.role !== "viewer" && (
                       <button
                         type="button"
                         onClick={() => void take(task, true)}
-                        className="inline-flex items-center gap-0.5 text-accent hover:underline"
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-ui border border-accent bg-accent-soft py-1 text-[12px] font-medium text-accent hover:bg-accent hover:text-white"
                       >
-                        <Hand size={11} aria-hidden="true" /> {t("board.take")}
+                        <Hand size={13} aria-hidden="true" /> {t("board.take")}
                       </button>
-                    )}
-                    {me && task.claimedBy?.id === me.id && (
-                      <button
-                        type="button"
-                        onClick={() => void take(task, false)}
-                        className="text-accent hover:underline"
-                      >
-                        {t("board.release")}
-                      </button>
-                    )}
-                  </p>
+                    )
+                  )}
+                  {task.assignee && (
+                    <p className="text-[11px] text-fg-muted">
+                      <Badge>{task.assignee.name}</Badge>
+                    </p>
+                  )}
                 </Card>
               ))}
           </section>
