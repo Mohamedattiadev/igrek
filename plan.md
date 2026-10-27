@@ -1347,6 +1347,17 @@ god-eye/
   - [ ] Bildirim sesi ve masaüstü bildirimi (kanal başına sessize alma)
   - [ ] Hub'ın web sayfasında (Kerim'in tarayıcıdan kullandığı) tepkileri göstermek ve vermek; şimdilik sadece masaüstü uygulamasında
 
+#### 19.10 Hız ve kaynak kullanımı (28 Ekim 2026)
+- [ ] "bazen lagliyor ... cok yavas oluyor ... rust ile yazildi ya ani bi hiz olmasi lazim bunu sagla ... elinden geldigini hizli olsun az cpu ram ve kullanim" — *Not: masaüstü uygulamasının sadece kabuğu Rust (Tauri); arayüz bir web sayfası (React), işi yapan sunucu Bun. Hız oradan gelir. Sırayla:*
+  - [ ] Önce ölç: açılış süresi, sayfa geçişleri, boşta ve çalışırken CPU/RAM (sunucu, pencere, Claude süreçleri), en yavaş istekler; sonuçlar bir tabloda ve her sürümde aynı ölçümle karşılaştırılır (performans kapısı, bundle bütçesi gibi)
+  - [ ] Takılmaların kaynağını bul: sunucudan gelen olay yağmurunda (chat-changed, sessions-changed) her sayfanın tüm listeyi baştan yüklemesi; olayları birleştir (debounce), sadece değişeni güncelle
+  - [ ] Uzun listeler (sohbet geçmişi, oturumlar, denetim kaydı, akış) sadece görünen kısmı çizsin (virtualization)
+  - [ ] Arka plan işleri (dizinleme, özet, tarama, haftalık rapor, hub senkronu) kullanıcı çalışırken yavaşlasın, boştayken çalışsın; aynı anda en fazla bir ağır iş
+  - [ ] Sunucunun boştaki CPU'su ~%0, RAM'i hedefle sınırlı (ör. 150 MB); zamanlayıcıların sıklığını gözden geçir
+  - [ ] Açılış: ilk ekran daha hafif (bundle bütçesi düşürülür), veriler önbellekten hemen gösterilip arkadan tazelenir
+  - [ ] Ölçüm ağır bir işin Rust'ta daha hızlı olacağını gösterirse (ör. oturum dosyalarını okuma, dosya dizinleme) o kısım Tauri tarafına taşınır; ölçmeden taşınmaz
+  - [ ] Bitti sayılır: açılış 2 saniyenin altında, sayfa geçişi 100 ms'nin altında, boşta CPU ~%0, yazarken takılma yok
+
 **Bitti sayılır:** Sohbete bir PDF atıp içinden hesap yaptırabiliyorum, sesle mesaj yazabiliyorum; takıma bir bot ekleyip ona kart verebiliyorum; PoultryCare'in bütün servislerini bir tıkla başlatıyorum; önizlemede beğenmediğim yere yorum yazıp sonra hepsini uygulatabiliyorum; Limitler sayfası ne kadar tasarruf edildiğini gösteriyor.
 
 ---
