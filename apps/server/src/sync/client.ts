@@ -13,7 +13,7 @@ import type {
   TeamMember,
   TeamStatus,
 } from "@igrek/core";
-import { cleanAttachment, cleanPreview } from "@igrek/core";
+import { COMPANY_STREAM, cleanAttachment, cleanPreview } from "@igrek/core";
 import type { Bus } from "../bus";
 import {
   type DeviceKey,
@@ -776,6 +776,16 @@ export class Sync {
     this.bus.publish({ type: "team-changed" });
   }
 
+  /** Who is connected to the hub right now. */
+  onlineIds(): Set<string> {
+    return this.online;
+  }
+
+  /** A call to the hub as this person (the company's teams, plan.md 20.2). */
+  hub<T>(path: string, init: RequestInit = {}): Promise<T> {
+    return this.hubRequest<T>(path, init);
+  }
+
   /** Teammates active right now, with the files you both have open flagged. */
   presenceList(projectId?: string): Presence[] {
     const now = Date.now();
@@ -1010,8 +1020,46 @@ export class Sync {
       this.keyToProject.set(key, project.id);
       keys.push(key);
     }
-    const since = Object.fromEntries(keys.map((k) => [k, this.cursor("seq", k)]));
+    const since: Record<string, number> = Object.fromEntries(keys.map((k) => [k, this.cursor("seq", k)]));
+    if (this.org) {
+      // The company stream is folded in memory: it comes whole from the hub on every connect.
+      this.companyKey = await projectKey(this.idKey as TeamKey, COMPANY_STREAM);
+      this.org.reset();
+      keys.push(this.companyKey);
+      since[this.companyKey] = 0;
+      void this.org.loadStructure();
+      setTimeout(() => this.org?.caughtUp(), 3000);
+    }
     this.send({ op: "sub", projects: keys, since });
+  }
+
+  /** The company stream's opaque id, once connected. */
+  private companyKey?: string;
+
+  /** One event on the company stream (org.ts); false while the hub cannot be reached. */
+  publishOrg(kind: string, id: string, value: unknown): Promise<boolean> {
+    if (!this.connected || !this.companyKey) return Promise.resolve(false);
+    return this.publish(this.companyKey, kind, id, value);
+  }
+
+  /** The company stream's events, all of them, mine too: the state is rebuilt from them. */
+  private async applyOrg(project: string, events: WireEvent[]): Promise<void> {
+    for (const event of events) {
+      const key = this.keys.get(event.epoch ?? 0);
+      if (!key) continue;
+      try {
+        const value = await decrypt<Record<string, unknown>>(
+          key,
+          aadFor(project, event.kind, event.n, event.prev),
+          event.nonce,
+          event.data,
+        );
+        this.track(project, event);
+        this.org?.apply(event.kind, value, event.author, event.at);
+      } catch {
+        // Not made with our key, or changed on the way.
+      }
+    }
   }
 
   // ---- outgoing ----------------------------------------------------------------------
@@ -1199,6 +1247,8 @@ export class Sync {
   /** Ships whatever changed locally in shared projects since the last run. */
   async flush(): Promise<void> {
     if (this.flushing || !this.connected || !this.idKey || !this.indexKey) return;
+    // The company's words go out for everyone, viewers too (their comments, plan.md 20.6).
+    await this.org?.flush();
     if (this.config?.user.role === "viewer") return;
     this.flushing = true;
     try {
@@ -1567,8 +1617,11 @@ export class Sync {
     } else if (msg.op === "key-request" || msg.op === "alert") {
       if (msg.op === "alert") this.alerts = [msg.alert as HubAlertInfo, ...this.alerts].slice(0, 20);
       this.bus.publish({ type: "team-changed" });
+    } else if (msg.op === "org") {
+      await this.org?.loadStructure();
     } else if (msg.op === "events") {
-      if (this.direct.isRoom(String(msg.project)))
+      if (msg.project === this.companyKey) await this.applyOrg(String(msg.project), msg.events as WireEvent[]);
+      else if (this.direct.isRoom(String(msg.project)))
         await this.direct.apply(String(msg.project), msg.events as WireEvent[]);
       else await this.applyEvents(String(msg.project), msg.events as WireEvent[]);
     } else if (msg.op === "presence") {
@@ -1883,6 +1936,8 @@ export class Sync {
   budgets?: () => Record<string, import("@igrek/core").SeatBudget>;
   /** The team chat (team-chat.ts), set by the server at startup. */
   chat?: import("../team-chat").Chat;
+  /** The company: teams, cards, channels, the coordinator bot (org.ts), set by the server at startup. */
+  org?: import("../org").Org;
   /** The team chat's files, pictures and voice messages (chat-files.ts), set by the server at startup. */
   files?: import("../chat-files").ChatFiles;
   /** The lessons book (plan.md 4.4), set by the server at startup. */

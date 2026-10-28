@@ -609,7 +609,7 @@ export interface DayRecap {
 
 /** Where Igrek can send a short notice outside the app (plan.md 13.3 "bildirim köprüleri"). */
 export type BridgeKind = "telegram" | "discord" | "email";
-export const BRIDGE_EVENTS = ["down", "up", "appError", "backupFailed", "approval", "run"] as const;
+export const BRIDGE_EVENTS = ["down", "up", "appError", "backupFailed", "approval", "run", "org"] as const;
 export type BridgeEvent = (typeof BRIDGE_EVENTS)[number];
 
 export interface Bridge {

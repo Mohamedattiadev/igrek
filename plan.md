@@ -1386,60 +1386,60 @@ Bugün: hub'da tek bir "takım" var (herkes aynı yerde), roller şirket çapın
 - [x] Tasarım: masaüstüyle aynı kenar çubuğu ve düzen, koyu tema, telefonda düzgün — yapıldı: masaüstünün kenar çubuğu ve üst çubuğu, açık/koyu/sistem, telefonda açılır menü ve tek sütun sohbet; geri tuşu çalışır (#/ adresleri)
 
 #### 20.2 Şirketin yapısı: genel müdür ve takımlar
-- [ ] Şirket içinde adlı takımlar: "QA", "Backend", "Sunucular"…; her takımın açıklaması, sorumluluk alanı (projeler, sunucular) ve bir lideri. Bir kişi birden çok takımda olabilir
-- [ ] Yeni rol: genel müdür (yöneticinin üstünde ya da yanında): her şeyi görür, takım kurar, lider atar. Yönetici teknik işleri (cihaz onayı, anahtarlar) yapmaya devam eder
-- [ ] Takım ↔ proje: bir takıma proje verilince üyeleri o projeye erişir (proje erişim listeleri takımdan dolar); takımdan çıkan erişimini kaybeder
-- [ ] Takım liderinin görebildikleri: kendi takımının işi, iş yükü, haftası; atama yapabilir
+- [x] Şirket içinde adlı takımlar: "QA", "Backend", "Sunucular"…; her takımın açıklaması, sorumluluk alanı (projeler, sunucular) ve bir lideri. Bir kişi birden çok takımda olabilir — yapıldı: hub'da takımlar (ad, sorumluluk açıklaması, lider, kişiler, projeler; bir kişi birden çok takımda); sunucular açıklamada yazılır, ayrıca bağlanmadı
+- [x] Yeni rol: genel müdür (yöneticinin üstünde ya da yanında): her şeyi görür, takım kurar, lider atar. Yönetici teknik işleri (cihaz onayı, anahtarlar) yapmaya devam eder — yapıldı: kişiye "genel müdür" işareti (yönetici verir); her projeyi görür, takım kurar, lider atar; cihaz onayı ve anahtarlar yöneticide kaldı
+- [x] Takım ↔ proje: bir takıma proje verilince üyeleri o projeye erişir (proje erişim listeleri takımdan dolar); takımdan çıkan erişimini kaybeder — yapıldı: hub erişimi takımdan hesaplar (lider = yönetici rolü); takımdan çıkan anında düşer, açık bağlantısından da
+- [x] Takım liderinin görebildikleri: kendi takımının işi, iş yükü, haftası; atama yapabilir — yapıldı: Takımlar sekmesinde kişi kişi üzerindeki, geciken, bu hafta biten; lider kişi ekler/çıkarır, kart verir, bot üzerinden iş verebilir
 
 #### 20.3 Genel müdürün sayfası (Yönetim)
-- [ ] Bütün projeler tek ekranda: aşaması (nerede), ilerleme, açık ve geciken kartlar, son çalışma, sağlık skoru, risk; takım takım
-- [ ] "Özet iste": şirket, takım ya da proje için kısa özet (kendi Claude'uyla), "dün ne oldu", "bu hafta ne bitti, ne kaldı"; haftalık rapor gelen kutusuna
-- [ ] Canlı: kim şu an hangi projede ne yapıyor
-- [ ] Test edebilmek: projenin önizlemesini açıp denemek, beğenmediği yere ekran notu bırakmak (not ilgili takıma kart olur), test kullanıcılarıyla test başlatmak
-- [ ] Yorum yazmak: oturumlara, kartlara, kararlara; yazana bildirim
-- [ ] İş atamak: kişiye, takıma ya da bota; öncelik ve son tarih; panoya kart yazmak
-- [ ] Onay bekleyenler tek yerde: birleştirmeler, bütçe aşımları, takımların istekleri
-- [ ] Duyuru: bütün şirkete ya da seçilen takımlara (sadece genel müdür ve liderler yazar)
+- [x] Bütün projeler tek ekranda: aşaması (nerede), ilerleme, açık ve geciken kartlar, son çalışma, sağlık skoru, risk; takım takım — yapıldı: Şirket yönetimi > Genel bakış, takım takım proje kartları (aşama, sağlık, açık, geciken, son çalışma, şu an çalışan)
+- [x] "Özet iste": şirket, takım ya da proje için kısa özet (kendi Claude'uyla), "dün ne oldu", "bu hafta ne bitti, ne kaldı"; haftalık rapor gelen kutusuna — yapıldı: şirket/takım/proje, dün ya da bu hafta; Igrek'te kendi Claude'uyla, tarayıcıda dayandığı bilgilerle; bot her sabah, pazartesi de haftalık rapor yazar
+- [x] Canlı: kim şu an hangi projede ne yapıyor — yapıldı: Genel bakışta ve proje kartlarında
+- [ ] Test edebilmek: projenin önizlemesini açıp denemek, beğenmediği yere ekran notu bırakmak (not ilgili takıma kart olur), test kullanıcılarıyla test başlatmak — kısmen: önizleme adresini açıp not bırakmak var, not projenin takımına kart olur; test kullanıcılarıyla test başlatmak buradan yok (Igrek'in Test kullanıcıları sayfasında)
+- [ ] Yorum yazmak: oturumlara, kartlara, kararlara; yazana bildirim — kısmen: kartlara yorum (kartı tutana ve isteyene bildirim) ve oturumlara yorum var; kararlara yorum tarayıcıda yok
+- [ ] İş atamak: kişiye, takıma ya da bota; öncelik ve son tarih; panoya kart yazmak — kısmen: kişiye ya da takıma, öncelik ve son tarihle kart var; 19.2'deki takım botlarına buradan verme yok (koordinatör bota yazılabilir)
+- [ ] Onay bekleyenler tek yerde: birleştirmeler, bütçe aşımları, takımların istekleri — kısmen: incelemedekiler, takımların istekleri ve çakışan kartlar tek yerde; birleştirmeler Igrek'in Gelen kutusunda, bütçe aşımları Şirket sayfasında
+- [x] Duyuru: bütün şirkete ya da seçilen takımlara (sadece genel müdür ve liderler yazar) — yapıldı: herkese ya da seçilen takımlara, sadece genel müdür ve liderler; yazan kimin okuduğunu görür
 
 #### 20.4 Takımlar ve takımlar arası iletişim
-- [ ] Her takımın kanalı (#qa) ve projeler arası takım panosu; takıma atanan iş takımın kuyruğuna düşer, lider dağıtır ya da biri "ben alıyorum" der
-- [ ] @takım bahsetmesi (@qa): takımın herkesine bildirim
-- [ ] Takımlar arası istek: bir takım diğerine iş açar (QA → Backend "ödemede hata"), karşı takım kabul eder ya da geri çevirir, durum iki tarafta da görünür, bitince isteyene döner
-- [ ] Takımlar arası kanal ya da konu: iki takımın ortak konuşması
-- [ ] Şirket geneli kanal (#genel) ve duyurular
+- [x] Her takımın kanalı (#qa) ve projeler arası takım panosu; takıma atanan iş takımın kuyruğuna düşer, lider dağıtır ya da biri "ben alıyorum" der — yapıldı: takım kanalları, Takımlarım süzgeci, takımın kuyruğu ve "Ben alıyorum"
+- [x] @takım bahsetmesi (@qa): takımın herkesine bildirim — yapıldı: @qa takımın herkesine bildirim (Igrek'te masaüstü/Telegram, tarayıcıda bildirim)
+- [x] Takımlar arası istek: bir takım diğerine iş açar (QA → Backend "ödemede hata"), karşı takım kabul eder ya da geri çevirir, durum iki tarafta da görünür, bitince isteyene döner — yapıldı: istek kartı, kabul/geri çevirme, iki tarafta aynı durum, bitince isteyene döner (org.test.ts)
+- [x] Takımlar arası kanal ya da konu: iki takımın ortak konuşması — yapıldı: iki takımın ortak konuşması (Kanallar'da iki takım seçilir)
+- [x] Şirket geneli kanal (#genel) ve duyurular — yapıldı
 
 #### 20.5 Senaryolar (her biri uçtan uca denenecek)
-- [ ] Genel müdür sabah açar: şirketin özeti (dün ne oldu, ne gecikti, ne riskli), tıklayıp ayrıntıya iner
-- [ ] "Ödeme modülü nerede?": proje aşaması, son işler, kim çalışıyor, ne kaldı
-- [ ] Yeni iş: "Ödeme sayfası Cuma'ya bitsin" → kart, Backend takımına, son tarihli; lider bir kişiye verir; ilerleme genel müdüre görünür
-- [ ] Genel müdür önizlemede dener, butonu beğenmez, not bırakır → Frontend takımına kart olur → düzelince genel müdüre haber
-- [ ] QA hata bulur → Backend'e istek → Backend lideri atar → düzeltilir → QA'ya geri döner → QA kapatır
-- [ ] Site çöker → Sunucular takımının kanalına uyarı, genel müdüre kısa özet
-- [ ] Genel müdür duyuru yazar → bütün takımlar görür, kimin okuduğu görünür
-- [ ] Yeni çalışan katılır → bir takıma eklenir, takımın projelerine erişir, ilk bakışta takımını ve işlerini görür
-- [ ] Çalışan takım değiştirir ya da ayrılır → erişimi güncellenir, açık kartları devredilir
-- [ ] Takım lideri haftalık özetini genel müdüre gönderir
-- [ ] Bir kişi iki takımda: iki kanalı, iki kuyruğu, işleri karışmadan
-- [ ] Gizli proje: sadece bir takım görür; genel müdür görür, diğer takımlar görmez
-- [ ] Genel müdür bütçe ve limitleri görür, aşanı fark eder
-- [ ] Hepsi tarayıcıdan da (genel müdür uygulamayı kurmadan) yapılabilir
+- [x] Genel müdür sabah açar: şirketin özeti (dün ne oldu, ne gecikti, ne riskli), tıklayıp ayrıntıya iner — yapıldı: botun sabah raporu ve Özet iste; kartlara tıklayıp ayrıntı
+- [ ] "Ödeme modülü nerede?": proje aşaması, son işler, kim çalışıyor, ne kaldı — kısmen: proje kartı (aşama, son çalışma, kim çalışıyor, açıklar) ve bota soru (kartlardan cevap); serbest soru cevabı 20.9'da
+- [x] Yeni iş: "Ödeme sayfası Cuma'ya bitsin" → kart, Backend takımına, son tarihli; lider bir kişiye verir; ilerleme genel müdüre görünür — denendi: org.test.ts (bot Backend'de işi en az olana, Cuma son tarihli; bitince müdüre haber)
+- [x] Genel müdür önizlemede dener, butonu beğenmez, not bırakır → Frontend takımına kart olur → düzelince genel müdüre haber — yapıldı: not Frontend'in (projenin takımı) kuyruğuna kart olur, bitince isteyen genel müdüre haber gider
+- [x] QA hata bulur → Backend'e istek → Backend lideri atar → düzeltilir → QA'ya geri döner → QA kapatır — denendi: org.test.ts
+- [x] Site çöker → Sunucular takımının kanalına uyarı, genel müdüre kısa özet — yapıldı: izleme "çöktü" deyince bot sunucularla ilgili takımın kanalına ve genel müdüre yazar
+- [x] Genel müdür duyuru yazar → bütün takımlar görür, kimin okuduğu görünür — denendi: org.test.ts (kim okudu görünür)
+- [x] Yeni çalışan katılır → bir takıma eklenir, takımın projelerine erişir, ilk bakışta takımını ve işlerini görür — yapıldı: takıma eklenince takımın projelerine erişir; ana sayfada kartları, Şirket yönetiminde takımı görünür
+- [x] Çalışan takım değiştirir ya da ayrılır → erişimi güncellenir, açık kartları devredilir — yapıldı: erişim hub'da düşer; Takımlar'dan çıkarılınca o takımdaki açık kartları takımın kuyruğuna döner
+- [x] Takım lideri haftalık özetini genel müdüre gönderir — yapıldı: Takımlar'da liderin "haftamı gönder" düğmesi; bot da pazartesi genel müdüre şirketin haftasını yazar
+- [x] Bir kişi iki takımda: iki kanalı, iki kuyruğu, işleri karışmadan — yapıldı: iki kanal, Takımlarım'da iki kuyruk
+- [x] Gizli proje: sadece bir takım görür; genel müdür görür, diğer takımlar görmez — denendi: org.test.ts (takımın projesi diğer takıma kapalı, genel müdüre açık)
+- [x] Genel müdür bütçe ve limitleri görür, aşanı fark eder — yapıldı: Şirket sayfasında (20.1), bütçeler yöneticinin Igrek'inden şifreli gelir
+- [x] Hepsi tarayıcıdan da (genel müdür uygulamayı kurmadan) yapılabilir — yapıldı: Şirket yönetimi hub'ın web sayfasında aynı bileşenlerle; ekran görüntüleriyle kontrol edildi
 
 #### 20.6 Kurallar
-- [ ] Özel oturumlar özel kalır: genel müdür sadece paylaşılanı görür; kimin neyi gördüğü denetim kaydında
-- [ ] İzleyici rolü (ör. müşteri, danışman): okur, yorum yazabilir, iş atayamaz
-- [ ] Hepsi uçtan uca şifreli kalır; hub sadece kimin hangi takımda olduğunu bilir
+- [x] Özel oturumlar özel kalır: genel müdür sadece paylaşılanı görür; kimin neyi gördüğü denetim kaydında — yapıldı: genel müdür sadece paylaşılanı görür; açtığı projeler hub'ın denetim kaydında
+- [x] İzleyici rolü (ör. müşteri, danışman): okur, yorum yazabilir, iş atayamaz — yapıldı: hub izleyiciye sadece yorum, tepki, okundu ve şirket mesajı yazdırır; iş atayamaz
+- [x] Hepsi uçtan uca şifreli kalır; hub sadece kimin hangi takımda olduğunu bilir — yapıldı: kartlar, kanallar, duyurular şirket akışında şifreli; hub sadece takım yapısını bilir
 
 > Kullanıcı (28 Ekim 2026): "bi de hoca istese normal bi bota yaz o bot ta ilgili kisiye isi atar fln, yani biz otomize etmeye calisyoruz ne mudur yorulsun neden calisanlar cok fazla beklesin di mi, toplantilar videolu toplan meet gibi seyler de ekleyebilir randevu almak gibi sey de olabilir meetlerin transcipti ozeti notu fln filen otomatik olmasi lazim randuvular bildirimler vs herseyi olmasi lazim bunlari da eklemek lazim plana profesyonal olmasi lazim meetler share yapabileck bi tahta olacak exclidraw gibi isterlerse yazar usturne gene herkesi gorur, bi de herseyin historyisi olmasi lazim yapilan isler randevular alinan notlar hem arkaya hem ileriye donuk soru sorup ne zmn bu yapildi fln ilen diye sorabilmem bilgi edinme sansimiz olmasi lazim, cok perfomans yani hizli sornu olmaycak google meet gibi yavas ve agir olmayack bi de sync 100% sorun olmayack, her seyi detayli olark yaz sorun olmasin plana en kralini yap"
 
 #### 20.7 Koordinatör bot: müdür yazar, bot dağıtır (kimse beklemesin)
-- [ ] Şirketin bir koordinatör botu (19.2'deki botlar gibi, adı değiştirilebilir, ör. @asistan): müdür ona düz cümleyle yazar ("ödeme sayfası Cuma'ya bitsin, Kerim baksın", "QA bu hafta neyi test etti?"); sohbetten, kanaldan, tarayıcıdan, telefondan (Telegram şefi)
-- [ ] İşi anlar ve dağıtır: kartı açar, doğru takımı ve kişiyi seçer (takımların sorumluluk alanı, kişinin uzmanlığı, şu anki iş yükü, izinde olup olmadığı), son tarih ve öncelik koyar; neden o kişiyi seçtiğini bir cümleyle yazar; müdür isterse değiştirir
-- [ ] Belirsizse sorar (tek soru): "Backend'e mi, Frontend'e mi?"; kesinse sormadan yapar ve müdüre "yaptım" der
-- [ ] Takip eder, müdür hatırlatmak zorunda kalmaz: kart başlamazsa kişiye hatırlatır, son tarih yaklaşınca ve geçince lidere sonra müdüre bildirir, kart bitince işi verene haber verir
-- [ ] İş beklemesin: kişi takılırsa ("onay bekliyor", "bilgi lazım") bot ilgili kişiyi bulup sorar; cevap gelince işe döner
-- [ ] Rapor: müdüre her sabah tek mesaj (dün biten, bugün süren, geciken, onay bekleyen); isterse saatini ve sıklığını seçer
-- [ ] Kurallar: bot sadece müdürün ve liderlerin verdiği yetkiyle atar; kimin ne atadığı denetim kaydında; kod birleştirme yine insanın onayıyla
-- [ ] Senaryolar: (a) müdür "@asistan Cuma'ya ödeme sayfası" yazar → Backend'de bir kişiye kart, son tarih Cuma, müdüre "Kerim'e verdim, iş yükü en az o" → Çarşamba yarısı yapılmadıysa Kerim'e ve lidere hatırlatma → bitince müdüre haber. (b) önizlemede müdürün notu → bot notu Frontend'e kart yapar → düzelince müdüre ekran görüntüsüyle haber. (c) QA'nın hata kartı → bot Backend'de boşta olan kişiye verir. (d) "geçen hafta ne bitti?" → bot geçmişten cevaplar (20.9)
+- [x] Şirketin bir koordinatör botu (19.2'deki botlar gibi, adı değiştirilebilir, ör. @asistan): müdür ona düz cümleyle yazar ("ödeme sayfası Cuma'ya bitsin, Kerim baksın", "QA bu hafta neyi test etti?"); sohbetten, kanaldan, tarayıcıdan, telefondan (Telegram şefi) — yapıldı: adı ve @adı değişir; sohbetten, kanaldan, tarayıcıdan ve Telegram'dan ("@asistan ...") yazılır; bir yöneticinin ya da liderin Igrek'inde çalışır
+- [x] İşi anlar ve dağıtır: kartı açar, doğru takımı ve kişiyi seçer (takımların sorumluluk alanı, kişinin uzmanlığı, şu anki iş yükü, izinde olup olmadığı), son tarih ve öncelik koyar; neden o kişiyi seçtiğini bir cümleyle yazar; müdür isterse değiştirir — yapıldı: kartı açar, takımı sorumluluk açıklamasından, kişiyi iş yükü ve izinden seçer, nedenini bir cümleyle yazar; müdür kartta değiştirebilir
+- [x] Belirsizse sorar (tek soru): "Backend'e mi, Frontend'e mi?"; kesinse sormadan yapar ve müdüre "yaptım" der — yapıldı
+- [x] Takip eder, müdür hatırlatmak zorunda kalmaz: kart başlamazsa kişiye hatırlatır, son tarih yaklaşınca ve geçince lidere sonra müdüre bildirir, kart bitince işi verene haber verir — yapıldı: başlamazsa kişiye, yaklaşınca kişiye ve lidere, geçince lidere ve müdüre, bitince isteyene; her biri bir kez
+- [x] İş beklemesin: kişi takılırsa ("onay bekliyor", "bilgi lazım") bot ilgili kişiyi bulup sorar; cevap gelince işe döner — yapıldı: kartta "bekliyor" (kimi, ne için); 4 saat sonra bot o kişiye sorar
+- [x] Rapor: müdüre her sabah tek mesaj (dün biten, bugün süren, geciken, onay bekleyen); isterse saatini ve sıklığını seçer — yapıldı: saati seçilir ya da kapatılır; pazartesi haftalık da
+- [x] Kurallar: bot sadece müdürün ve liderlerin verdiği yetkiyle atar; kimin ne atadığı denetim kaydında; kod birleştirme yine insanın onayıyla — yapıldı: bot sadece genel müdür, yönetici ve liderlerin yazdığını iş yapar, diğerine "yapamam" der; kimin ne verdiği kartın geçmişinde; birleştirme yine insanda
+- [ ] Senaryolar: (a) müdür "@asistan Cuma'ya ödeme sayfası" yazar → Backend'de bir kişiye kart, son tarih Cuma, müdüre "Kerim'e verdim, iş yükü en az o" → Çarşamba yarısı yapılmadıysa Kerim'e ve lidere hatırlatma → bitince müdüre haber. (b) önizlemede müdürün notu → bot notu Frontend'e kart yapar → düzelince müdüre ekran görüntüsüyle haber. (c) QA'nın hata kartı → bot Backend'de boşta olan kişiye verir. (d) "geçen hafta ne bitti?" → bot geçmişten cevaplar (20.9) — kısmen: (a), (c), (d) ve (b)'nin kart kısmı test olarak yazıldı (coordinator.test.ts, org.test.ts); (b)'de düzelince ekran görüntüsü gönderme yok
 
 #### 20.8 Toplantılar: görüntülü görüşme, takvim ve randevu, tahta, otomatik not
 - [ ] Görüntülü ve sesli toplantı, uygulamanın içinde ve tarayıcıdan: kamera, mikrofon, ekran paylaşımı, toplantı içi sohbet, el kaldırma, sessize alma; bir kişiye, bir takıma ya da birkaç takıma

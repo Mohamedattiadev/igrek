@@ -26,6 +26,8 @@ export interface HubUser {
   avatar?: string;
   /** Only for invites and password resets; teammates never see it. */
   email?: string;
+  /** The general manager (plan.md 20.2): sees every project, makes teams and names their leads. */
+  generalManager?: boolean;
 }
 
 export interface HubAlert {
@@ -126,6 +128,28 @@ const MIGRATIONS = [
      expires INTEGER NOT NULL,
      tries INTEGER NOT NULL DEFAULT 0
    );`,
+  // The company (plan.md 20.2): a general manager, named teams with a lead, their people and projects.
+  // Only who is in which team and which (opaque) projects a team has; everything said stays encrypted.
+  `ALTER TABLE users ADD COLUMN general_manager INTEGER NOT NULL DEFAULT 0;
+   CREATE TABLE teams (
+     id TEXT PRIMARY KEY,
+     name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+     description TEXT NOT NULL DEFAULT '',
+     lead_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE team_members (
+     team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     PRIMARY KEY (team_id, user_id)
+   );
+   CREATE INDEX team_members_user ON team_members(user_id);
+   CREATE TABLE team_projects (
+     team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+     project TEXT NOT NULL,
+     PRIMARY KEY (team_id, project)
+   );
+   CREATE INDEX team_projects_project ON team_projects(project);`,
 ];
 
 export interface Policies {
@@ -184,8 +208,10 @@ export class Hub {
     language?: string | null;
     avatar?: string | null;
     email?: string | null;
+    general_manager?: number;
   }): HubUser {
     return {
+      ...(row.general_manager ? { generalManager: true } : {}),
       email: row.email ?? undefined,
       twoFactor: !!row.totp_secret,
       language: row.language ?? undefined,
@@ -296,8 +322,13 @@ export class Hub {
     this.db.query("DELETE FROM devices WHERE user_id = ? AND token_hash != ?").run(id, keepDevice ?? "");
   }
 
-  updateUser(id: string, patch: { role?: unknown; disabled?: unknown; displayName?: unknown; email?: unknown }): void {
+  updateUser(
+    id: string,
+    patch: { role?: unknown; disabled?: unknown; displayName?: unknown; email?: unknown; generalManager?: unknown },
+  ): void {
     if (typeof patch.email === "string") this.setEmail(id, patch.email);
+    if (typeof patch.generalManager === "boolean")
+      this.db.query("UPDATE users SET general_manager = ? WHERE id = ?").run(patch.generalManager ? 1 : 0, id);
     if (typeof patch.role === "string" && ROLES.includes(patch.role as Role)) {
       this.db.query("UPDATE users SET role = ? WHERE id = ?").run(patch.role, id);
     }
@@ -719,15 +750,33 @@ export class Hub {
         .run(project, userId, role);
   }
 
-  /** A project with no access list is open to the whole team; with one, only those people (admins always). */
+  /**
+   * A project with no access list and no team is open to the whole team. With a list, those people;
+   * given to teams (plan.md 20.2), their people too, the lead as its manager. Admins and the general
+   * manager always; a viewer stays a viewer whatever a list says.
+   */
   roleIn(user: HubUser, project: string): ProjectRole | undefined {
-    if (user.role === "admin") return "owner";
+    if (user.role === "admin" || user.generalManager) return "owner";
     const rows = this.db.query("SELECT user_id, role FROM project_access WHERE project = ?").all(project) as {
       user_id: string;
       role: ProjectRole;
     }[];
-    if (!rows.length) return user.role === "viewer" ? "viewer" : "member";
-    const mine = rows.find((r) => r.user_id === user.id)?.role;
+    const teams = this.db
+      .query(
+        `SELECT t.lead_id, m.user_id FROM team_projects p JOIN teams t ON t.id = p.team_id
+         LEFT JOIN team_members m ON m.team_id = t.id AND m.user_id = ? WHERE p.project = ?`,
+      )
+      .all(user.id, project) as { lead_id: string | null; user_id: string | null }[];
+    if (!rows.length && !teams.length) return user.role === "viewer" ? "viewer" : "member";
+    const fromTeam: ProjectRole | undefined = teams.some((t) => t.lead_id === user.id)
+      ? "manager"
+      : teams.some((t) => t.user_id)
+        ? "member"
+        : undefined;
+    const listed = rows.find((r) => r.user_id === user.id)?.role;
+    const mine = [listed, fromTeam]
+      .filter((r): r is ProjectRole => !!r)
+      .sort((a, b) => PROJECT_ROLES.indexOf(a) - PROJECT_ROLES.indexOf(b))[0];
     return mine && user.role === "viewer" ? "viewer" : mine;
   }
 

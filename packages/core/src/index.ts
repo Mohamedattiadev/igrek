@@ -1,4 +1,5 @@
 export * from "./ai-rules";
+export * from "./coordinator";
 export * from "./data";
 export * from "./docs";
 export * from "./e2e";
@@ -10,6 +11,7 @@ export * from "./knowledge";
 export * from "./lessons";
 export * from "./library";
 export * from "./ops";
+export * from "./org";
 export * from "./persona";
 export * from "./persona-knowledge";
 export * from "./personas";
@@ -852,6 +854,8 @@ export type ShareLevel = "off" | "summary" | "full";
 export interface TeamMember {
   id: string;
   username: string;
+  /** The general manager (plan.md 20.2). */
+  generalManager?: boolean;
   displayName: string;
   role: "admin" | "member" | "viewer";
   online?: boolean;
@@ -943,6 +947,8 @@ export type ServerMessage =
   | { type: "accounts-changed" }
   | { type: "limits-changed" }
   | { type: "team-changed" }
+  /** The company's cards, channels or teams changed (plan.md 20). */
+  | { type: "org-changed" }
   | { type: "insight-changed"; projectId: string }
   | { type: "import-progress"; projectId: string }
   | { type: "deploys-changed"; projectId: string }
@@ -974,7 +980,7 @@ export type ServerMessage =
   /** Something that needs a desktop notification right away (a site went down, a new app error). */
   | {
       type: "alert";
-      kind: "down" | "up" | "appError" | "backupFailed" | "budget";
+      kind: "down" | "up" | "appError" | "backupFailed" | "budget" | "org";
       title: string;
       link: string;
       /** The project it is about, when there is one (routines listen for it). */

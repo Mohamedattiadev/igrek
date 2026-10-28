@@ -191,7 +191,17 @@ export class Telegram {
       return;
     }
     if (text === "/start") return;
+    // "@asistan ..." is for the company's coordinator bot (plan.md 20.7), everything else for the chief.
+    if (await this.toCompany?.(text)) return;
     this.chief.send(text);
+  }
+
+  /** Hands a message to the company's bot when it is meant for it; set by the server at startup. */
+  toCompany?: (text: string) => Promise<boolean>;
+
+  /** Something the company's bot says to this person, sent to the phone. */
+  tell(text: string): void {
+    if (this.saved.chatId !== undefined) void this.say(text);
   }
 
   /**

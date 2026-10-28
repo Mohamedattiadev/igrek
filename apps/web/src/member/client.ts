@@ -1,10 +1,19 @@
 import {
   aadFor,
+  audienceOf,
+  COMPANY_STREAM,
+  cardPeople,
   decrypt,
+  emptyOrg,
   encrypt,
+  foldOrg,
   generateDeviceKey,
   importTeamKey,
   keyCheck,
+  namedIn,
+  type OrgPost,
+  type OrgState,
+  type OrgStructure,
   projectKey,
   type SeatBudget,
   type TeamKey,
@@ -45,6 +54,7 @@ export interface MemberUser {
   avatar?: string;
   language?: string;
   mustChange?: boolean;
+  generalManager?: boolean;
 }
 
 /** A teammate as the hub lists them. */
@@ -53,6 +63,7 @@ export interface MemberPerson {
   username: string;
   displayName: string;
   role: MemberUser["role"];
+  generalManager?: boolean;
   avatar?: string;
   lastSeen?: number;
 }
@@ -98,6 +109,7 @@ interface WireEvent {
 const TOKEN = "token";
 const DEVICE = "device";
 const READS = "reads";
+const OUTBOX = "outbox";
 const PRESENCE_TTL = 60_000;
 const TYPING_TTL = 6_000;
 
@@ -117,6 +129,12 @@ export class MemberClient {
   budgets: Record<string, SeatBudget> = {};
   readonly presence = new Map<string, MemberPresence>();
   online = new Set<string>();
+  /** The company (plan.md 20): its teams from the hub, its cards and channels from the company stream. */
+  org: OrgState = emptyOrg();
+  structure: OrgStructure = { teams: [], generalManagers: [] };
+  private companyKey?: string;
+  /** What was written while the hub could not be reached; it goes, in order, when it can (plan.md 20.10). */
+  private outbox: Record<string, unknown>[] = [];
   /** Called for a message that names me, a direct message to me, or a card given to me. */
   onNotice: (notice: MemberNotice) => void = () => undefined;
   private typing = new Map<string, { project: string; channel: string; until: number }>();
@@ -217,6 +235,8 @@ export class MemberClient {
       return this.setState({ phase: "waitingForKey", user, fingerprint });
     }
     await this.loadReads();
+    this.outbox = (await this.store.get<Record<string, unknown>[]>(OUTBOX)) ?? [];
+    await this.loadStructure();
     this.rooms = await this.direct.roomsFor(user.id, [...this.members.keys()]);
     this.setState({ phase: "ready", user, connected: false });
     this.connect();
@@ -260,7 +280,14 @@ export class MemberClient {
     if (!first) return false;
     this.epoch = Math.max(...this.keys.keys());
     this.indexKey = await projectKey(first, "__team-index__");
+    this.companyKey = await projectKey(first, COMPANY_STREAM);
     return true;
+  }
+
+  /** The company's teams and its general manager(s), from the hub. */
+  async loadStructure(): Promise<void> {
+    this.structure = await this.request<OrgStructure>("/api/org").catch(() => this.structure);
+    this.changed();
   }
 
   private async loadMembers(): Promise<void> {
@@ -291,7 +318,16 @@ export class MemberClient {
       this.ws = ws;
       ws.onopen = () => {
         if (this.state.phase === "ready") this.setState({ ...this.state, connected: true });
-        this.send({ op: "sub", projects: [this.indexKey, ...this.projects.keys(), ...this.rooms] });
+        this.send({
+          op: "sub",
+          projects: [
+            this.indexKey,
+            ...(this.companyKey ? [this.companyKey] : []),
+            ...this.projects.keys(),
+            ...this.rooms,
+          ],
+        });
+        void this.flushOutbox();
         // What the hub replays now is history; from a moment after, it is news worth a notice.
         setTimeout(() => {
           this.liveFrom = Date.now();
@@ -326,6 +362,9 @@ export class MemberClient {
       await this.refreshKeys();
     } else if (msg.op === "members") {
       await this.membersChanged();
+    } else if (msg.op === "org") {
+      await this.loadStructure();
+      await this.membersChanged();
     }
   }
 
@@ -354,11 +393,73 @@ export class MemberClient {
           event.data,
         );
         if (project === this.indexKey) this.applyIndex(event, value);
+        else if (project === this.companyKey) this.foldCompany(event, value);
         else await this.fold(project, event, value);
       } catch {
         // Tampered with, or not meant for this team key.
       }
     }
+    this.changed();
+  }
+
+  /** One company event; a message to me while the page is open is a notice. */
+  private foldCompany(event: { kind: string; author: string; at: number }, value: Record<string, unknown>): void {
+    const { post, card } = foldOrg(this.org, event.kind, value, { author: event.author, at: event.at });
+    const me = this.me();
+    if (!me || event.author === me.id || event.at <= this.liveFrom) return;
+    if (post && this.forMe(post))
+      this.onNotice({
+        title: post.bot ? this.org.bot.name : this.nameOf(post.by),
+        body: post.text.slice(0, 140),
+        open: `org:${post.channel}`,
+      });
+    if (card && card.assignee === me.id && card.updatedBy !== me.id && card.status === "accepted")
+      this.onNotice({ title: this.org.bot.name, body: card.title, open: "org:cards" });
+  }
+
+  private forMe(post: OrgPost): boolean {
+    const me = this.myId();
+    return (
+      post.channel === `bot:${me}` ||
+      !!post.announce ||
+      cardPeople(this.org, post.channel).includes(me) ||
+      audienceOf(this.structure, post).includes(me)
+    );
+  }
+
+  /** A change to the company, made here: folded at once and sent (or kept until the hub can be reached). */
+  async orgAct(kind: string, value: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const id = String(value.id ?? crypto.randomUUID().slice(0, 18));
+    const full = { ...value, id, at: Number(value.at ?? Date.now()) };
+    foldOrg(this.org, kind, full, { author: this.myId(), at: full.at });
+    this.changed();
+    if (this.companyKey) await this.publish(this.companyKey, kind, `${kind}-${id}-${Date.now() % 1e6}`, full);
+    return full;
+  }
+
+  /** A message in a company channel, with the people and teams it names. */
+  orgPost(input: { channel: string; text: string; announce?: boolean; audience?: string[]; card?: string }) {
+    return this.orgAct("org-post", { ...input, ...namedIn(this.structure, [...this.members.values()], input.text) });
+  }
+
+  /** The hub's teams: made and changed there (it checks who may). */
+  async teams(method: string, path: string, body?: unknown): Promise<unknown> {
+    const out = await this.request(`/api/org/${path}`, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
+    await this.loadStructure();
+    return out;
+  }
+
+  /** How many of my changes still wait for the hub. */
+  waiting(): number {
+    return this.outbox.length;
+  }
+
+  private async flushOutbox(): Promise<void> {
+    while (this.outbox.length && this.ws?.readyState === 1) {
+      this.send(this.outbox[0]);
+      this.outbox.shift();
+    }
+    await this.store.set(OUTBOX, this.outbox);
     this.changed();
   }
 
@@ -573,8 +674,13 @@ export class MemberClient {
     const key = this.keys.get(this.epoch);
     if (!key) throw new Error("No team key yet");
     const sealed = await encrypt(key, aadFor(project, kind), value);
-    if (!this.send({ op: "pub", project, kind, id: id.slice(0, 40), epoch: this.epoch, ...sealed }))
-      throw new Error("Not connected to the hub; try again in a moment");
+    const op = { op: "pub", project, kind, id: id.slice(0, 40), epoch: this.epoch, ...sealed };
+    // Offline: it waits, in order, and goes when the hub is back (plan.md 20.10).
+    if (this.outbox.length || !this.send(op)) {
+      this.outbox.push(op);
+      await this.store.set(OUTBOX, this.outbox);
+      this.changed();
+    }
   }
 
   /** The hub ids of the teammates a text names with @username. */

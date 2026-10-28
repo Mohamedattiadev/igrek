@@ -1,4 +1,4 @@
-import { Building2, House, type LucideIcon, Menu, MessagesSquare, Shield } from "lucide-react";
+import { Building2, House, type LucideIcon, Menu, MessagesSquare, Network, Shield } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "../components/Logo";
@@ -11,6 +11,7 @@ import { MemberChat } from "./MemberChat";
 import { MemberCompany } from "./MemberCompany";
 import { MemberHome, myCards } from "./MemberHome";
 import { PersonAvatar } from "./MemberMessage";
+import { MemberOrg } from "./MemberOrg";
 import { MemberProfile } from "./MemberProfile";
 import { MemberProjectPage } from "./MemberProject";
 import { channelsOf } from "./model";
@@ -102,6 +103,7 @@ function Sidebar({
           badge={unreadTotal(client)}
           onClick={() => go("chat")}
         />
+        <Item icon={Network} label={t("nav.org")} active={page === "org"} onClick={() => go("org")} />
         {me?.role === "admin" && (
           <Item icon={Building2} label={t("company.title")} active={page === "company"} onClick={() => go("company")} />
         )}
@@ -178,7 +180,13 @@ function useNotices(client: MemberClient, route: string, go: (to: string) => voi
       const notice = new Notification(n.title, { body: n.body, tag: n.open });
       notice.onclick = () => {
         window.focus();
-        go(n.open.startsWith("project:") ? `project/${n.open.slice(8)}/board` : `chat/${n.open}`);
+        go(
+          n.open.startsWith("project:")
+            ? `project/${n.open.slice(8)}/board`
+            : n.open.startsWith("org:")
+              ? `org/${n.open === "org:cards" ? "cards" : "channels"}`
+              : `chat/${n.open}`,
+        );
       };
     };
     return () => {
@@ -222,6 +230,7 @@ function Page({
       />
     );
   }
+  if (page === "org") return <MemberOrg client={client} tab={rest[0]} go={go} />;
   if (page === "company" && client.me()?.role === "admin") return <MemberCompany client={client} />;
   if (page === "profile") return <MemberProfile client={client} />;
   return <MemberHome client={client} go={go} />;

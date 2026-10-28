@@ -127,6 +127,8 @@ import {
   registerVaultRoutes,
   registerWriteupRoutes,
 } from "./ops-routes";
+import { Org } from "./org";
+import { registerOrgRoutes } from "./org-routes";
 import { ownScript, PACKAGED, resourcePath } from "./packaged";
 import { Perf } from "./perf";
 import { Experts, expertsHint } from "./persona-experts";
@@ -591,6 +593,24 @@ const chatFiles = new ChatFiles(join(config.dataDir, "chat-files"));
 const chat = new Chat(sqlite, bus, (hash) => chatFiles.has(hash));
 sync.chat = chat;
 sync.files = chatFiles;
+// The company (plan.md 20): teams from the hub, cards and channels from the company stream, the bot.
+const org = new Org({
+  db: sqlite,
+  bus,
+  me: () => {
+    const id = sync.identity().id;
+    return id ? sync.memberList().find((m) => m.id === id) : undefined;
+  },
+  people: () => sync.memberList(),
+  hub: (path, init) => sync.hub(path, init),
+  publish: (kind, id, value) => sync.publishOrg(kind, id, value),
+});
+sync.org = org;
+org.start();
+// A site down: the servers team and the general manager hear it from the bot (plan.md 20.5).
+bus.subscribe((m) => {
+  if (m.type === "alert" && m.kind === "down") void org.siteDown(m.title).catch(() => undefined);
+});
 const services = new Services();
 const launcher = new Launcher(sqlite, bus, stops, services, (id) => {
   const row = store.projectRow(id);
@@ -739,6 +759,17 @@ const app = createApp({
     registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
     registerReportRoutes(hono, gatewayValues);
     registerBotRoutes(hono, bots);
+    registerOrgRoutes(hono, {
+      db: sqlite,
+      org,
+      me: () => org.me(),
+      people: () => sync.memberList(),
+      online: () => [...sync.onlineIds()],
+      presence: () => sync.presenceList(),
+      projects: () => sync.projectKeys(),
+      hub: (path, init) => sync.hub(path, init),
+      summarize: async (question) => (await assist.quickAsk({ question })).answer,
+    });
     registerLaunchRoutes(hono, launcher);
     registerSuggestionRoutes(hono, sqlite, (id) => store.projectRow(id)?.path);
     registerUiNoteRoutes(hono, new UiNotes(sqlite), {
@@ -868,6 +899,9 @@ const app = createApp({
     };
     // The chief from a phone (telegram.ts); it starts only once the user connected a bot.
     const telegram = new Telegram(config.dataDir, sealer, chief, gatewayValues);
+    telegram.toCompany = (text) => org.fromPhone(text);
+    org.onTell = (text) => telegram.tell(text);
+    org.language = () => readSettings(db).language;
     registerTelegramRoutes(hono, telegram);
     void telegram.start();
     registerChiefRoutes(hono, chief, (project, request, persona) => {

@@ -1102,6 +1102,14 @@ export const migrations: string[] = [
      week_tokens INTEGER,
      noticed TEXT
    );`,
+  // The company stream (org.ts, plan.md 20): what was written here while the hub could not be
+  // reached waits in order and goes out when it can (plan.md 20.10).
+  `CREATE TABLE org_outbox (
+     id TEXT PRIMARY KEY NOT NULL,
+     kind TEXT NOT NULL,
+     value TEXT NOT NULL,
+     at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

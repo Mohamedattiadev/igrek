@@ -1,13 +1,17 @@
 import { existsSync } from "node:fs";
 import { join, normalize, resolve, sep } from "node:path";
 import type { ServerWebSocket } from "bun";
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import { type Hub, type HubUser, type ProjectRole, ROLES, type Role } from "./hub";
 import { mailText, type SendMail } from "./mail";
+import { Teams } from "./teams";
 
 const MAX_EVENT_BYTES = 512 * 1024;
+/** What a viewer (a client, an advisor) may still send (plan.md 20.6): words and marks, never work. */
+const VIEWER_KINDS = new Set(["comment", "reaction", "seen", "org-post", "org-read"]);
 
 type Ctx = { user: HubUser; deviceHash: string };
+type HubEnv = { Variables: { auth: Ctx }; Bindings: BunServer };
 
 interface SocketData {
   user: HubUser;
@@ -46,7 +50,7 @@ export function createHubServer(
     webDir?: string;
   } = {},
 ) {
-  const app = new Hono<{ Variables: { auth: Ctx }; Bindings: BunServer }>();
+  const app = new Hono<HubEnv>();
   const logins = new RateLimiter(8, 60_000);
   const sockets = new Set<ServerWebSocket<SocketData>>();
   // A name, picture or role changed: every open Igrek reloads the member list, so a rename shows
@@ -224,13 +228,14 @@ export function createHubServer(
       hub
         .users()
         .filter((u) => !u.disabled)
-        .map(({ id, username, displayName, role, avatar, language }) => ({
+        .map(({ id, username, displayName, role, avatar, language, generalManager }) => ({
           id,
           username,
           displayName,
           role,
           avatar,
           language,
+          ...(generalManager ? { generalManager } : {}),
           lastSeen: hub.lastSeen(id),
         })),
     ),
@@ -245,6 +250,97 @@ export function createHubServer(
     const to = Math.min(from + 499, Number(c.req.query("to")) || from);
     return c.json(hub.chain(project, String(c.req.query("device") ?? ""), from, to));
   });
+
+  // ---- the company: teams and the general manager (plan.md 20.2) -------------------------
+  const teams = new Teams(hub.db);
+  const runsCompany = (u: HubUser) => u.role === "admin" || !!u.generalManager;
+  /** Teams changed: everyone reloads them, and sockets drop the projects they may no longer read. */
+  const orgChanged = () => {
+    for (const ws of sockets) {
+      for (const project of [...ws.data.projects])
+        if (!hub.roleIn(hub.user(ws.data.user.id) ?? ws.data.user, project)) ws.data.projects.delete(project);
+      ws.send(JSON.stringify({ op: "org" }));
+    }
+  };
+  app.get("/api/org", (c) =>
+    c.json({
+      teams: teams.list(),
+      generalManagers: hub
+        .users()
+        .filter((u) => u.generalManager && !u.disabled)
+        .map((u) => u.id),
+    }),
+  );
+  app.post("/api/org/teams", async (c) => {
+    if (!runsCompany(c.get("auth").user)) return c.json({ error: "Only the general manager or an admin" }, 403);
+    try {
+      const team = teams.create((await c.req.json().catch(() => ({}))) as Record<string, unknown>);
+      hub.audit(c.get("auth").user.id, "team-created", team.name);
+      orgChanged();
+      return c.json(team);
+    } catch (err) {
+      const message = (err as Error).message.includes("UNIQUE") ? "A team has that name" : (err as Error).message;
+      return c.json({ error: message }, 400);
+    }
+  });
+  app.patch("/api/org/teams/:id", async (c) => {
+    if (!runsCompany(c.get("auth").user)) return c.json({ error: "Only the general manager or an admin" }, 403);
+    try {
+      const team = teams.update(c.req.param("id"), (await c.req.json().catch(() => ({}))) as Record<string, unknown>);
+      hub.audit(c.get("auth").user.id, "team-updated", team.name);
+      orgChanged();
+      return c.json(team);
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+  app.delete("/api/org/teams/:id", (c) => {
+    if (!runsCompany(c.get("auth").user)) return c.json({ error: "Only the general manager or an admin" }, 403);
+    const team = teams.get(c.req.param("id"));
+    teams.remove(c.req.param("id"));
+    hub.audit(c.get("auth").user.id, "team-removed", team?.name);
+    orgChanged();
+    return c.json({ ok: true });
+  });
+  // The team's lead may add and remove its people too; projects stay with the general manager and admins.
+  const memberRoute = (on: boolean) => (c: Context<HubEnv>) => {
+    const me = c.get("auth").user;
+    const id = c.req.param("id") ?? "";
+    if (!runsCompany(me) && !teams.leads(id, me.id))
+      return c.json({ error: "Only the lead or the general manager" }, 403);
+    try {
+      if (on) teams.addMember(id, c.req.param("user") ?? "");
+      else teams.removeMember(id, c.req.param("user") ?? "");
+      hub.audit(
+        me.id,
+        on ? "team-member-added" : "team-member-removed",
+        `${teams.get(id)?.name}: ${hub.user(c.req.param("user") ?? "")?.username}`,
+      );
+      orgChanged();
+      return c.json(teams.get(id));
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  };
+  app.put("/api/org/teams/:id/members/:user", memberRoute(true));
+  app.delete("/api/org/teams/:id/members/:user", memberRoute(false));
+  const projectRoute = (on: boolean) => (c: Context<HubEnv>) => {
+    if (!runsCompany(c.get("auth").user)) return c.json({ error: "Only the general manager or an admin" }, 403);
+    try {
+      teams.setProject(c.req.param("id") ?? "", c.req.param("project") ?? "", on);
+      hub.audit(
+        c.get("auth").user.id,
+        on ? "team-project-added" : "team-project-removed",
+        teams.get(c.req.param("id") ?? "")?.name,
+      );
+      orgChanged();
+      return c.json(teams.get(c.req.param("id") ?? ""));
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  };
+  app.put("/api/org/teams/:id/projects/:project", projectRoute(true));
+  app.delete("/api/org/teams/:id/projects/:project", projectRoute(false));
 
   // ---- admin -------------------------------------------------------------------------
   app.get("/api/admin/users", (c) => adminOnly(c) ?? c.json(hub.users()));
@@ -283,6 +379,7 @@ export function createHubServer(
       displayName?: string;
       password?: string;
       email?: string;
+      generalManager?: boolean;
     };
     // Never leave the hub without an active admin.
     const target = hub.user(id);
@@ -297,6 +394,7 @@ export function createHubServer(
       if (body.password) await hub.setPassword(id, body.password, true);
       hub.updateUser(id, body);
       membersChanged();
+      if (body.generalManager !== undefined) orgChanged();
       hub.audit(c.get("auth").user.id, "user-updated", `${target?.username}: ${Object.keys(body).join(",")}`);
       if (body.disabled || body.password)
         for (const ws of sockets) if (ws.data.user.id === id) ws.close(4001, "signed out");
@@ -519,6 +617,9 @@ export function createHubServer(
             .slice(0, 500)) {
             // Projects with an access list are only for the people on it.
             if (!hub.roleIn(ws.data.user, project)) continue;
+            // What the general manager opened is on the record (plan.md 20.6), once per connection.
+            if (ws.data.user.generalManager && ws.data.user.role !== "admin" && !ws.data.projects.has(project))
+              hub.audit(ws.data.user.id, "project-opened", project.slice(0, 16));
             ws.data.projects.add(project);
             let cursor = Number(since[project] ?? 0);
             for (;;) {
@@ -534,7 +635,7 @@ export function createHubServer(
           return;
         }
         if (msg.op === "pub") {
-          if (ws.data.user.role === "viewer") {
+          if (ws.data.user.role === "viewer" && !VIEWER_KINDS.has(String(msg.kind))) {
             ws.send(JSON.stringify({ op: "error", error: "Viewers can't share" }));
             return;
           }
@@ -542,7 +643,7 @@ export function createHubServer(
           const data = String(msg.data ?? "");
           if (!/^[0-9a-f]{64}$/.test(project) || data.length > MAX_EVENT_BYTES || !ws.data.projects.has(project))
             return;
-          if (hub.roleIn(ws.data.user, project) === "viewer") {
+          if (hub.roleIn(ws.data.user, project) === "viewer" && !VIEWER_KINDS.has(String(msg.kind))) {
             ws.send(JSON.stringify({ op: "error", error: "Viewers can't share in this project" }));
             return;
           }
