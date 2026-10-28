@@ -23,7 +23,7 @@ export * from "./testusers";
 export * from "./writing";
 
 export const APP_NAME = "Igrek";
-export const APP_VERSION = "0.1.12";
+export const APP_VERSION = "0.1.13";
 export const DEFAULT_PORT = 7777;
 
 export type Theme = "system" | "light" | "dark" | "darcula" | "notion";
