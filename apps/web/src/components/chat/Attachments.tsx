@@ -13,9 +13,13 @@ function size(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-/** A file in a message: a picture or a voice message shows as it is, anything else as a download. */
-export function AttachmentView({ file }: { file: NonNullable<ChatMessage["attachment"]> }) {
+/**
+ * A file in a message: a picture or a voice message shows as it is, anything else as a download.
+ * The hub's web page passes the file's address in the browser (src); there is no Whisper there.
+ */
+export function AttachmentView({ file, src }: { file: NonNullable<ChatMessage["attachment"]>; src?: string }) {
   const { t } = useTranslation();
+  const url = src ?? fileUrl(file.hash);
   if (!file.here)
     return (
       <p className="mt-1.5 flex items-center gap-2 text-[12.5px] text-fg-subtle">
@@ -25,18 +29,14 @@ export function AttachmentView({ file }: { file: NonNullable<ChatMessage["attach
     );
   if (/^image\/(png|jpeg|gif|webp)$/.test(file.type))
     return (
-      <a href={fileUrl(file.hash)} target="_blank" rel="noreferrer" className="mt-1.5 inline-block">
-        <img
-          src={fileUrl(file.hash)}
-          alt={file.name}
-          className="max-h-64 max-w-sm rounded-ui border border-border object-contain"
-        />
+      <a href={url} target="_blank" rel="noreferrer" className="mt-1.5 inline-block">
+        <img src={url} alt={file.name} className="max-h-64 max-w-sm rounded-ui border border-border object-contain" />
       </a>
     );
-  if (file.type.startsWith("audio/")) return <VoiceMessage file={file} />;
+  if (file.type.startsWith("audio/")) return <VoiceMessage src={url} toText={!src} />;
   return (
     <a
-      href={fileUrl(file.hash)}
+      href={url}
       download={file.name}
       className="mt-1.5 inline-flex max-w-sm items-center gap-2.5 rounded-ui border border-border bg-bg-subtle px-3 py-2 hover:border-accent"
     >
@@ -51,7 +51,7 @@ export function AttachmentView({ file }: { file: NonNullable<ChatMessage["attach
 }
 
 /** A voice message: played here, and turned into text on this computer (Whisper) on request. */
-function VoiceMessage({ file }: { file: NonNullable<ChatMessage["attachment"]> }) {
+function VoiceMessage({ src, toText: canToText }: { src: string; toText: boolean }) {
   const { t, i18n } = useTranslation();
   const [text, setText] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -60,7 +60,7 @@ function VoiceMessage({ file }: { file: NonNullable<ChatMessage["attachment"]> }
     try {
       const model = (await (await fetch("/api/speech", { credentials: "same-origin" })).json()) as { state: string };
       if (model.state !== "ready") throw new Error(t("voice.modelFirst"));
-      const blob = await (await fetch(fileUrl(file.hash), { credentials: "same-origin" })).blob();
+      const blob = await (await fetch(src, { credentials: "same-origin" })).blob();
       setText((await transcribe(blob, i18n.language.split("-")[0] ?? "en")) || t("voice.nothing"));
     } catch (err) {
       setText((err as Error).message);
@@ -72,8 +72,8 @@ function VoiceMessage({ file }: { file: NonNullable<ChatMessage["attachment"]> }
     <div className="mt-1.5 space-y-1">
       <div className="flex items-center gap-2">
         {/* biome-ignore lint/a11y/useMediaCaption: its words come as text below, with "To text" */}
-        <audio controls src={fileUrl(file.hash)} className="h-9 max-w-xs" aria-label={t("teamChat.voiceMessage")} />
-        {text === undefined && (
+        <audio controls src={src} className="h-9 max-w-xs" aria-label={t("teamChat.voiceMessage")} />
+        {canToText && text === undefined && (
           <button
             type="button"
             disabled={busy}

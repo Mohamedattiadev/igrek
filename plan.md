@@ -1376,14 +1376,14 @@ god-eye/
 Bugün: hub'da tek bir "takım" var (herkes aynı yerde), roller şirket çapında yönetici / üye / izleyici, projelerin de kendi erişim listesi (sahip / yönetici / üye / izleyici). Takımın içinde takım, genel müdür ve takımlar arası iş yok. Genel müdür çoğu zaman masaüstü uygulamasını kurmaz; bu yüzden aşağıdakilerin hepsi hub'ın web sayfasında da çalışmalı (20.1).
 
 #### 20.1 Hub'ın web sayfası masaüstüyle aynı (önce bu)
-- [ ] Doğrudan mesajlar tarayıcıda (iki kişinin cihazları için şifreli, masaüstüyle aynı)
-- [ ] Mesajlarda eksikler: dosya, resim, sesli mesaj gönderip açmak; alıntılı cevap, kendi mesajını düzenleme ve silme, görüldü, "yazıyor..."
-- [ ] Takım akışı: kim ne üzerinde çalışıyor, gün gün
-- [ ] Bana atananlar, okunmamış sayıları, @bahsetmeler, gelen kutusu ve tarayıcı bildirimi
-- [ ] Proje sayfası: genel bakış, açık işler, ekran notları
-- [ ] Şirket sayfası (yöneticiye): kişiler, limitler, bütçe
-- [ ] Profil: ad, resim, dil
-- [ ] Tasarım: masaüstüyle aynı kenar çubuğu ve düzen, koyu tema, telefonda düzgün
+- [x] Doğrudan mesajlar tarayıcıda (iki kişinin cihazları için şifreli, masaüstüyle aynı) — yapıldı: tarayıcının cihaz anahtarıyla sealDirect/openDirect, aynı hub odası; tarayıcı ve masaüstü birbirine yazıyor, alıntılı cevap, okunmamış sayısı; hub içeriği göremiyor (member.test.ts)
+- [x] Mesajlarda eksikler: dosya, resim, sesli mesaj gönderip açmak; alıntılı cevap, kendi mesajını düzenleme ve silme, görüldü, "yazıyor..." — yapıldı: dosyalar masaüstüyle aynı parçalarda gider gelir, hash'le doğrulanır, resim ve ses sayfada açılır (hub'ın CSP'sine blob: eklendi); alıntı, düzenle/sil, görüldü tikleri, "yazıyor...", okunmamış çizgisi
+- [x] Takım akışı: kim ne üzerinde çalışıyor, gün gün — yapıldı: ana sayfada "Şu an çalışanlar" (masaüstünün canlı bilgisinden) ve "Takımın haftası" (oturumlar ve biten kartlar, gün gün)
+- [x] Bana atananlar, okunmamış sayıları, @bahsetmeler, gelen kutusu ve tarayıcı bildirimi — yapıldı: ana sayfa gelen kutusu (bana verilen kartlar, okunmamışlar, bahsetmeler), kenar çubuğunda ve sekme başlığında sayılar, @kullanıcıadı masaüstüne bahsetme olarak gider; tarayıcı bildirimi profilden açılır
+- [x] Proje sayfası: genel bakış, açık işler, ekran notları — yapıldı: Genel bakış (açık kartlar, şu an çalışanlar, son çalışmalar, ekran notları), Oturumlar, Pano, Kararlar
+- [x] Şirket sayfası (yöneticiye): kişiler, limitler, bütçe — yapıldı: masaüstüyle aynı kartlar (ortak CompanySeats.tsx); yöneticinin Igrek'i bütçeleri takıma şifreli gönderiyor, tarayıcıda görünüyor
+- [x] Profil: ad, resim, dil — yapıldı: ad, renk ya da resim (küçültülüp hub'a), dil (hub'a da kaydedilir), görünüm, bildirimler, çıkış
+- [x] Tasarım: masaüstüyle aynı kenar çubuğu ve düzen, koyu tema, telefonda düzgün — yapıldı: masaüstünün kenar çubuğu ve üst çubuğu, açık/koyu/sistem, telefonda açılır menü ve tek sütun sohbet; geri tuşu çalışır (#/ adresleri)
 
 #### 20.2 Şirketin yapısı: genel müdür ve takımlar
 - [ ] Şirket içinde adlı takımlar: "QA", "Backend", "Sunucular"…; her takımın açıklaması, sorumluluk alanı (projeler, sunucular) ve bir lideri. Bir kişi birden çok takımda olabilir

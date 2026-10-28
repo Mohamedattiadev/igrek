@@ -1129,6 +1129,7 @@ const app = createApp({
     registerLessonRoutes(hono, { lessons, personas, store, scan: scanLessons });
     registerAssistRoutes(hono, assist, privateValues);
     const budgets = new Budgets(sqlite, bus);
+    sync.budgets = () => budgets.all();
     registerTeamRoutes(hono, sync, store, {
       language: () => readSettings(db).language,
       runnerDir: join(config.dataDir, "runner"),

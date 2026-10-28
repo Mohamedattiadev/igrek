@@ -1,25 +1,33 @@
 import {
   aadFor,
-  type ChatAttachment,
-  cleanAttachment,
-  cleanPreview,
   decrypt,
   encrypt,
   generateDeviceKey,
   importTeamKey,
   keyCheck,
-  type LinkPreview,
   projectKey,
+  type SeatBudget,
   type TeamKey,
   unwrapTeamKey,
 } from "@igrek/core";
+import { type DirectDevice, type DirectMessage, deviceIdOf, MemberDirect } from "./direct";
+import { FileParts, prepareFile } from "./files";
+import {
+  channelName,
+  emptyProject,
+  FOLDS,
+  type MemberComment,
+  type MemberProject,
+  type MemberSeat,
+  messagesIn,
+} from "./model";
 
 /**
- * The web member's sync client (plan.md 4.3): signs in to the hub, keeps a device key whose private
- * half cannot be copied out of the browser, receives the team key wrapped for that device once an
- * admin approves it, and decrypts the team's events in the page. The hub never sees a key or a
- * plain value, exactly as with Igrek on a computer. The team key itself is never stored: it is
- * unwrapped again from the hub's copy each time the page opens.
+ * The web member's sync client (plan.md 4.3, 20.1): signs in to the hub, keeps a device key whose
+ * private half cannot be copied out of the browser, receives the team key wrapped for that device
+ * once an admin approves it, and decrypts the team's events in the page. The hub never sees a key
+ * or a plain value, exactly as with Igrek on a computer. The team key itself is never stored: it
+ * is unwrapped again from the hub's copy each time the page opens.
  */
 
 /** Where the browser keeps its sign-in and its device key (IndexedDB in the page, memory in tests). */
@@ -34,97 +42,38 @@ export interface MemberUser {
   username: string;
   displayName: string;
   role: "admin" | "member" | "viewer";
+  avatar?: string;
+  language?: string;
   mustChange?: boolean;
 }
 
-export interface MemberSession {
+/** A teammate as the hub lists them. */
+export interface MemberPerson {
   id: string;
-  tool: string;
+  username: string;
+  displayName: string;
+  role: MemberUser["role"];
+  avatar?: string;
+  lastSeen?: number;
+}
+
+/** "Kerim is working on ..." from a teammate's Igrek, while it lasts. */
+export interface MemberPresence {
+  userId: string;
+  project: string;
   title?: string;
-  firstPrompt?: string | null;
-  updatedAt: number;
-  startedAt?: number;
-  userMessages?: number;
-  /** Igrek's summary of the session (SessionSummaryData): a title and, per language, what was done and what is left. */
-  summary?: { title?: string; texts?: Record<string, { did?: string[]; why?: string; left?: string[] }> } | null;
-  author: string;
-}
-
-interface MemberMessage {
-  id: string;
-  session_id: string;
-  ts: number;
-  role: string;
-  kind: string;
-  tool_name?: string | null;
-  text: string;
-}
-
-interface MemberMemory {
-  id: string;
-  section: string;
-  text: string;
-  status?: string;
-  updatedAt: number;
-  author: string;
-}
-
-export interface MemberComment {
-  id: string;
-  targetKind: string;
-  targetId: string;
-  text: string;
+  tool: string;
+  files: string[];
   at: number;
-  author: string;
-  /** The writer's hub id, so only they can edit or delete it. */
-  authorId: string;
-  /** In a chat channel: the message this one answers in its thread. */
-  parentId?: string;
-  /** Igrek's answer to someone's @ai. */
-  bot?: boolean;
-  /** The board card the message became. */
-  taskId?: string;
-  /** The message this one answers (team chat, plan.md 19.9). */
-  quoteId?: string;
-  /** The link's card the writer sent along. */
-  preview?: LinkPreview;
-  /** A file sent with it; its bytes are opened in Igrek on a computer. */
-  attachment?: ChatAttachment;
-  editedAt?: number;
-  deleted?: boolean;
+  until: number;
 }
 
-interface MemberChannel {
-  id: string;
-  name: string;
-  topic: string;
-}
-
-export interface MemberTask {
-  id: string;
+/** Something that should reach the person even with the page in the background. */
+export interface MemberNotice {
   title: string;
-  description: string;
-  status: "todo" | "doing" | "review" | "done";
-  order: number;
-  createdAt: number;
-  updatedAt: number;
-  assignee?: { kind: "person" | "persona"; id: string; name: string };
-  claimedBy?: { id: string; name: string };
-  deleted?: boolean;
-  author: string;
-}
-
-export interface MemberProject {
-  key: string;
-  name: string;
-  sessions: Map<string, MemberSession>;
-  messages: Map<string, MemberMessage[]>;
-  memory: Map<string, MemberMemory>;
-  comments: Map<string, MemberComment>;
-  tasks: Map<string, MemberTask>;
-  channels: Map<string, MemberChannel>;
-  /** Reactions per message: who (hub id) gave which. */
-  reactions: Map<string, Map<string, Set<string>>>;
+  body: string;
+  /** Where it leads: a channel ("<project>|<channel id>") or a direct talk ("dm:<id>"). */
+  open: string;
 }
 
 export type MemberState =
@@ -148,108 +97,37 @@ interface WireEvent {
 
 const TOKEN = "token";
 const DEVICE = "device";
-const MAX_MESSAGES = 2000;
+const READS = "reads";
+const PRESENCE_TTL = 60_000;
+const TYPING_TTL = 6_000;
 
-type Fold = (p: MemberProject, v: Record<string, unknown>, e: { author: string; authorId: string; at: number }) => void;
-
-/** How each kind of team event lands in a project, as Igrek on a computer reads them. */
-const FOLDS: Record<string, Fold> = {
-  session: (p, v, e) => {
-    const id = String(v.id ?? "");
-    if (!id) return;
-    const summary = typeof v.summary === "string" ? (JSON.parse(v.summary) as MemberSession["summary"]) : null;
-    p.sessions.set(id, {
-      id,
-      tool: String(v.tool ?? ""),
-      title: (v.title as string) ?? undefined,
-      firstPrompt: (v.firstPrompt as string | null) ?? null,
-      updatedAt: Number(v.updatedAt ?? e.at),
-      startedAt: Number(v.startedAt ?? 0) || undefined,
-      userMessages: Number(v.userMessages ?? 0),
-      summary,
-      author: e.author,
-    });
-  },
-  messages: (p, v) => {
-    for (const m of (v.messages as MemberMessage[]) ?? []) {
-      const list = p.messages.get(m.session_id) ?? [];
-      if (!list.some((x) => x.id === m.id)) list.push(m);
-      if (list.length > MAX_MESSAGES) list.shift();
-      p.messages.set(m.session_id, list);
-    }
-  },
-  memory: (p, v, e) => {
-    const id = String(v.id ?? "");
-    if (!id) return;
-    p.memory.set(id, {
-      id,
-      section: String(v.section ?? ""),
-      text: String(v.text ?? ""),
-      status: v.status as string | undefined,
-      updatedAt: Number(v.updatedAt ?? e.at),
-      author: e.author,
-    });
-  },
-  comment: (p, v, e) => {
-    const id = String(v.id ?? "");
-    if (!id) return;
-    p.comments.set(id, {
-      id,
-      targetKind: String(v.targetKind ?? ""),
-      targetId: String(v.targetId ?? ""),
-      text: String(v.text ?? ""),
-      at: Number(v.at ?? e.at),
-      author: e.author,
-      authorId: e.authorId,
-      ...(v.parentId ? { parentId: String(v.parentId) } : {}),
-      ...(v.bot ? { bot: true } : {}),
-      ...(v.taskId ? { taskId: String(v.taskId) } : {}),
-      ...(v.quoteId ? { quoteId: String(v.quoteId) } : {}),
-      ...(cleanPreview(v.preview) ? { preview: cleanPreview(v.preview) } : {}),
-      ...(cleanAttachment(v.attachment) ? { attachment: cleanAttachment(v.attachment) } : {}),
-    });
-  },
-  reaction: (p, v, e) => {
-    const id = String(v.messageId ?? "");
-    const given = p.reactions.get(id) ?? new Map<string, Set<string>>();
-    const mine = given.get(e.authorId) ?? new Set<string>();
-    if (v.removed) mine.delete(String(v.reaction));
-    else mine.add(String(v.reaction));
-    given.set(e.authorId, mine);
-    p.reactions.set(id, given);
-  },
-  // An edit or deletion counts only from the one who wrote the message.
-  "chat-update": (p, v, e) => {
-    const c = p.comments.get(String(v.id ?? ""));
-    if (!c || c.authorId !== e.authorId) return;
-    if (v.deleted) Object.assign(c, { text: "", deleted: true });
-    else if (Number(v.editedAt ?? 0) > (c.editedAt ?? 0))
-      Object.assign(c, { text: String(v.text ?? ""), editedAt: Number(v.editedAt) });
-  },
-  channel: (p, v) => {
-    const id = String(v.id ?? "");
-    if (id) p.channels.set(id, { id, name: String(v.name ?? ""), topic: String(v.topic ?? "") });
-  },
-  task: (p, v, e) => {
-    const id = String(v.id ?? "");
-    const known = p.tasks.get(id);
-    if (!id || (known && known.updatedAt >= Number(v.updatedAt ?? 0))) return;
-    p.tasks.set(id, { ...(v as unknown as MemberTask), author: known?.author ?? e.author });
-  },
-  forget: (p, v) => {
-    p.sessions.delete(String(v.id ?? ""));
-    p.messages.delete(String(v.id ?? ""));
-  },
-};
+/** The key a channel's or a direct talk's read mark is kept under. */
+export const channelKey = (project: string, channelId: string) => `${project}|${channelId}`;
+export const directKey = (peer: string) => `dm:${peer}`;
 
 export class MemberClient {
   state: MemberState = { phase: "signedOut" };
   readonly projects = new Map<string, MemberProject>();
-  readonly members = new Map<string, string>();
+  readonly members = new Map<string, MemberPerson>();
+  readonly direct = new MemberDirect();
+  readonly files = new FileParts();
+  /** Teammates' Igrek reports (accounts, limits, week) for the Company page. */
+  readonly seats = new Map<string, MemberSeat>();
+  /** The budgets the admin set in Igrek, shared with the team. */
+  budgets: Record<string, SeatBudget> = {};
+  readonly presence = new Map<string, MemberPresence>();
   online = new Set<string>();
+  /** Called for a message that names me, a direct message to me, or a card given to me. */
+  onNotice: (notice: MemberNotice) => void = () => undefined;
+  private typing = new Map<string, { project: string; channel: string; until: number }>();
+  private reads: { from: number; marks: Record<string, number> } = { from: 0, marks: {} };
   private keys = new Map<number, TeamKey>();
   private epoch = 0;
   private indexKey?: string;
+  private rooms: string[] = [];
+  private device?: DirectDevice;
+  /** What arrives after this is new; the replay of the history on page load does not notify. */
+  private liveFrom = Number.POSITIVE_INFINITY;
   private ws?: WebSocket;
   private listeners = new Set<() => void>();
 
@@ -338,6 +216,8 @@ export class MemberClient {
       const fingerprint = device.publicKey.slice(0, 8);
       return this.setState({ phase: "waitingForKey", user, fingerprint });
     }
+    await this.loadReads();
+    this.rooms = await this.direct.roomsFor(user.id, [...this.members.keys()]);
     this.setState({ phase: "ready", user, connected: false });
     this.connect();
   }
@@ -351,6 +231,7 @@ export class MemberClient {
       await this.store.set(DEVICE, device);
     }
     await this.request("/api/device-key", { method: "POST", body: JSON.stringify({ publicKey: device.publicKey }) });
+    this.device = { ...device, id: await deviceIdOf((await this.store.get<string>(TOKEN)) ?? "") };
     return device;
   }
 
@@ -383,12 +264,21 @@ export class MemberClient {
   }
 
   private async loadMembers(): Promise<void> {
-    const list = await this.request<{ id: string; displayName: string }[]>("/api/members").catch(() => []);
-    for (const m of list) this.members.set(m.id, m.displayName);
+    const list = await this.request<MemberPerson[]>("/api/members").catch(() => []);
+    for (const m of list) this.members.set(m.id, m);
   }
 
   nameOf(userId: string): string {
-    return this.members.get(userId) ?? userId.slice(0, 6);
+    const m = this.members.get(userId);
+    return m?.displayName || m?.username || userId.slice(0, 6);
+  }
+
+  me(): MemberUser | undefined {
+    return this.state.phase === "ready" ? this.state.user : undefined;
+  }
+
+  private myId(): string {
+    return this.me()?.id ?? "";
   }
 
   // ---- live events -------------------------------------------------------------------
@@ -401,7 +291,11 @@ export class MemberClient {
       this.ws = ws;
       ws.onopen = () => {
         if (this.state.phase === "ready") this.setState({ ...this.state, connected: true });
-        this.send({ op: "sub", projects: [this.indexKey, ...this.projects.keys()] });
+        this.send({ op: "sub", projects: [this.indexKey, ...this.projects.keys(), ...this.rooms] });
+        // What the hub replays now is history; from a moment after, it is news worth a notice.
+        setTimeout(() => {
+          this.liveFrom = Date.now();
+        }, 1500);
       };
       ws.onmessage = (m) => void this.onMessage(String(m.data));
       ws.onclose = () => {
@@ -412,8 +306,10 @@ export class MemberClient {
     });
   }
 
-  private send(message: unknown): void {
-    if (this.ws?.readyState === 1) this.ws.send(JSON.stringify(message));
+  private send(message: unknown): boolean {
+    if (this.ws?.readyState !== 1) return false;
+    this.ws.send(JSON.stringify(message));
+    return true;
   }
 
   private async onMessage(raw: string): Promise<void> {
@@ -422,10 +318,27 @@ export class MemberClient {
       this.online = new Set(msg.users);
       this.changed();
     } else if (msg.op === "events" && msg.project && msg.events) {
-      await this.apply(msg.project, msg.events);
+      if (this.direct.isRoom(msg.project)) await this.applyDirect(msg.project, msg.events);
+      else await this.apply(msg.project, msg.events);
+    } else if (msg.op === "presence") {
+      await this.applyPresence(msg as unknown as WireEvent & { project: string });
     } else if (msg.op === "key-wraps") {
       await this.refreshKeys();
+    } else if (msg.op === "members") {
+      await this.membersChanged();
     }
+  }
+
+  /** A rename, a new teammate: their names, and a room with each new one. */
+  private async membersChanged(): Promise<void> {
+    await this.loadMembers();
+    const me = this.myId();
+    if (!me) return;
+    const rooms = await this.direct.roomsFor(me, [...this.members.keys()]);
+    const fresh = rooms.filter((r) => !this.rooms.includes(r));
+    this.rooms = rooms;
+    if (fresh.length) this.send({ op: "sub", projects: fresh });
+    this.changed();
   }
 
   /** Decrypts a batch and folds it into the projects; events made with a key this device lacks are skipped. */
@@ -440,8 +353,8 @@ export class MemberClient {
           event.nonce,
           event.data,
         );
-        if (project === this.indexKey) this.addProject(value);
-        else this.fold(project, event, value);
+        if (project === this.indexKey) this.applyIndex(event, value);
+        else await this.fold(project, event, value);
       } catch {
         // Tampered with, or not meant for this team key.
       }
@@ -449,27 +362,209 @@ export class MemberClient {
     this.changed();
   }
 
+  /** The team's index: projects, each Igrek's report, and the admin's budgets. */
+  private applyIndex(event: WireEvent, value: Record<string, unknown>): void {
+    if (event.kind === "seat") {
+      if (!Array.isArray(value.accounts)) return;
+      const known = this.seats.get(event.author);
+      if (!known || known.at < event.at)
+        this.seats.set(event.author, { ...(value as unknown as MemberSeat), member: event.author, at: event.at });
+    } else if (event.kind === "budgets") {
+      if (this.members.get(event.author)?.role === "admin" && value.budgets && typeof value.budgets === "object")
+        this.budgets = value.budgets as Record<string, SeatBudget>;
+    } else this.addProject(value);
+  }
+
   private addProject(value: Record<string, unknown>): void {
     const key = String(value.key ?? "");
     if (!/^[0-9a-f]{64}$/.test(key) || this.projects.has(key)) return;
-    this.projects.set(key, {
-      key,
-      name: String(value.name ?? "project"),
-      sessions: new Map(),
-      messages: new Map(),
-      memory: new Map(),
-      comments: new Map(),
-      channels: new Map(),
-      tasks: new Map(),
-      reactions: new Map(),
-    });
+    this.projects.set(key, emptyProject(key, String(value.name ?? "project")));
     this.send({ op: "sub", projects: [key] });
   }
 
-  private fold(project: string, event: WireEvent, v: Record<string, unknown>): void {
+  private async fold(project: string, event: WireEvent, v: Record<string, unknown>): Promise<void> {
     const p = this.projects.get(project);
+    if (!p) return;
+    if (event.kind === "file-part") {
+      await this.files.receive(v);
+      return;
+    }
     const apply = FOLDS[event.kind];
-    if (p && apply) apply(p, v, { author: this.nameOf(event.author), authorId: event.author, at: event.at });
+    if (!apply) return;
+    apply(p, v, { author: this.nameOf(event.author), authorId: event.author, at: event.at });
+    if (event.author !== this.myId() && event.at > this.liveFrom) this.noticeFor(p, event.kind, v, event.author);
+  }
+
+  /** A message naming me, or a card someone gave me, while the page is open. */
+  private noticeFor(p: MemberProject, kind: string, v: Record<string, unknown>, author: string): void {
+    const me = this.me();
+    if (!me) return;
+    if (kind === "comment" && v.targetKind === "channel") {
+      const c = p.comments.get(String(v.id));
+      if (c && this.mentionsMe(c))
+        this.onNotice({
+          title: `${this.nameOf(author)} · #${channelName(c.targetId)}`,
+          body: c.text.slice(0, 140),
+          open: channelKey(p.key, c.targetId),
+        });
+    } else if (kind === "task") {
+      const assignee = v.assignee as { kind?: string; id?: string } | undefined;
+      if (assignee?.kind === "person" && assignee.id === me.id && v.status !== "done")
+        this.onNotice({ title: p.name, body: String(v.title ?? ""), open: `project:${p.key}` });
+    }
+  }
+
+  /** Whether a message names me: by the hub id Igrek puts in it, or by my @username typed in the browser. */
+  mentionsMe(c: MemberComment): boolean {
+    const me = this.me();
+    if (!me || c.authorId === me.id || c.deleted) return false;
+    if (c.mentions.includes(me.id)) return true;
+    const name = me.username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|\\s)@${name}\\b`, "i").test(c.text);
+  }
+
+  // ---- presence and typing ------------------------------------------------------------
+
+  private async applyPresence(p: WireEvent & { project: string }): Promise<void> {
+    const key = this.keys.get(p.epoch ?? 0);
+    if (!key || p.author === this.myId() || !this.projects.has(p.project)) return;
+    try {
+      const value = await decrypt<{
+        title?: string;
+        tool?: string;
+        files?: string[];
+        at?: number;
+        typing?: { channel?: string; at?: number };
+      }>(key, `${p.project}:presence`, p.nonce, p.data);
+      // A stale one (the hub replays the last presence to newcomers) says nothing about now.
+      if (value.typing?.channel && Date.now() - Number(value.typing.at ?? 0) < TYPING_TTL)
+        this.typing.set(p.author, {
+          project: p.project,
+          channel: value.typing.channel,
+          until: Date.now() + TYPING_TTL,
+        });
+      if (value.tool)
+        this.presence.set(`${p.author}:${p.project}`, {
+          userId: p.author,
+          project: p.project,
+          title: value.title,
+          tool: value.tool,
+          files: value.files ?? [],
+          at: value.at ?? p.at,
+          until: Date.now() + PRESENCE_TTL,
+        });
+      this.changed();
+      setTimeout(() => this.changed(), TYPING_TTL + 100);
+    } catch {
+      // Not made with our key.
+    }
+  }
+
+  /** Who is typing in a channel right now. */
+  typingIn(project: string, channelId: string): string[] {
+    const name = channelName(channelId);
+    const now = Date.now();
+    return [...this.typing]
+      .filter(([, t]) => t.project === project && t.channel === name && t.until > now)
+      .map(([id]) => this.nameOf(id));
+  }
+
+  /** Teammates working in Igrek in the last minutes, newest first. */
+  working(project?: string): MemberPresence[] {
+    const now = Date.now();
+    return [...this.presence.values()]
+      .filter((p) => p.until > now && (!project || p.project === project))
+      .sort((a, b) => b.at - a.at);
+  }
+
+  private lastTyping = 0;
+
+  /** "Ayse is typing..." for teammates; at most every few seconds, nothing is stored. */
+  async sendTyping(project: string, channelId: string): Promise<void> {
+    const key = this.keys.get(this.epoch);
+    if (!key || Date.now() - this.lastTyping < 3000) return;
+    this.lastTyping = Date.now();
+    const sealed = await encrypt(key, `${project}:presence`, {
+      typing: { channel: channelName(channelId), at: Date.now() },
+    });
+    this.send({ op: "presence", project, epoch: this.epoch, ...sealed });
+  }
+
+  // ---- read marks and unread counts -----------------------------------------------------
+
+  private async loadReads(): Promise<void> {
+    const saved = await this.store.get<{ from: number; marks: Record<string, number> }>(READS);
+    // The first time in this browser, what came before counts as read: only new things are unread.
+    this.reads = saved ?? { from: Date.now(), marks: {} };
+    if (!saved) await this.store.set(READS, this.reads);
+  }
+
+  readMark(key: string): number {
+    return this.reads.marks[key] ?? this.reads.from;
+  }
+
+  private async setRead(key: string, at: number): Promise<boolean> {
+    if (this.readMark(key) >= at) return false;
+    this.reads.marks[key] = at;
+    await this.store.set(READS, this.reads);
+    this.changed();
+    return true;
+  }
+
+  /** Teammates' messages in a channel I have not opened since they came. */
+  unreadIn(project: MemberProject, channelId: string): number {
+    const mark = this.readMark(channelKey(project.key, channelId));
+    const me = this.myId();
+    return messagesIn(project, channelId).filter((c) => c.authorId !== me && !c.deleted && c.at > mark).length;
+  }
+
+  unreadDirect(peer: string): number {
+    const mark = this.readMark(directKey(peer));
+    return (this.direct.talks.get(peer) ?? []).filter((m) => !m.mine && m.at > mark).length;
+  }
+
+  /** Opened: its count goes, and teammates see how far I have read (as from Igrek on a computer). */
+  async markSeen(project: string, channelId: string): Promise<void> {
+    const p = this.projects.get(project);
+    const last = p ? messagesIn(p, channelId).at(-1) : undefined;
+    if (!last || !(await this.setRead(channelKey(project, channelId), last.at))) return;
+    if (this.me()?.role === "viewer") return;
+    const value = { channelId, at: Date.now() };
+    await this.publish(project, "seen", `seen-${crypto.randomUUID().slice(0, 12)}`, value);
+    FOLDS.seen?.(p as MemberProject, value, { author: "", authorId: this.myId(), at: value.at });
+  }
+
+  async markDirectRead(peer: string): Promise<void> {
+    const last = this.direct.talks.get(peer)?.at(-1);
+    if (last) await this.setRead(directKey(peer), last.at);
+  }
+
+  // ---- direct messages -----------------------------------------------------------------
+
+  private async applyDirect(room: string, events: WireEvent[]): Promise<void> {
+    const me = this.myId();
+    if (!this.device || !me) return;
+    const added = await this.direct.open(room, events, me, this.device);
+    for (const m of added)
+      if (!m.mine && m.at > this.liveFrom)
+        this.onNotice({ title: this.nameOf(m.peer), body: m.text.slice(0, 140), open: directKey(m.peer) });
+    if (added.length) this.changed();
+  }
+
+  /** Sealed for the two people's devices; the hub, an admin or anyone else on the team cannot open it. */
+  async sendDirect(peer: string, text: string, quoteId?: string): Promise<DirectMessage> {
+    const me = this.myId();
+    if (!this.device || !me || !text.trim()) throw new Error("Not signed in");
+    const keysOf = (id: string) =>
+      this.request<{ deviceId: string; publicKey: string }[]>(`/api/users/${encodeURIComponent(id)}/device-keys`);
+    const devices = [...(await keysOf(peer)), ...(await keysOf(me))];
+    const sealed = await this.direct.seal({ me, peer, device: this.device, text: text.trim(), quoteId }, devices);
+    if (!sealed) throw new Error(`${this.nameOf(peer)} has no device that could read it yet`);
+    if (!this.send(sealed.op)) throw new Error("Not connected to the hub; try again in a moment");
+    this.direct.add(sealed.message);
+    await this.setRead(directKey(peer), sealed.message.at);
+    this.changed();
+    return sealed.message;
   }
 
   // ---- what a web member may send -----------------------------------------------------
@@ -478,23 +573,72 @@ export class MemberClient {
     const key = this.keys.get(this.epoch);
     if (!key) throw new Error("No team key yet");
     const sealed = await encrypt(key, aadFor(project, kind), value);
-    this.send({ op: "pub", project, kind, id: id.slice(0, 40), epoch: this.epoch, ...sealed });
+    if (!this.send({ op: "pub", project, kind, id: id.slice(0, 40), epoch: this.epoch, ...sealed }))
+      throw new Error("Not connected to the hub; try again in a moment");
   }
 
-  /** A comment on a session, a decision or a card; teammates see it like one written in Igrek. */
-  async comment(project: string, targetKind: string, targetId: string, text: string, parentId?: string): Promise<void> {
+  /** The hub ids of the teammates a text names with @username. */
+  private mentionsIn(text: string): string[] {
+    const named = new Set([...text.matchAll(/(?:^|\s)@([\w.-]+)/g)].map((m) => (m[1] ?? "").toLowerCase()));
+    return [...this.members.values()].filter((m) => named.has(m.username.toLowerCase())).map((m) => m.id);
+  }
+
+  /**
+   * A comment on a session, a decision or a card, or a message in a channel; teammates see it like
+   * one written in Igrek. A file goes first, in parts, so it is (nearly) there when its message is.
+   */
+  async comment(
+    project: string,
+    target: { kind: string; id: string },
+    text: string,
+    extra: { parentId?: string; quoteId?: string; file?: Blob & { name?: string } } = {},
+  ): Promise<void> {
+    const file = extra.file ? await prepareFile(extra.file) : undefined;
+    if (!text.trim() && !file) return;
+    if (file) {
+      for (let i = 0; i < file.parts.length; i++)
+        await this.publish(project, "file-part", `f-${file.attachment.hash.slice(0, 24)}-${i}`, {
+          hash: file.attachment.hash,
+          i,
+          n: file.parts.length,
+          data: file.parts[i],
+        });
+      this.files.keep(file.attachment.hash, file.parts);
+    }
     const value = {
       id: crypto.randomUUID().slice(0, 12),
-      targetKind,
-      targetId,
-      text: text.slice(0, 4000),
-      mentions: [],
+      targetKind: target.kind,
+      targetId: target.id,
+      text: text.trim().slice(0, 4000),
+      mentions: this.mentionsIn(text),
       at: Date.now(),
-      ...(parentId ? { parentId } : {}),
+      ...(extra.parentId ? { parentId: extra.parentId } : {}),
+      ...(extra.quoteId ? { quoteId: extra.quoteId } : {}),
+      ...(file ? { attachment: file.attachment } : {}),
     };
     await this.publish(project, "comment", `c-${value.id}`, value);
-    this.fold(project, { kind: "comment", author: this.myId(), at: value.at } as WireEvent, value);
+    await this.foldMine(project, "comment", value);
+    if (target.kind === "channel") await this.setRead(channelKey(project, target.id), value.at);
+  }
+
+  private async foldMine(project: string, kind: string, value: Record<string, unknown>): Promise<void> {
+    await this.fold(project, { kind, author: this.myId(), at: Date.now() } as WireEvent, value);
     this.changed();
+  }
+
+  /** My own message, changed or deleted for everyone; its pin stays as it is. */
+  async updateMessage(project: string, id: string, change: { text: string } | { deleted: true }): Promise<void> {
+    const c = this.projects.get(project)?.comments.get(id);
+    if (!c || c.authorId !== this.myId()) return;
+    const at = Date.now();
+    const text = "text" in change ? change.text.trim().slice(0, 4000) : "";
+    if ("text" in change && !text) return;
+    const value =
+      "deleted" in change
+        ? { id, text: "", deleted: true, pinned: false, at }
+        : { id, text, deleted: false, pinned: !!c.pinned, editedAt: at, at };
+    await this.publish(project, "chat-update", `u-${id}-${at}`, value);
+    await this.foldMine(project, "chat-update", value);
   }
 
   /** My reaction on a message, given or taken back (a second tap), like in Igrek. */
@@ -503,8 +647,7 @@ export class MemberClient {
     const value = { messageId, reaction, removed: had, at: Date.now() };
     // Event ids are cut at 40 characters: the message id would leave every tap the same id.
     await this.publish(project, "reaction", `r-${crypto.randomUUID()}`, value);
-    this.fold(project, { kind: "reaction", author: this.myId(), at: value.at } as WireEvent, value);
-    this.changed();
+    await this.foldMine(project, "reaction", value);
   }
 
   /** A new card on the project's board; Igrek shows it with this member as its author. */
@@ -522,26 +665,28 @@ export class MemberClient {
     };
     if (!task.title) return;
     await this.publish(project, "task", `task-${task.id}-${now}`, task);
-    this.fold(project, { kind: "task", author: this.myId(), at: now } as WireEvent, task);
-    this.changed();
+    await this.foldMine(project, "task", task);
   }
 
   /** "I'm taking this" on a board card (or let it go). */
   async claim(project: string, taskId: string, take: boolean): Promise<void> {
     const task = this.projects.get(project)?.tasks.get(taskId);
-    if (!task || this.state.phase !== "ready") return;
-    const me = this.state.user;
+    const me = this.me();
+    if (!task || !me) return;
     if (take && task.claimedBy && task.claimedBy.id !== me.id)
       throw new Error(`${task.claimedBy.name} already took this card`);
     const { author: _a, ...rest } = task;
     const next = { ...rest, claimedBy: take ? { id: me.id, name: me.displayName } : undefined, updatedAt: Date.now() };
     await this.publish(project, "task", `task-${taskId}-${next.updatedAt}`, next);
-    this.fold(project, { kind: "task", author: me.id, at: next.updatedAt } as WireEvent, next);
-    this.changed();
+    await this.foldMine(project, "task", next);
   }
 
-  private myId(): string {
-    return this.state.phase === "ready" ? this.state.user.id : "";
+  /** Name, picture and language, on the hub; teammates see the new name at once. */
+  async updateProfile(patch: { displayName?: string; avatar?: string; language?: string }): Promise<void> {
+    const user = await this.request<MemberUser>("/api/me", { method: "PATCH", body: JSON.stringify(patch) });
+    if (this.state.phase === "ready") this.setState({ ...this.state, user: { ...this.state.user, ...user } });
+    await this.loadMembers();
+    this.changed();
   }
 }
 

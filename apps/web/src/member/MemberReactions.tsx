@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { REACTION_ICONS } from "../components/chat/reaction-icons";
 import { cn } from "../lib/cn";
-import type { MemberClient, MemberProject } from "./client";
+import type { MemberClient } from "./client";
+import type { MemberProject } from "./model";
 
 /**
  * Reactions in the browser, like in Igrek (plan.md 19.9): the pill on the message with who gave
@@ -33,7 +34,7 @@ export function MemberReactions({
     setOpen(false);
     if (canReact) void client.react(project.key, messageId, r).catch(() => undefined);
   };
-  const name = (id: string) => client.members.get(id) ?? id;
+  const name = (id: string) => client.nameOf(id);
   return (
     <div className="mt-0.5 flex items-center gap-1">
       {groups.length > 0 && (

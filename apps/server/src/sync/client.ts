@@ -1444,6 +1444,9 @@ export class Sync {
     if (!this.connected || !this.indexKey || !this.seats || !this.shareUsage()) return;
     if (this.config?.user.role === "viewer") return;
     await this.publish(this.indexKey, "seat", `seat-${Date.now()}`, this.seats.mine());
+    // The admin's budgets go along, so a general manager in the browser sees who is past theirs.
+    if (this.config?.user.role === "admin" && this.budgets)
+      await this.publish(this.indexKey, "budgets", `budgets-${Date.now()}`, { budgets: this.budgets() });
   }
 
   /** A session made private after it was shared: ask teammates to drop their copy. */
@@ -1687,7 +1690,7 @@ export class Sync {
               event.data,
             );
             if (this.track(projectKeyHex, event) !== "seen") await this.adoptProject(value.identity, value.name);
-          }
+          } else this.track(projectKeyHex, event); // budgets: for the browser page, kept in the chain
           continue;
         }
         const projectId = this.keyToProject.get(projectKeyHex);
@@ -1876,6 +1879,8 @@ export class Sync {
   /** The Company page's reports (seats.ts) and whether this user shares theirs, set by the server at startup. */
   seats?: import("./seats").Seats;
   shareUsage: () => boolean = () => true;
+  /** The budgets the admin set (budgets.ts), shared with the team; set by the server at startup. */
+  budgets?: () => Record<string, import("@igrek/core").SeatBudget>;
   /** The team chat (team-chat.ts), set by the server at startup. */
   chat?: import("../team-chat").Chat;
   /** The team chat's files, pictures and voice messages (chat-files.ts), set by the server at startup. */

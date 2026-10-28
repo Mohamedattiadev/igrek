@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui";
 import { relativeTime } from "../lib/format";
-import type { MemberClient, MemberProject } from "./client";
+import type { MemberClient } from "./client";
+import type { MemberProject } from "./model";
 
 const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
 
@@ -44,7 +45,7 @@ export function MemberComments({
           onSubmit={(e) => {
             e.preventDefault();
             if (!text.trim()) return;
-            void client.comment(project.key, kind, id, text.trim()).then(() => setText(""));
+            void client.comment(project.key, { kind, id }, text).then(() => setText(""));
           }}
         >
           <input

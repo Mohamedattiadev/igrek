@@ -8,10 +8,12 @@ import { createHubServer } from "../../../hub/src/server";
 import { MemberClient, type MemberStore } from "../../../web/src/member/client";
 import { Board } from "../board";
 import { Bus } from "../bus";
+import { ChatFiles } from "../chat-files";
 import { migrate } from "../db";
 import type { Flows } from "../flows";
 import { Chat } from "../team-chat";
 import { Sync } from "./client";
+import { Seats } from "./seats";
 
 // A web member (plan.md 4.3) against a real hub and a real Igrek: what the browser does,
 // minus the page itself. Encryption and decryption happen in the "browser" (MemberClient).
@@ -39,14 +41,14 @@ async function until(check: () => boolean, ms = 8000): Promise<void> {
   }
 }
 
-describe("web member", () => {
-  const db = new Database(":memory:");
-  migrate(db);
-  const admin = new Sync(db, new Bus(), join(dir, "admin.json"), () => "admin");
-  const board = new Board(db, new Bus(), {} as Flows);
-  admin.board = board;
-  const browser = new MemberClient(memoryStore(), hubUrl);
+const db = new Database(":memory:");
+migrate(db);
+const admin = new Sync(db, new Bus(), join(dir, "admin.json"), () => "admin");
+const board = new Board(db, new Bus(), {} as Flows);
+admin.board = board;
+const browser = new MemberClient(memoryStore(), hubUrl);
 
+describe("web member", () => {
   test("signs in, waits for an admin's approval, then reads the team's work in the browser", async () => {
     await hub.createUser({ username: "mohamed", password: "first-password-1", role: "admin", mustChange: false });
     await admin.connect({ hub: hubUrl, username: "mohamed", password: "first-password-1" });
@@ -86,7 +88,7 @@ describe("web member", () => {
   test("what the web member writes reaches Igrek, and the hub only stores ciphertext", async () => {
     const shop = [...browser.projects.values()][0];
     if (!shop) throw new Error("no project");
-    await browser.comment(shop.key, "session", "s1", "Looks good, ship it");
+    await browser.comment(shop.key, { kind: "session", id: "s1" }, "Looks good, ship it");
     const [card] = [...shop.tasks.values()];
     await browser.claim(shop.key, card?.id ?? "", true);
     await until(() => !!db.query("SELECT 1 FROM comments WHERE text = 'Looks good, ship it'").get());
@@ -132,5 +134,97 @@ describe("web member", () => {
     await admin.flush();
     await until(() => !!shop.comments.get(id)?.deleted);
     expect(shop.comments.get(id)?.text).toBe("");
+  }, 30_000);
+});
+
+// The hub's web page as Igrek on a computer (plan.md 20.1): direct messages sealed for both
+// people's devices, files in checked parts, "seen", edits, typing and the admin's budgets.
+describe("web member, like Igrek", () => {
+  test("direct messages go both ways between the browser and Igrek, and the hub cannot read them", async () => {
+    const ayse = browser.me()?.id ?? "";
+    const mohamed = admin.identity().id ?? "";
+    await until(() => admin.memberList().some((m) => m.id === ayse));
+    admin.direct.subscribe([ayse]);
+    await browser.sendDirect(mohamed, "Can you look at the invoice?");
+    await until(() => admin.direct.messages(ayse).some((m) => m.text === "Can you look at the invoice?"));
+    const sent = admin.direct.post(ayse, "Yes, after lunch", admin.direct.messages(ayse)[0]?.id);
+    await admin.flush();
+    await until(() => (browser.direct.talks.get(mohamed) ?? []).some((m) => m.id === sent));
+    const reply = browser.direct.talks.get(mohamed)?.find((m) => m.id === sent);
+    expect(reply).toMatchObject({ mine: false, text: "Yes, after lunch" });
+    expect(reply?.quoteId).toBeTruthy();
+    expect(browser.unreadDirect(mohamed)).toBe(1);
+    await browser.markDirectRead(mohamed);
+    expect(browser.unreadDirect(mohamed)).toBe(0);
+    const stored = new Database(join(dir, "hub.db"), { readonly: true });
+    const all = stored.query("SELECT data FROM events").all() as { data: string }[];
+    expect(all.some((e) => e.data.includes("invoice") || e.data.includes("lunch"))).toBe(false);
+  }, 30_000);
+
+  test("a file from the browser reaches Igrek whole, and Igrek's file opens in the browser", async () => {
+    const files = new ChatFiles(join(dir, "admin-files"));
+    admin.files = files;
+    const shop = [...browser.projects.values()][0];
+    if (!shop) throw new Error("no project");
+    // Bigger than one part, so it travels in three and is put together on the other side.
+    const bytes = new Uint8Array(600_000).map((_, i) => i % 251);
+    const pdf = Object.assign(new Blob([bytes], { type: "application/pdf" }), { name: "offer.pdf" });
+    await browser.comment(shop.key, { kind: "channel", id: "p1:general" }, "The offer", { file: pdf });
+    await until(() => !!db.query("SELECT 1 FROM comments WHERE text = 'The offer'").get());
+    const hash = (db.query("SELECT attachment_hash AS h FROM comments WHERE text = 'The offer'").get() as { h: string })
+      .h;
+    await until(() => files.has(hash));
+    expect(files.read(hash)?.length).toBe(600_000);
+
+    const voice = files.save(new Uint8Array(1500).fill(7), "voice.webm", "audio/webm");
+    const chat = admin.chat;
+    if (!chat) throw new Error("no chat");
+    chat.post({ projectId: "p1", channel: "p1:general", text: "", author: "mohamed", mentions: [], attachment: voice });
+    await admin.flush();
+    await until(() => browser.files.done.has(voice.hash));
+    expect(browser.files.done.get(voice.hash)?.length).toBe(1500);
+  }, 30_000);
+
+  test("seen, edits, deletions, quotes and mentions from the browser land in Igrek", async () => {
+    const chat = admin.chat;
+    const shop = [...browser.projects.values()][0];
+    if (!chat || !shop) throw new Error("no chat");
+    const asked = chat.post({
+      projectId: "p1",
+      channel: "p1:general",
+      text: "Who takes the release?",
+      author: "mohamed",
+      mentions: [],
+    });
+    await admin.flush();
+    await until(() => shop.comments.has(asked));
+    await browser.markSeen(shop.key, "p1:general");
+    await until(() => (chat.message(asked)?.seenBy ?? []).includes("ayse"));
+
+    await browser.comment(shop.key, { kind: "channel", id: "p1:general" }, "I do, @mohamed", { quoteId: asked });
+    await until(() => !!db.query("SELECT 1 FROM comments WHERE text = 'I do, @mohamed'").get());
+    const row = db.query("SELECT id, quote_of, mentions FROM comments WHERE text = 'I do, @mohamed'").get() as {
+      id: string;
+      quote_of: string;
+      mentions: string;
+    };
+    expect(row.quote_of).toBe(asked);
+    expect(JSON.parse(row.mentions)).toEqual([admin.identity().id]);
+    await browser.updateMessage(shop.key, row.id, { text: "I do it, @mohamed" });
+    await until(() => chat.message(row.id)?.text === "I do it, @mohamed");
+    await browser.updateMessage(shop.key, row.id, { deleted: true });
+    await until(() => !!chat.message(row.id)?.deleted);
+  }, 30_000);
+
+  test("Igrek's typing and the admin's budgets reach the browser", async () => {
+    const shop = [...browser.projects.values()][0];
+    if (!shop) throw new Error("no project");
+    await admin.sendTyping("p1", "p1:general");
+    await until(() => browser.typingIn(shop.key, "p1:general").includes("mohamed"));
+    admin.seats = new Seats(db, () => [], "0.1.13");
+    admin.budgets = () => ({ [admin.identity().id ?? ""]: { weekPct: 80 } });
+    await (admin as unknown as { sendSeat: () => Promise<void> }).sendSeat();
+    await until(() => browser.budgets[admin.identity().id ?? ""]?.weekPct === 80);
+    expect(browser.seats.has(admin.identity().id ?? "")).toBe(true);
   }, 30_000);
 });

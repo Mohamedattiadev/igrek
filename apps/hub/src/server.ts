@@ -448,8 +448,9 @@ export function createHubServer(
   if (options.webDir) {
     const root = resolve(options.webDir);
     // The page decrypts the team's work, so nothing but its own files may run or be reached.
+    // Pictures and voice messages are decrypted into blob: addresses in the page itself.
     const csp =
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
     app.get("*", (c) => {
       const path = normalize(join(root, decodeURIComponent(c.req.path)));
       const asset = path.startsWith(join(root, "assets") + sep) && existsSync(path);

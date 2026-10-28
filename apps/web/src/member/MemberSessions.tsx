@@ -4,11 +4,12 @@ import { useTranslation } from "react-i18next";
 import { Card } from "../components/ui";
 import { cn } from "../lib/cn";
 import { dateTime, relativeTime } from "../lib/format";
-import type { MemberClient, MemberProject, MemberSession } from "./client";
+import type { MemberClient } from "./client";
 import { MemberComments } from "./MemberComments";
+import type { MemberProject, MemberSession } from "./model";
 
 /** What a session is called: Igrek's summary title, the tool's title, or the first thing asked in it. */
-function sessionTitle(s: MemberSession, untitled: string): string {
+export function sessionTitle(s: MemberSession, untitled: string): string {
   const first = s.firstPrompt
     ?.split("\n")
     .find((l) => l.trim())
@@ -22,7 +23,7 @@ function summaryText(s: MemberSession, language: string) {
   return texts[language] ?? texts.en ?? Object.values(texts)[0];
 }
 
-function dayOf(at: number, t: (key: string) => string): string {
+export function dayOf(at: number, t: (key: string) => string): string {
   const day = new Date(at);
   const today = new Date();
   const yesterday = new Date(Date.now() - 86_400_000);

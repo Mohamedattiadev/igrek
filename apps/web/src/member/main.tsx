@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import i18n, { loadBundled } from "../lib/i18n";
 import { indexedDbStore, MemberClient } from "./client";
+import { applyTheme, readTheme } from "./hooks";
 import { MemberApp } from "./MemberApp";
 import "@fontsource-variable/inter/wght.css";
 import "../styles.css";
@@ -12,6 +13,7 @@ import "../styles.css";
  */
 const language = navigator.language.toLowerCase().startsWith("tr") ? "tr" : "en";
 document.documentElement.lang = language;
+applyTheme(readTheme());
 const client = new MemberClient(indexedDbStore());
 
 void loadBundled(language)
