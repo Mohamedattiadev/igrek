@@ -1339,12 +1339,12 @@ god-eye/
   - [x] Kendi mesajını düzenleme ve silme ("düzenlendi", "bu mesaj silindi"), takım arkadaşlarında da güncellenir — *yapıldı (28 Ekim): "Diğer" menüsünde; metni sadece yazanın bilgisayarı değiştirebilir, hub'ın web sayfasında da güncellenir.*
   - [x] Görüldü bilgisi: mesajı kimin gördüğü (iki tik gibi), üzerine gelince isimler — *yapıldı (28 Ekim): kanal açılınca "buraya kadar okudum" şifreli gider; kendi mesajlarında tek tik gönderildi, renkli çift tik görüldü, üzerine gelince isimler.*
   - [x] "Kerim yazıyor..." göstergesi (Igrek'in "AI yazıyor" göstergesi gibi) — *yapıldı (28 Ekim): şifreli presence üzerinden, hiçbir yere kaydedilmez, 6 saniyede söner.*
-  - [ ] Doğrudan mesaj: iki kişi arasında kanal dışı özel sohbet
-  - [ ] Dosya, resim ve sesli mesaj gönderme (uçtan uca şifreli, hub üzerinden; 19.1'deki yerel Whisper ile yazıya çevrilir)
+  - [x] Doğrudan mesaj: iki kişi arasında kanal dışı özel sohbet — *yapıldı (28 Ekim): her mesaj iki kişinin cihazları için ayrı anahtarla şifrelenir; hub, yönetici ya da takım anahtarı olan biri okuyamaz. Hub'a bir uç eklendi (kişinin cihaz açık anahtarları), VPS'teki hub güncellenmeden çalışmaz.*
+  - [x] Dosya, resim ve sesli mesaj gönderme (uçtan uca şifreli, hub üzerinden; 19.1'deki yerel Whisper ile yazıya çevrilir) — *yapıldı (28 Ekim): 10 MB'a kadar, şifreli parçalar halinde, karşıda özetiyle doğrulanır; resim ve ses sayfada açılır, diğerleri sadece indirilir. Yazıya çevirme 19.1 ile gelecek.*
   - [x] Okunmamışların başladığı yerde "Okunmamış mesajlar" çizgisi ve oraya kaydırma — *yapıldı (28 Ekim): "2 okunmamış mesaj" çizgisi, kanal oradan açılır.*
   - [x] Mesajı sabitleme ve yıldızlama; kanalda arama — *yapıldı (28 Ekim): sabitleme takımın (herkes görür), yıldız sadece senin; kanal başlığında arama, sabitlenenler ve yıldızlılar paneli.*
   - [x] İleri gönderme (bir mesajı başka bir kanala) — *yapıldı (28 Ekim): "Diğer > İlet", varılan kanalda "İletildi" yazar.*
-  - [ ] Bağlantı önizlemesi (başlık ve görsel; sadece kullanıcının istediği adresler, takip yok)
+  - [x] Bağlantı önizlemesi (başlık ve görsel; sadece kullanıcının istediği adresler, takip yok) — *yapıldı (28 Ekim): sayfayı sadece gönderenin Igrek'i çeker, X ile kaldırılabilir; kart mesajın içinde şifreli gider, okuyanlar adrese hiç gitmez.*
   - [x] Bildirim sesi ve masaüstü bildirimi (kanal başına sessize alma) — *yapıldı (28 Ekim): kısa bir ses (dosya yok, tarayıcıda üretilir) ve Igrek arkadayken bildirim; kanal başlığındaki zil ile sessize alınır.*
   - [x] Hub'ın web sayfasında (Kerim'in tarayıcıdan kullandığı) tepkileri göstermek ve vermek; şimdilik sadece masaüstü uygulamasında — *yapıldı (28 Ekim): tarayıcıda tepki verilir ve geri alınır; alıntılar, düzenlenen ve silinen mesajlar da orada doğru görünür.*
 
