@@ -166,7 +166,15 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
 
   return (
     <div className="space-y-3">
-      <LaunchPanel projectId={project.id} />
+      <LaunchPanel
+        projectId={project.id}
+        onPreview={(url) =>
+          void api
+            .startPreview(project.id, url)
+            .then(setServer)
+            .catch((err: Error) => setError(err.message))
+        }
+      />
       <UiNotesPanel projectId={project.id} />
       <Card className="flex flex-wrap items-center gap-2 p-2">
         {running ? (

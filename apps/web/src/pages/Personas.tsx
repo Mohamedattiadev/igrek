@@ -435,8 +435,9 @@ export function PersonasPage() {
         }
       />
       <div className="mx-auto w-full max-w-5xl space-y-4 p-6">
-        <div className="flex flex-wrap gap-1">
-          {(["team", "bots", "meetings", "testers", "scores", "arena", "packs"] as Tab[]).map((value) => (
+        {/* Four tabs in front; the scorecard, the arena and the packs are for later, under "More". */}
+        <div className="flex flex-wrap items-center gap-1">
+          {(["team", "bots", "meetings", "testers"] as Tab[]).map((value) => (
             <button
               key={value}
               type="button"
@@ -449,6 +450,22 @@ export function PersonasPage() {
               {t(`persona.tab_${value}`)}
             </button>
           ))}
+          <select
+            value={["scores", "arena", "packs"].includes(tab) ? tab : ""}
+            onChange={(e) => e.target.value && go(e.target.value as Tab)}
+            aria-label={t("persona.tabMore")}
+            className={cn(
+              "h-7 rounded-ui bg-transparent px-2 text-[13px]",
+              ["scores", "arena", "packs"].includes(tab) ? "bg-bg-active font-medium text-fg" : "text-fg-muted",
+            )}
+          >
+            <option value="">{t("persona.tabMore")}</option>
+            {(["scores", "arena", "packs"] as Tab[]).map((value) => (
+              <option key={value} value={value}>
+                {t(`persona.tab_${value}`)}
+              </option>
+            ))}
+          </select>
         </div>
         {tab !== "team" && <p className="text-[13px] text-fg-muted">{t(`persona.tabHint_${tab}`)}</p>}
         {tab === "bots" && <BotsTab />}

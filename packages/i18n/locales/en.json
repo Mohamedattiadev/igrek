@@ -2748,7 +2748,8 @@
     "tab_packs": "Packages",
     "tabHint_packs": "Experts and team flows other people made, and a way to share your own. Nothing is saved before you see what a package holds.",
     "tab_bots": "Bots",
-    "tabHint_bots": "Team bots: call one with @name in a channel or give it a card; it works in its own copy and waits for your merge."
+    "tabHint_bots": "Team bots: call one with @name in a channel or give it a card; it works in its own copy and waits for your merge.",
+    "tabMore": "More"
   },
   "meeting": {
     "title": "Team meeting",
@@ -5337,7 +5338,8 @@
     "bot_stopped": "{{name}} was stopped.",
     "bot_merged": "{{name}}'s work was merged.",
     "bot_discarded": "{{name}}'s work was discarded.",
-    "voiceToText": "To text"
+    "voiceToText": "To text",
+    "openThread": "Reply in a thread"
   },
   "company": {
     "watchTitle": "Worth a look",
@@ -5677,7 +5679,8 @@
     "status_stopped": "Stopped",
     "status_starting": "Starting",
     "status_running": "Running",
-    "status_failed": "Failed"
+    "status_failed": "Failed",
+    "preview": "Preview"
   },
   "uiNotes": {
     "title_one": "{{count}} note on the screen",

@@ -5,6 +5,7 @@ import {
   CheckCheck,
   Ellipsis,
   Forward,
+  MessageSquareReply,
   Pencil,
   Pin,
   PinOff,
@@ -77,6 +78,8 @@ export function SeenTicks({ message }: { message: ChatMessage }) {
 }
 
 export interface MessageMenuActions {
+  /** A thread under the message, for a longer side talk. */
+  onThread?: () => void;
   onEdit?: () => void;
   onForward?: () => void;
   onTask?: () => void;
@@ -101,6 +104,7 @@ export function MoreMenu({ message, actions }: { message: ChatMessage; actions: 
   };
   const mine = message.mine && !message.bot;
   const items = [
+    actions.onThread && { icon: MessageSquareReply, label: t("teamChat.openThread"), act: actions.onThread },
     mine && actions.onEdit && { icon: Pencil, label: t("teamChat.edit"), act: actions.onEdit },
     {
       icon: message.pinned ? PinOff : Pin,

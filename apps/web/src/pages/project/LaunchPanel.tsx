@@ -1,5 +1,5 @@
 import type { LaunchPart } from "@igrek/core";
-import { ExternalLink, Play, Rocket, ScrollText, Square } from "lucide-react";
+import { ExternalLink, Eye, Play, Rocket, ScrollText, Square } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card } from "../../components/ui";
@@ -46,7 +46,7 @@ function Logs({ projectId, part }: { projectId: string; part: string }) {
  * Procfile processes, Makefile targets) with its state, address and log, started one by one or
  * all at once; ticked parts start by themselves when the project is opened.
  */
-export function LaunchPanel({ projectId }: { projectId: string }) {
+export function LaunchPanel({ projectId, onPreview }: { projectId: string; onPreview?: (url: string) => void }) {
   const { t } = useTranslation();
   const [launch, setLaunch] = useState<Launch>();
   const [error, setError] = useState<string>();
@@ -109,6 +109,12 @@ export function LaunchPanel({ projectId }: { projectId: string }) {
                   </a>
                 )}
                 {!p.url && p.port && <span className="text-fg-muted">:{p.port}</span>}
+                {/* A web app that runs: open it in the preview below, where its parts can be picked. */}
+                {p.url && onPreview && (
+                  <Button size="sm" variant="ghost" icon={Eye} onClick={() => onPreview(p.url ?? "")}>
+                    {t("launch.preview")}
+                  </Button>
+                )}
                 <label className="flex items-center gap-1 text-fg-muted" data-tip={t("launch.autoTip")}>
                   <input
                     type="checkbox"

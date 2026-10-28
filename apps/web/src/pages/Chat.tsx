@@ -1572,19 +1572,19 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                   </p>
                 </div>
                 {composer}
-                {info?.projectId && info.focus !== "chief" && info.status !== "exited" && (
-                  <div className="mt-3">
-                    <GapsLine
-                      projectId={info.projectId}
-                      onWrite={(value) => {
-                        setText(value);
-                        input.current?.focus();
-                      }}
-                    />
-                  </div>
-                )}
                 {info?.status !== "exited" && (
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {/* What the project lacks comes first, in the same row (plan.md 19.8). */}
+                    {info?.projectId && info.focus !== "chief" && (
+                      <GapsLine
+                        inline
+                        projectId={info.projectId}
+                        onWrite={(value) => {
+                          setText(value);
+                          input.current?.focus();
+                        }}
+                      />
+                    )}
                     {(info?.focus === "chief" ? CHIEF_STARTERS : STARTERS)
                       .filter(({ key }) => key !== "experts" || (settings.consultExperts && !info?.persona))
                       .map(({ key, icon: Icon }) => (

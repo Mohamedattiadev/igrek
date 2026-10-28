@@ -2748,7 +2748,8 @@
     "tab_packs": "Paketler",
     "tabHint_packs": "Başkalarının yaptığı uzmanlar ve takım akışları, ve kendininkileri paylaşmanın yolu. Bir paketin içinde ne olduğunu görmeden hiçbir şey kaydedilmez.",
     "tab_bots": "Botlar",
-    "tabHint_bots": "Takım botları: kanalda @adı ile çağır ya da bir kart ver; kendi kopyasında çalışır ve birleştirmeni bekler."
+    "tabHint_bots": "Takım botları: kanalda @adı ile çağır ya da bir kart ver; kendi kopyasında çalışır ve birleştirmeni bekler.",
+    "tabMore": "Daha fazla"
   },
   "meeting": {
     "title": "Takım toplantısı",
@@ -5337,7 +5338,8 @@
     "bot_stopped": "{{name}} durduruldu.",
     "bot_merged": "{{name}} çalışması birleştirildi.",
     "bot_discarded": "{{name}} çalışması atıldı.",
-    "voiceToText": "Yazıya çevir"
+    "voiceToText": "Yazıya çevir",
+    "openThread": "Konu olarak cevap ver"
   },
   "company": {
     "watchTitle": "Bakmaya değer",
@@ -5677,7 +5679,8 @@
     "status_stopped": "Durdu",
     "status_starting": "Başlıyor",
     "status_running": "Çalışıyor",
-    "status_failed": "Başarısız"
+    "status_failed": "Başarısız",
+    "preview": "Önizle"
   },
   "uiNotes": {
     "title_one": "Ekranda {{count}} not",

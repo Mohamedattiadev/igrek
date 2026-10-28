@@ -161,21 +161,12 @@ function Actions({
           <Reply size={14} aria-hidden="true" />
         </button>
       )}
-      {handlers.onThread && !compact && (
-        <button
-          type="button"
-          onClick={handlers.onThread}
-          className={action}
-          data-tip={t("teamChat.reply")}
-          aria-label={t("teamChat.reply")}
-        >
-          <MessageSquareReply size={14} aria-hidden="true" />
-        </button>
-      )}
+      {/* One way to answer, as on WhatsApp: "Reply" quotes; a thread is in "More" for long side talks. */}
       {!handlers.plain && (
         <MoreMenu
           message={message}
           actions={{
+            onThread: handlers.onThread && !compact ? handlers.onThread : undefined,
             onEdit: handlers.onEdit,
             onForward: handlers.onForward,
             onTask: canTask ? handlers.onTask : undefined,
