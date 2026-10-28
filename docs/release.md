@@ -12,7 +12,9 @@ publish on their own); the workflow builds and checks, it does not publish.
    changed.
 3. **Release notes** in plain words: what changed for the person using Igrek, not how. If a version was
    never published, its changes go into the next notes.
-4. **A Rust dependency's features** are what the Windows build needs too: a feature can be switched on
+4. **Speed and resources**: `bun run test:perf` (a minute): the server starts within 3 seconds, idles
+   under 2% CPU and 200 MB, and its main reads answer within 200 ms. A release does not make it slower.
+5. **A Rust dependency's features** are what the Windows build needs too: a feature can be switched on
    by another crate on Linux and not on Windows (0.1.4's Windows build failed on `zip` this way). When
    `Cargo.toml` changes, run `cargo tree --target x86_64-pc-windows-msvc -e features` for the crate.
 
