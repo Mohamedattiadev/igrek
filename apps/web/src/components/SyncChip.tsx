@@ -7,6 +7,21 @@ import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 
+/** What the chip says on hover: when it last synced, what is being repaired, and whether it matches the hub. */
+function tipOf(status: TeamStatus, label: string, t: (key: string, o?: Record<string, unknown>) => string): string {
+  const missing = status.integrity?.missing ?? 0;
+  return [
+    status.lastSyncAt ? t("sync.lastTip", { when: relativeTime(status.lastSyncAt) }) : label,
+    missing ? t("sync.repairTip", { count: missing }) : "",
+    status.integrity?.broken ? t("sync.brokenTip", { count: status.integrity.broken }) : "",
+    status.integrity?.checkedAt && status.integrity.matches
+      ? t("sync.matchesTip", { when: relativeTime(status.integrity.checkedAt) })
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 /** Team sync state in the top bar (plan.md 4.1): up to date, syncing, or offline with what's waiting. */
 export function SyncChip() {
   const { t } = useTranslation();
@@ -35,13 +50,7 @@ export function SyncChip() {
       : missing
         ? t("sync.repairing", { count: missing })
         : t("sync.upToDate");
-  const tip = [
-    status.lastSyncAt ? t("sync.lastTip", { when: relativeTime(status.lastSyncAt) }) : label,
-    missing ? t("sync.repairTip", { count: missing }) : "",
-    status.integrity?.broken ? t("sync.brokenTip", { count: status.integrity.broken }) : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const tip = tipOf(status, label, t);
   return (
     <Link
       to="/team"

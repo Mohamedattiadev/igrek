@@ -246,6 +246,16 @@ export function createHubServer(
     ),
   );
 
+  /** Each project's summary value, for the ones this person may read (plan.md 20.10). */
+  app.get("/api/sync/digest", (c) => {
+    const user = c.get("auth").user;
+    const projects = String(c.req.query("projects") ?? "")
+      .split(",")
+      .filter((p) => /^[0-9a-f]{64}$/.test(p) && hub.roleIn(user, p))
+      .slice(0, 300);
+    return c.json(Object.fromEntries(projects.map((p) => [p, hub.digest(p)])));
+  });
+
   /** Repairs a gap: one device's events, by chain position (plan.md 4.1). */
   app.get("/api/chain/:project", (c) => {
     const project = c.req.param("project");

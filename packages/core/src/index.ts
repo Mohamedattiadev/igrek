@@ -6,6 +6,7 @@ export * from "./e2e";
 export * from "./flows";
 export * from "./forms";
 export * from "./help";
+export * from "./history";
 export * from "./insight";
 export * from "./knowledge";
 export * from "./lessons";
@@ -880,7 +881,8 @@ export interface TeamStatus {
   waitingForKey: boolean;
   keyEpoch: number;
   /** Events missing from teammates' chains (being repaired) and links that didn't match (plan.md 4.1). */
-  integrity?: { missing: number; broken: number };
+  /** Gaps being repaired, broken links, and when this computer last compared itself with the hub. */
+  integrity?: { missing: number; broken: number; checkedAt?: number; matches?: boolean };
   lastSyncAt?: number;
   members: TeamMember[];
 }

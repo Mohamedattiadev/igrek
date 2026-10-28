@@ -86,6 +86,22 @@ describe("understanding the manager", () => {
     if (a.kind === "ask") expect(a.draft.options.length).toBeGreaterThan(1);
   });
 
+  test("a meeting is booked, not turned into a card", () => {
+    expect(understand("@asistan Kerim'le bu hafta 30 dakika", ctx)).toMatchObject({
+      kind: "meet",
+      people: ["kerim"],
+      minutes: 30,
+      days: 7,
+    });
+    expect(understand("a 1 hour call with Ali tomorrow", ctx)).toMatchObject({
+      kind: "meet",
+      people: ["ali"],
+      minutes: 60,
+      days: 2,
+    });
+    expect(understand("ödeme sayfası Cuma'ya bitsin, Kerim baksın", ctx).kind).toBe("task");
+  });
+
   test("a question is answered, not turned into a card", () => {
     expect(understand("QA bu hafta neyi test etti?", ctx)).toMatchObject({ kind: "question", team: "qa" });
     expect(understand("what did backend finish last week?", ctx)).toMatchObject({ kind: "question", team: "be" });

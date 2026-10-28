@@ -1,4 +1,4 @@
-import type { ProjectGlance, TeamMember } from "@igrek/core";
+import type { ProjectGlance, TeamMember, TimelineItem } from "@igrek/core";
 import type { OrgApi, OrgView } from "../components/org/api";
 import { OrgPage, type OrgTab } from "../components/org/OrgPage";
 import type { MemberClient } from "./client";
@@ -30,6 +30,41 @@ function glances(client: MemberClient): ProjectGlance[] {
   });
 }
 
+/** The projects' part of the timeline from what this browser decrypted: sessions, decisions, chat. */
+function history(client: MemberClient): TimelineItem[] {
+  return [...client.projects.values()].flatMap((p) => [
+    ...[...p.sessions.values()].map((s) => ({
+      id: `session:${s.id}`,
+      at: s.updatedAt,
+      kind: "session" as const,
+      who: s.authorId,
+      text: s.summary?.title || s.title || s.firstPrompt?.slice(0, 120) || "",
+      project: p.key,
+    })),
+    ...[...p.memory.values()]
+      .filter((m) => m.status !== "rejected" && (m.section === "decision" || m.section === "convention"))
+      .map((m) => ({
+        id: `decision:${m.id}`,
+        at: m.updatedAt,
+        kind: "decision" as const,
+        who: m.author,
+        text: m.text,
+        project: p.key,
+      })),
+    ...[...p.comments.values()]
+      .filter((c) => c.targetKind === "channel" && !c.bot && !c.deleted)
+      .map((c) => ({
+        id: `message:${c.id}`,
+        at: c.at,
+        kind: "message" as const,
+        who: c.authorId,
+        text: c.text,
+        project: p.key,
+        link: `channel:${c.targetId}`,
+      })),
+  ]);
+}
+
 /** The company's view, as Igrek's server would give it, made in the browser. */
 function orgView(client: MemberClient): OrgView | undefined {
   const me = client.me();
@@ -44,6 +79,7 @@ function orgView(client: MemberClient): OrgView | undefined {
     waiting: client.waiting(),
     projects: glances(client),
     live: client.working().map((w) => ({ userId: w.userId, project: w.project, title: w.title ?? "", tool: w.tool })),
+    history: history(client),
   };
 }
 

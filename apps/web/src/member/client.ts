@@ -221,6 +221,7 @@ export class MemberClient {
 
   async signOut(): Promise<void> {
     clearInterval(this.reminders);
+    clearInterval(this.comparing);
     await this.request("/api/logout", { method: "POST" }).catch(() => undefined);
     await this.store.delete(TOKEN);
     this.ws?.close();
@@ -245,6 +246,9 @@ export class MemberClient {
     this.connect();
     clearInterval(this.reminders);
     this.reminders = setInterval(() => this.meetingReminders(), 30_000);
+    clearInterval(this.comparing);
+    this.comparing = setInterval(() => void this.compare().catch(() => undefined), 5 * 60_000);
+    setTimeout(() => void this.compare().catch(() => undefined), 15_000);
   }
 
   /** This browser's key pair, made once; the private half can't be read back out of the browser. */
@@ -367,6 +371,13 @@ export class MemberClient {
       await this.refreshKeys();
     } else if (msg.op === "members") {
       await this.membersChanged();
+    } else if (msg.op === "ack") {
+      // My own event, numbered by the hub: it counts as here (the hub does not send it back).
+      const ack = msg as unknown as { id: string; seq: number | null };
+      const project = this.acks.get(ack.id);
+      this.acks.delete(ack.id);
+      if (project && ack.seq)
+        this.received.get(project)?.add(ack.seq) ?? this.received.set(project, new Set([ack.seq]));
     } else if (msg.op === "org") {
       await this.loadStructure();
       await this.membersChanged();
@@ -387,9 +398,37 @@ export class MemberClient {
     this.changed();
   }
 
+  /** My events on their way to the hub, by id: which stream each is in, for its "ack". */
+  private acks = new Map<string, string>();
+  /** Which events of each stream this browser has, by the hub's number (plan.md 20.10). */
+  private received = new Map<string, Set<number>>();
+  /** When this browser last compared itself with the hub, and whether it was the same. */
+  checked?: { at: number; matches: boolean; repaired: number };
+
+  /**
+   * Proof that this browser sees what the hub holds: per stream, the hub's count of events against
+   * the ones that arrived here; a stream short of some is asked for again from its start.
+   */
+  async compare(): Promise<{ behind: number }> {
+    const keys = [this.indexKey, this.companyKey, ...this.projects.keys()].filter((k): k is string => !!k);
+    const digests = await this.request<Record<string, { count: number }>>(
+      `/api/sync/digest?projects=${keys.join(",")}`,
+    ).catch(() => ({}) as Record<string, { count: number }>);
+    const short = Object.entries(digests).filter(([k, d]) => d.count > (this.received.get(k)?.size ?? 0));
+    if (short.length)
+      this.send({ op: "sub", projects: short.map(([k]) => k), since: Object.fromEntries(short.map(([k]) => [k, 0])) });
+    const behind = short.reduce((n, [k, d]) => n + d.count - (this.received.get(k)?.size ?? 0), 0);
+    this.checked = { at: Date.now(), matches: behind === 0, repaired: behind };
+    this.changed();
+    return { behind };
+  }
+
   /** Decrypts a batch and folds it into the projects; events made with a key this device lacks are skipped. */
   async apply(project: string, events: WireEvent[]): Promise<void> {
+    const got = this.received.get(project) ?? new Set<number>();
+    this.received.set(project, got);
     for (const event of events) {
+      got.add(event.seq);
       const key = this.keys.get(event.epoch ?? 0);
       if (!key) continue;
       try {
@@ -477,6 +516,7 @@ export class MemberClient {
   }
 
   private reminders?: ReturnType<typeof setInterval>;
+  private comparing?: ReturnType<typeof setInterval>;
   private toldMeetings = new Set<string>();
 
   /** Ten minutes before my meetings and when they start; the page words it ("meet:soon"). */
@@ -717,6 +757,7 @@ export class MemberClient {
     if (!key) throw new Error("No team key yet");
     const sealed = await encrypt(key, aadFor(project, kind), value);
     const op = { op: "pub", project, kind, id: id.slice(0, 40), epoch: this.epoch, ...sealed };
+    this.acks.set(op.id, project);
     // Offline: it waits, in order, and goes when the hub is back (plan.md 20.10).
     if (this.outbox.length || !this.send(op)) {
       this.outbox.push(op);

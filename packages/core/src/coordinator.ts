@@ -41,6 +41,8 @@ export type Understood =
       priority: OrgPriority;
     }
   | { kind: "question"; text: string; team?: string; person?: string; since?: number }
+  /** "30 minutes with Kerim this week": a meeting at the first time everyone is free. */
+  | { kind: "meet"; people: string[]; minutes: number; days: number; title: string }
   | { kind: "ask"; say: BotSay; draft: { title: string; due?: number; priority: OrgPriority; options: string[] } };
 
 const DAYS: Record<string, number> = {
@@ -173,14 +175,9 @@ export function understand(
   const text = raw.replace(new RegExp(`^\\s*@${ctx.botHandle}\\b[,:]?`, "i"), "").trim();
   const person = personIn(text, ctx.people);
   const teams = teamsFor(ctx.structure, text);
-  if (QUESTION.test(fold(text)))
-    return {
-      kind: "question",
-      text,
-      ...(teams[0] ? { team: teams[0].team.id } : {}),
-      ...(person ? { person } : {}),
-      ...(/\b(gecen hafta|last week|bu hafta|this week)\b/.test(fold(text)) ? { since: now - 7 * 86_400_000 } : {}),
-    };
+  const meet = meetingIn(text, ctx.people);
+  if (meet) return meet;
+  if (QUESTION.test(fold(text))) return questionOf(text, teams[0]?.team.id, person, now);
   const base = { title: titleOf(text, ctx.people, ctx.structure), due: dueIn(text, now), priority: priorityIn(text) };
   const team = person
     ? (ctx.structure.teams.find((t) => t.members.includes(person) && teams.some((x) => x.team.id === t.id)) ??
@@ -197,6 +194,41 @@ export function understand(
       };
   }
   return { kind: "task", ...base, ...(team ? { team: team.id } : {}), ...(person ? { person } : {}) };
+}
+
+function questionOf(text: string, team: string | undefined, person: string | undefined, now: number): Understood {
+  const week = /\b(gecen hafta|last week|bu hafta|this week)\b/.test(fold(text));
+  return {
+    kind: "question",
+    text,
+    ...(team ? { team } : {}),
+    ...(person ? { person } : {}),
+    ...(week ? { since: now - 7 * 86_400_000 } : {}),
+  };
+}
+
+/** "Kerim'le bu hafta 30 dakika", "a 1 hour call with Ali tomorrow": who, how long, within how many days. */
+function meetingIn(text: string, people: CoordPerson[]): Extract<Understood, { kind: "meet" }> | undefined {
+  const t = fold(text);
+  const minutes =
+    t.match(/(\d+)\s*(dk|dakika|min|minute)/)?.[1] ??
+    (t.match(/(\d+)\s*(saat|hour)/)?.[1] ? String(Number(t.match(/(\d+)\s*(saat|hour)/)?.[1]) * 60) : undefined);
+  const asked = /\b(toplanti|gorusme|gorusmek|bulusma|meeting|call|meet)\b/.test(t) || minutes !== undefined;
+  if (!asked) return undefined;
+  const named = people.filter((p) =>
+    [p.username, ...p.displayName.split(/\s+/).filter((w) => w.length > 2)]
+      .map(fold)
+      .some((n) => new RegExp(`(^|[\\s@])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(t)),
+  );
+  if (!named.length) return undefined;
+  const days = /\b(bugun|today)\b/.test(t) ? 1 : /\b(yarin|tomorrow)\b/.test(t) ? 2 : 7;
+  return {
+    kind: "meet",
+    people: named.map((p) => p.id),
+    minutes: Number(minutes ?? 30),
+    days,
+    title: text.replace(/^\s*@\S+\s*/, "").slice(0, 120),
+  };
 }
 
 const teamName = (s: OrgStructure, id: string) => s.teams.find((t) => t.id === id)?.name ?? id;

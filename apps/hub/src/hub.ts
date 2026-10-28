@@ -839,6 +839,24 @@ export class Hub {
   }
 
   /** One device's events in a part of its chain, to fill a gap a member noticed. */
+  /**
+   * A project's summary value (plan.md 20.10): how many events it holds and, per device, the last
+   * position in that device's chain. A copy that agrees has everything; one that does not knows
+   * exactly which device's events to fetch again.
+   */
+  digest(project: string): { count: number; maxSeq: number; heads: Record<string, number> } {
+    const total = this.db
+      .query("SELECT COUNT(*) AS n, COALESCE(MAX(seq), 0) AS m FROM events WHERE project = ?")
+      .get(project) as {
+      n: number;
+      m: number;
+    };
+    const heads = this.db
+      .query("SELECT device, MAX(n) AS n FROM events WHERE project = ? AND n IS NOT NULL GROUP BY device")
+      .all(project) as { device: string; n: number }[];
+    return { count: total.n, maxSeq: total.m, heads: Object.fromEntries(heads.map((h) => [h.device, h.n])) };
+  }
+
   chain(project: string, device: string, from: number, to: number): StoredEvent[] {
     return this.db
       .query("SELECT * FROM events WHERE project = ? AND device = ? AND n BETWEEN ? AND ? ORDER BY n LIMIT 500")

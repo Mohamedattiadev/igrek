@@ -5,12 +5,13 @@ import { Meetings } from "../meet/Meetings";
 import { EmptyState, Segmented } from "../ui";
 import type { OrgApi } from "./api";
 import { OrgCards } from "./OrgCards";
+import { OrgHistory } from "./OrgHistory";
 import { OrgHome } from "./OrgHome";
 import { OrgChannels } from "./OrgPosts";
 import { OrgSettings } from "./OrgSettings";
 import { OrgTeams } from "./OrgTeams";
 
-const TABS = ["home", "cards", "channels", "meetings", "teams", "settings"] as const;
+const TABS = ["home", "cards", "channels", "meetings", "history", "teams", "settings"] as const;
 export type OrgTab = (typeof TABS)[number];
 
 /**
@@ -58,6 +59,7 @@ export function OrgPage({
       {current === "meetings" && (
         <Meetings api={api} view={view} open={meeting} dark={document.documentElement.dataset.theme === "dark"} />
       )}
+      {current === "history" && <OrgHistory api={api} view={view} />}
       {current === "teams" && <OrgTeams api={api} view={view} />}
       {current === "settings" && <OrgSettings api={api} view={view} />}
     </div>

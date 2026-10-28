@@ -1,6 +1,7 @@
 import type { Database } from "bun:sqlite";
 import type { Presence, ProjectGlance, TeamMember } from "@igrek/core";
 import type { Hono } from "hono";
+import { projectHistory } from "./history";
 import type { Org } from "./org";
 
 type TaskRow = { project_id: string; status: string; updated_at: number };
@@ -99,6 +100,7 @@ export function registerOrgRoutes(
       state: org.state,
       waiting: org.waiting(),
       projects: glances(deps.db, projects, org, nameOf),
+      history: projectHistory(deps.db, projects, deps.me()?.id ?? ""),
       live: deps
         .presence()
         .map((p) => ({ userId: p.userId, project: keys.get(p.projectId) ?? "", title: p.title ?? "", tool: p.tool })),

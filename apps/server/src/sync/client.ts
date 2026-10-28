@@ -670,7 +670,8 @@ export class Sync {
 
   /** How many things are waiting to go out (shown as "offline, 12 waiting"). */
   pendingCount(): number {
-    let n = 0;
+    // What was written in the company and waits for the hub counts too (plan.md 20.10).
+    let n = this.org?.waiting() ?? 0;
     for (const project of this.sharedProjects()) {
       n += (
         this.db
@@ -844,6 +845,8 @@ export class Sync {
     setTimeout(() => void this.sendSeat(), 5000);
     this.loops.push(setInterval(() => void this.loadMembers(), 5 * 60_000));
     this.loops.push(setInterval(() => void this.repair(), 10 * 60_000));
+    this.loops.push(setInterval(() => void this.compare().catch(() => undefined), 5 * 60_000));
+    setTimeout(() => void this.compare().catch(() => undefined), 20_000);
   }
 
   /** Reconnect, unless the hub no longer accepts our token. */
@@ -1190,7 +1193,9 @@ export class Sync {
         ).catch(() => [] as WireEvent[]);
         if (events.length) {
           const before = this.openGaps();
-          await this.applyEvents(gap.project, events, { repair: true });
+          // The company stream folds in memory (org.ts); every other stream into this computer's tables.
+          if (gap.project === this.companyKey) await this.applyOrg(gap.project, events);
+          else await this.applyEvents(gap.project, events, { repair: true });
           filled += Math.max(0, before - this.openGaps());
         }
         const left = this.db
@@ -1246,8 +1251,51 @@ export class Sync {
   }
 
   /** What the integrity check found, for the status line. */
-  integrity(): { missing: number; broken: number } {
-    return { missing: this.openGaps(), broken: this.cursor("integrity", "broken") };
+  integrity(): { missing: number; broken: number; checkedAt?: number; matches?: boolean } {
+    return {
+      missing: this.openGaps(),
+      broken: this.cursor("integrity", "broken"),
+      ...(this.compared ? { checkedAt: this.compared.at, matches: this.compared.matches } : {}),
+    };
+  }
+
+  private compared?: { at: number; matches: boolean };
+
+  /**
+   * Proof that this computer sees what the hub holds (plan.md 20.10): for every subscribed project
+   * the hub's last chain position per device is compared with ours; anything behind is recorded as
+   * a gap and fetched again (repair). Our own device is left out: we sent those ourselves.
+   */
+  async compare(): Promise<{ projects: number; behind: number }> {
+    if (!this.config || !this.connected) return { projects: 0, behind: 0 };
+    const keys = [this.indexKey, this.companyKey, ...this.keyToProject.keys()].filter((k): k is string => !!k);
+    const mine = deviceOf(this.config.token);
+    const digests = await this.hubRequest<Record<string, { heads: Record<string, number> }>>(
+      `/api/sync/digest?projects=${keys.join(",")}`,
+    ).catch(() => ({}) as Record<string, { heads: Record<string, number> }>);
+    let behind = 0;
+    for (const [project, d] of Object.entries(digests))
+      for (const [device, n] of Object.entries(d.heads)) {
+        if (device === mine) continue;
+        const have = this.chainHead(project, device)?.n ?? 0;
+        if (n <= have) continue;
+        behind += n - have;
+        this.db
+          .query("INSERT OR IGNORE INTO sync_gaps (project, device, from_n, to_n, found_at) VALUES (?, ?, ?, ?, ?)")
+          .run(project, device, have + 1, n, Date.now());
+      }
+    if (behind) await this.repair();
+    // Holes the repair filled from the front are closed: the chain now reaches past them.
+    for (const g of this.db.query("SELECT DISTINCT project, device FROM sync_gaps").all() as {
+      project: string;
+      device: string;
+    }[])
+      this.db
+        .query("DELETE FROM sync_gaps WHERE project = ? AND device = ? AND to_n <= ?")
+        .run(g.project, g.device, this.chainHead(g.project, g.device)?.n ?? 0);
+    this.compared = { at: Date.now(), matches: behind === 0 };
+    this.bus.publish({ type: "team-changed" });
+    return { projects: Object.keys(digests).length, behind };
   }
 
   /** Ships whatever changed locally in shared projects since the last run. */

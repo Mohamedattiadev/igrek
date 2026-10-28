@@ -8,10 +8,12 @@ import {
   emptyOrg,
   foldOrg,
   followUps,
+  freeSlots,
   meetingNotices,
   morningReport,
   namedIn,
   newCard,
+  newMeetingKey,
   type OrgCard,
   type OrgPost,
   type OrgState,
@@ -82,10 +84,22 @@ export class Org {
     }
   }
 
-  /** The stream starts again from the hub (on connect): start from nothing, then fold it all. */
+  /**
+   * The stream starts again from the hub (on connect): start from nothing, then fold it all. What
+   * still waits in the outbox is not on the hub yet, so it is folded again at once and stays seen.
+   */
   reset(): void {
     this.state = emptyOrg();
     this.live = false;
+    const me = this.deps.me()?.id ?? "";
+    const rows = this.deps.db.query("SELECT kind, value FROM org_outbox ORDER BY at, rowid").all() as {
+      kind: string;
+      value: string;
+    }[];
+    for (const r of rows) {
+      const value = JSON.parse(r.value) as Record<string, unknown>;
+      foldOrg(this.state, r.kind, value, { author: me, at: Number(value.at ?? Date.now()) });
+    }
   }
 
   /** The replay is over: from now on, what arrives is news (notices, bot commands). */
@@ -252,6 +266,8 @@ export class Org {
     if (u.kind === "ask") {
       this.asked.set(reply, { draft: u.draft, by: post.by });
       await this.say(reply, u.say);
+    } else if (u.kind === "meet") {
+      await this.book(u, post.by, reply);
     } else if (u.kind === "question") {
       const cards = answerFromCards(this.structure, this.state, u);
       await this.say(reply, {
@@ -265,6 +281,54 @@ export class Org {
         },
       });
     } else await this.give(u, post.by, reply);
+  }
+
+  /** "30 minutes with Kerim this week": the first time both are free becomes a meeting with an invite. */
+  private async book(
+    want: { people: string[]; minutes: number; days: number; title: string },
+    by: string,
+    reply: string,
+  ): Promise<void> {
+    const people = [...new Set([by, ...want.people])];
+    const [at] = freeSlots(
+      people,
+      want.minutes,
+      { availability: this.state.availability, meetings: Object.values(this.state.meetings) },
+      {
+        from: Date.now() + 30 * MINUTE,
+        days: want.days,
+        limit: 1,
+      },
+    );
+    const names = want.people.map((p) => this.deps.people().find((x) => x.id === p)?.displayName ?? p).join(", ");
+    if (!at) {
+      await this.say(reply, { key: "meetNoTime", vars: { who: names } });
+      return;
+    }
+    const now = Date.now();
+    await this.act("org-meeting", {
+      id: crypto.randomUUID().slice(0, 18),
+      title: want.title,
+      agenda: "",
+      start: at,
+      minutes: want.minutes,
+      recurrence: "none",
+      attendees: people,
+      teams: [],
+      key: newMeetingKey(),
+      replies: { [by]: "yes" },
+      consent: {},
+      status: "planned",
+      transcript: [],
+      decisions: [],
+      actions: [],
+      by,
+      at: now,
+      updatedAt: now,
+    });
+    await this.say(reply, { key: "meetBooked", vars: { who: names, due: at, count: want.minutes } });
+    for (const p of want.people)
+      await this.say(`bot:${p}`, { key: "meetInvite", vars: { title: want.title, due: at } });
   }
 
   /** Opens the card for the right person, and says to whom and why. */

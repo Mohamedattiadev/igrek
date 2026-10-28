@@ -1454,26 +1454,26 @@ Bugün: hub'da tek bir "takım" var (herkes aynı yerde), roller şirket çapın
 - [x] Toplantının sayfası: gündem (önceden yazılır), katılanlar, döküm, özet, kararlar, işler, tahta, kayıt; aranabilir — yapıldı: gündem, katılanlar ve cevapları, aranabilir döküm, özet, kararlar, işler, kaydedilen tahta
 
 #### 20.9 Her şeyin geçmişi ve ona soru sormak (geçmişe ve geleceğe)
-- [ ] Tek bir zaman çizelgesi: yapılan işler (oturumlar, commitler, kartlar), mesajlar, toplantılar ve notları, kararlar, randevular, duyurular, botların yaptıkları; kişi, takım, proje ve tarihe göre süzülür
-- [ ] Hiçbir şey kaybolmaz: düzenlenen ve silinen şeylerin önceki hali (yetkiliye) görünür, kimin ne zaman değiştirdiği kayıtlı
-- [ ] Soru sormak: "ödeme modülü ne zaman bitti?", "Kerim geçen ay neler yaptı?", "bu kararı hangi toplantıda aldık?", "sunucu en son ne zaman çöktü?"; cevap kaynağıyla (hangi oturum, kart, toplantı, mesaj) ve tarihle gelir, tıklayınca oraya gider
-- [ ] İleriye dönük sorular: "gelecek hafta ne var?", "Cuma'ya ne yetişmeli?", "kimin izni var?"; takvim, son tarihler ve planlardan
-- [ ] Dizin bilgisayarda: geçmiş yerel olarak dizinlenir (tam metin + anlam araması, kütüphanedeki yerel model), soru Claude'a sadece bulunan parçalarla gider
-- [ ] Kişinin sadece görmeye yetkili olduğu şeylerden cevap alır (özel oturumlar, gizli projeler, başkasının doğrudan mesajları cevaba girmez)
+- [x] Tek bir zaman çizelgesi: yapılan işler (oturumlar, commitler, kartlar), mesajlar, toplantılar ve notları, kararlar, randevular, duyurular, botların yaptıkları; kişi, takım, proje ve tarihe göre süzülür — yapıldı: Şirket yönetimi > Geçmiş; oturumlar, commitler, kartların her adımı, mesajlar, toplantılar ve söylenenler, kararlar, duyurular, botun yaptıkları; kişi, takım, proje ve tarihe göre süzülür
+- [ ] Hiçbir şey kaybolmaz: düzenlenen ve silinen şeylerin önceki hali (yetkiliye) görünür, kimin ne zaman değiştirdiği kayıtlı — kısmen: şirket mesajlarının düzenlenen/silinen önceki hali genel müdür ve yöneticiye görünür, kartların her değişikliği kimin yaptığıyla geçmişinde; proje sohbetindeki düzenlemelerin önceki hali tutulmuyor
+- [x] Soru sormak: "ödeme modülü ne zaman bitti?", "Kerim geçen ay neler yaptı?", "bu kararı hangi toplantıda aldık?", "sunucu en son ne zaman çöktü?"; cevap kaynağıyla (hangi oturum, kart, toplantı, mesaj) ve tarihle gelir, tıklayınca oraya gider — yapıldı: cevap kaynaklarıyla ve tarihleriyle gelir (numaralı); Igrek'te kendi Claude'u sadece bulunanlardan bir cümleyle söyler, tarayıcıda kaynaklar gösterilir
+- [x] İleriye dönük sorular: "gelecek hafta ne var?", "Cuma'ya ne yetişmeli?", "kimin izni var?"; takvim, son tarihler ve planlardan — yapıldı: gelecek hafta ne var, ne yetişmeli (son tarihler ve toplantılar), kimin izni var
+- [ ] Dizin bilgisayarda: geçmiş yerel olarak dizinlenir (tam metin + anlam araması, kütüphanedeki yerel model), soru Claude'a sadece bulunan parçalarla gider — kısmen: arama cihazda yapılır (tam metin, kelime kökleri, Türkçe/İngilizce eş anlamlı grupları, zaman aralığı); kütüphanedeki yerel modelle anlam araması henüz bağlanmadı; Claude'a sadece bulunan parçalar gider
+- [x] Kişinin sadece görmeye yetkili olduğu şeylerden cevap alır (özel oturumlar, gizli projeler, başkasının doğrudan mesajları cevaba girmez) — yapıldı: her cihaz sadece açabildiğinden kurar: özel oturumlar hiç girmez (test), gizli projeler hub'dan gelmez, doğrudan mesajlar zaman çizelgesine girmez
 
 #### 20.10 Hız ve senkron güvencesi (%100)
 - [ ] Toplantı: katılınca 1 saniyede ses, 2 saniyede görüntü; işlemci ve bant genişliği ölçülür, zayıf bağlantıda kalite otomatik düşer — kısmen: iki tarayıcıyla ölçüldü, ikinci kişi katıldıktan 0,3-0,7 saniye sonra iki taraf birbirinin canlı ses/görüntüsünü alıyor; zayıf hatta kalite düşüyor; işlemci ölçümü yok
-- [ ] Senkron: her olay sıralı numaralı ve zincirli (bugün var); eksik olay fark edilince otomatik tamamlanır (bugün var); bunlara ek: iki cihazın aynı veriyi gördüğünü kanıtlayan düzenli özet karşılaştırması (her proje için bir özet değeri, farklıysa farkı onarır)
-- [ ] Çevrimdışı: internet gidince yazılanlar sırada bekler, gelince gider; iki kişi aynı kartı değiştirdiyse ikisi de kaybolmadan birleşir ya da çakışma açıkça gösterilir
-- [ ] Testler: iki ve üç cihazlı senkron testleri, hub yeniden başlarken, ağ kopup gelirken, olayların karışık sırada geldiği durumlar; her sürümde çalışır
-- [ ] Senkron sağlığı ekranda: "her şey senkron" ya da "3 olay bekliyor, 2 saniye önce denendi"; sorun varsa nedeni
+- [x] Senkron: her olay sıralı numaralı ve zincirli (bugün var); eksik olay fark edilince otomatik tamamlanır (bugün var); bunlara ek: iki cihazın aynı veriyi gördüğünü kanıtlayan düzenli özet karşılaştırması (her proje için bir özet değeri, farklıysa farkı onarır) — yapıldı: hub her akış için özet değer verir (olay sayısı, her cihazın son sıra numarası); masaüstü ve tarayıcı 5 dakikada bir karşılaştırır, eksiği onarır (son olayın kaybolduğu durum test edildi)
+- [x] Çevrimdışı: internet gidince yazılanlar sırada bekler, gelince gider; iki kişi aynı kartı değiştirdiyse ikisi de kaybolmadan birleşir ya da çakışma açıkça gösterilir — yapıldı: masaüstünde org_outbox, tarayıcıda IndexedDB'de sırayla bekler; aynı kartın iki değişikliği birleşir, çakışan alanlar kartta gösterilip seçilir
+- [x] Testler: iki ve üç cihazlı senkron testleri, hub yeniden başlarken, ağ kopup gelirken, olayların karışık sırada geldiği durumlar; her sürümde çalışır — yapıldı: syncproof.test.ts (üç cihaz, karışık sıra, hub yeniden başlama, ağ kopması, kaybolan olay) her bun test'te çalışır
+- [x] Senkron sağlığı ekranda: "her şey senkron" ya da "3 olay bekliyor, 2 saniye önce denendi"; sorun varsa nedeni — yapıldı: Igrek'in üst çubuğunda (bekleyen, onarılan, hub ile son karşılaştırma) ve web sayfasında (bekleyen sayısı, karşılaştırma)
 
 #### 20.11 Bitti sayılması için uçtan uca senaryolar
-- [ ] Müdür telefonundan (Telegram) koordinatör bota bir iş yazar; iş doğru kişide, takvimde ve panoda; kişi bitirir; müdüre haber gelir; müdür hiçbir şeyi elle atamadı
-- [ ] İki takımla görüntülü toplantı: tahtada birlikte çizilir, toplantı biter, döküm, özet, kararlar ve işler kendiliğinden yerine gider
-- [ ] Müdür "Kerim'le bu hafta 30 dakika" der; ortak boşluk bulunur, iki tarafa davet ve hatırlatma gider
-- [ ] Müdür "geçen ayki sunucu sorununu kim çözmüştü, ne yapmıştı?" diye sorar; cevap kaynaklarıyla gelir
-- [ ] Ağ kopup gelir, iki cihaz aynı kartı değiştirir; hiçbir şey kaybolmaz, iki tarafta aynı görünür
+- [ ] Müdür telefonundan (Telegram) koordinatör bota bir iş yazar; iş doğru kişide, takvimde ve panoda; kişi bitirir; müdüre haber gelir; müdür hiçbir şeyi elle atamadı — kısmen: bot üzerinden iş verme, doğru kişi, takvimde son tarih, panoda kart, bitince müdüre haber org.test.ts'te denendi; Telegram'dan "@asistan ..." bağlantısı yazıldı ama gerçek bir Telegram botuyla denenmedi
+- [ ] İki takımla görüntülü toplantı: tahtada birlikte çizilir, toplantı biter, döküm, özet, kararlar ve işler kendiliğinden yerine gider — kısmen: iki tarayıcıyla gerçek görüşme, sohbet ve ortak tahta denendi; döküm (gerçek mikrofon ve Whisper modeli gerekir) ve Claude özeti uçtan uca denenmedi
+- [x] Müdür "Kerim'le bu hafta 30 dakika" der; ortak boşluk bulunur, iki tarafa davet ve hatırlatma gider — denendi: org.test.ts (ortak boşluk, toplantı, Kerim'e davet; hatırlatmalar meetingNotices)
+- [x] Müdür "geçen ayki sunucu sorununu kim çözmüştü, ne yapmıştı?" diye sorar; cevap kaynaklarıyla gelir — denendi: history.test.ts (geçen ayın kaydı, tarihiyle, ilk sırada)
+- [x] Ağ kopup gelir, iki cihaz aynı kartı değiştirir; hiçbir şey kaybolmaz, iki tarafta aynı görünür — denendi: syncproof.test.ts
 
 **Bitti sayılır:** Genel müdür tarayıcıdan girip bütün projeleri ve takımları tek ekranda görüyor, özet isteyip bir projeyi deneyebiliyor, not ve yorum bırakıp bir takıma iş atıyor; takımlar birbirine iş açıp konuşuyor; müdür bir bota yazınca işler kendiliğinden doğru kişilere gidip takip ediliyor; görüntülü toplantılar hafif, tahtalı ve kendiliğinden notlu; her şeyin geçmişine ve geleceğine soru sorulabiliyor; senkron ölçülerek güvende; bütün senaryolar denenmiş.
 

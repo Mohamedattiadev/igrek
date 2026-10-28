@@ -1,6 +1,7 @@
 import {
   freeSlots,
   fromIcs,
+  isOpen,
   newCard,
   newMeetingKey,
   type OrgMeeting,
@@ -555,6 +556,13 @@ export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView
     .filter((m) => m.transcript.length || m.summary || m.status === "ended")
     .sort((a, b) => b.start - a.start);
   const meeting = picked ? view.state.meetings[picked] : undefined;
+  // Due dates are on the calendar too (plan.md 20.11): my cards and the ones I asked for.
+  const due = Object.values(view.state.cards)
+    .filter(
+      (c) =>
+        isOpen(c) && !!c.due && c.due < now + 14 * DAY && (c.assignee === view.me.id || c.requestedBy === view.me.id),
+    )
+    .sort((a, b) => (a.due ?? 0) - (b.due ?? 0));
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -597,7 +605,14 @@ export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="min-w-0 space-y-1 p-4">
           <h3 className="text-[13.5px] font-semibold">{t("meet.coming")}</h3>
-          {!coming.length && <p className="text-[12.5px] text-fg-subtle">{t("meet.none")}</p>}
+          {!coming.length && !due.length && <p className="text-[12.5px] text-fg-subtle">{t("meet.none")}</p>}
+          {due.map((c) => (
+            <p key={c.id} className="flex items-center gap-2 px-2 py-1 text-[13px]">
+              <span className="w-36 shrink-0 text-[12px] text-fg-subtle">{dateTime(c.due ?? 0)}</span>
+              <span className="min-w-0 flex-1 truncate">{c.title}</span>
+              <Badge tone="warning">{t("meet.dueBadge")}</Badge>
+            </p>
+          ))}
           {coming.map(({ m, at }) => (
             <button
               key={`${m.id}${at}`}

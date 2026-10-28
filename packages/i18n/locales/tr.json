@@ -2163,7 +2163,8 @@
     "repairTip_one": "Takımdan {{count}} kayıt eksik; yeniden alınıyor",
     "repairTip_other": "Takımdan {{count}} kayıt eksik; yeniden alınıyor",
     "brokenTip_one": "{{count}} kayıt öncekiyle eşleşmedi",
-    "brokenTip_other": "{{count}} kayıt öncekilerle eşleşmedi"
+    "brokenTip_other": "{{count}} kayıt öncekilerle eşleşmedi",
+    "matchesTip": "{{when}} hub ile karşılaştırıldı: aynı"
   },
   "keys": {
     "waiting": "Girdin. Takımın işini okuyabilmesi için bu bilgisayarı bir adminin onaylaması gerekiyor; bu onun Igrek'inde olur, genelde birkaç dakika içinde.",
@@ -5908,7 +5909,8 @@
     "sendWeek": "Takımımın haftasını genel müdüre gönder",
     "weekSent": "Gönderildi",
     "weekText": "{{team}} bu hafta. Biten: {{done}}. Süren: {{doing}}. Geciken: {{late}}.",
-    "tab_meetings": "Toplantılar"
+    "tab_meetings": "Toplantılar",
+    "tab_history": "Geçmiş"
   },
   "orgBot": {
     "whichTeam": "Kimin işi: {{teams}}? Takımın adıyla cevap ver.",
@@ -5930,7 +5932,10 @@
     "weekly": "Bu hafta. Biten ({{done}}): {{doneList}}. Süren ({{doing}}): {{doingList}}. Geciken ({{late}}): {{lateList}}. Onay bekleyen ({{waiting}}): {{waitingList}}.",
     "siteDown": "{{site}} çöktü. Sunucular takımına haber verildi.",
     "meetSoon": "\"{{title}}\" 10 dakika sonra başlıyor.",
-    "meetStarted": "\"{{title}}\" başladı."
+    "meetStarted": "\"{{title}}\" başladı.",
+    "meetNoTime": "O sürede {{who}} ile ortak boş saat yok; Toplantılar > Boş saat bul'dan seçebilirsin.",
+    "meetBooked": "{{who}} ile {{due}} için {{count}} dakika ayırdım; davet edildi, hatırlatılacak.",
+    "meetInvite": "Davetlisin: \"{{title}}\", {{due}}."
   },
   "meet": {
     "title": "Toplantılar",
@@ -5994,6 +5999,28 @@
     "guestBye": "Görüşmeden ayrıldın.",
     "notice_soon": "10 dakika sonra başlıyor",
     "notice_started": "Başladı",
-    "close": "Kapat"
+    "close": "Kapat",
+    "dueBadge": "son tarih"
+  },
+  "history": {
+    "ask": "Geçmişe sor",
+    "askHint": "Ödeme modülü ne zaman bitti? Geçen ayki sunucu sorununu kim çözdü? Gelecek hafta ne var?",
+    "askButton": "Sor",
+    "nothing": "Buna uyan bir şey bulunamadı.",
+    "answerInIgrek": "Burada cevabı veren kayıtlar tarihleriyle görünür; bilgisayardaki Igrek'te kendi Claude'un bunu sadece bunlardan bir cümleyle de söyler.",
+    "timeline": "Olan her şey",
+    "everyone": "Herkes",
+    "allTeams": "Bütün takımlar",
+    "allProjects": "Bütün projeler",
+    "empty": "Bu sürede bir şey yok.",
+    "kind_session": "çalışma",
+    "kind_card": "kart",
+    "kind_message": "mesaj",
+    "kind_meeting": "toplantı",
+    "kind_said": "söylendi",
+    "kind_decision": "karar",
+    "kind_announcement": "duyuru",
+    "kind_bot": "bot",
+    "kind_commit": "commit"
   }
 }

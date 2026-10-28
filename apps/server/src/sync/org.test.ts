@@ -248,4 +248,16 @@ describe("the company across a hub", () => {
     gm.sync.call({ op: "leave", room });
     await until(() => heard.some((m) => m.op === "left"));
   }, 20_000);
+
+  test("'30 minutes with Kerim this week': the bot finds a free time and invites him (plan.md 20.11)", async () => {
+    await gm.org.post({ channel: `bot:${ids.hoca}`, text: "@asistan Kerim'le bu hafta 30 dakika konuşalım" });
+    await until(() => Object.values(kerim.org.state.meetings).some((m) => m.attendees.includes(ids.kerim as string)));
+    const m = Object.values(kerim.org.state.meetings).find((x) => x.attendees.includes(ids.kerim as string));
+    expect(m).toMatchObject({ minutes: 30, by: ids.hoca });
+    expect(m?.start).toBeGreaterThan(Date.now());
+    await until(() =>
+      Object.values(kerim.org.state.posts).some((p) => p.channel === `bot:${ids.kerim}` && p.say?.key === "meetInvite"),
+    );
+    await until(() => Object.values(browser.org.posts).some((p) => p.say?.key === "meetBooked"));
+  }, 20_000);
 });

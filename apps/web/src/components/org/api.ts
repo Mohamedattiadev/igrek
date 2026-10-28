@@ -1,4 +1,4 @@
-import type { OrgState, OrgStructure, ProjectGlance, TeamMember } from "@igrek/core";
+import type { OrgState, OrgStructure, ProjectGlance, TeamMember, TimelineItem } from "@igrek/core";
 import type { CallTransport } from "../meet/call";
 
 /**
@@ -16,6 +16,8 @@ export interface OrgView {
   waiting: number;
   projects: ProjectGlance[];
   live: { userId: string; project: string; title: string; tool: string }[];
+  /** The projects' part of the timeline (sessions, commits, decisions, messages); the company's part comes from state. */
+  history: TimelineItem[];
 }
 
 /** How the pages write: the same calls in Igrek and in the browser. */

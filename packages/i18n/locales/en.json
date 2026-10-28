@@ -2163,7 +2163,8 @@
     "repairTip_one": "{{count}} event from a teammate is missing; fetching it again",
     "repairTip_other": "{{count}} events from teammates are missing; fetching them again",
     "brokenTip_one": "{{count}} event didn't link to the one before it",
-    "brokenTip_other": "{{count}} events didn't link to the ones before them"
+    "brokenTip_other": "{{count}} events didn't link to the ones before them",
+    "matchesTip": "compared with the hub {{when}}: the same"
   },
   "keys": {
     "waiting": "You're in. An admin now needs to approve this computer before it can read the team's work; this happens on their Igrek, usually within minutes.",
@@ -5908,7 +5909,8 @@
     "sendWeek": "Send my team's week to the general manager",
     "weekSent": "Sent",
     "weekText": "{{team}} this week. Done: {{done}}. In progress: {{doing}}. Late: {{late}}.",
-    "tab_meetings": "Meetings"
+    "tab_meetings": "Meetings",
+    "tab_history": "History"
   },
   "orgBot": {
     "whichTeam": "Whose is it: {{teams}}? Answer with the team's name.",
@@ -5930,7 +5932,10 @@
     "weekly": "This week. Done ({{done}}): {{doneList}}. In progress ({{doing}}): {{doingList}}. Late ({{late}}): {{lateList}}. Waiting for a yes ({{waiting}}): {{waitingList}}.",
     "siteDown": "{{site}} is down. The servers team has been told.",
     "meetSoon": "\"{{title}}\" starts in 10 minutes.",
-    "meetStarted": "\"{{title}}\" has started."
+    "meetStarted": "\"{{title}}\" has started.",
+    "meetNoTime": "No common free time with {{who}} in that time; pick one under Meetings > Find a time.",
+    "meetBooked": "Booked {{count}} minutes with {{who}} on {{due}}; they are invited and will be reminded.",
+    "meetInvite": "You are invited: \"{{title}}\", {{due}}."
   },
   "meet": {
     "title": "Meetings",
@@ -5994,6 +5999,28 @@
     "guestBye": "You left the call.",
     "notice_soon": "Starts in 10 minutes",
     "notice_started": "Has started",
-    "close": "Close"
+    "close": "Close",
+    "dueBadge": "due"
+  },
+  "history": {
+    "ask": "Ask the history",
+    "askHint": "When did the payment module finish? Who fixed last month's server problem? What is coming next week?",
+    "askButton": "Ask",
+    "nothing": "Nothing found for that.",
+    "answerInIgrek": "Here you see what answers it, with dates; in Igrek on a computer your own Claude also says it in a sentence, from these alone.",
+    "timeline": "Everything that happened",
+    "everyone": "Everyone",
+    "allTeams": "All teams",
+    "allProjects": "All projects",
+    "empty": "Nothing in this time.",
+    "kind_session": "work",
+    "kind_card": "card",
+    "kind_message": "message",
+    "kind_meeting": "meeting",
+    "kind_said": "said",
+    "kind_decision": "decision",
+    "kind_announcement": "announcement",
+    "kind_bot": "bot",
+    "kind_commit": "commit"
   }
 }

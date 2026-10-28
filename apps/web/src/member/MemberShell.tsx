@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Logo } from "../components/Logo";
 import { EmptyState, StatusDot } from "../components/ui";
 import { cn } from "../lib/cn";
+import { relativeTime } from "../lib/format";
 import i18n, { loadBundled } from "../lib/i18n";
 import type { MemberClient, MemberNotice } from "./client";
 import { useNarrow, useRoute } from "./hooks";
@@ -163,9 +164,23 @@ function TopBar({ client, onMenu }: { client: MemberClient; onMenu?: () => void 
           {t("member.online", { count: client.online.size })}
         </span>
       )}
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11.5px] text-fg-muted">
-        <StatusDot tone={connected ? "success" : "warning"} />
-        {connected ? t("member.live") : t("member.offline")}
+      <span
+        className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11.5px] text-fg-muted"
+        title={
+          client.checked
+            ? client.checked.matches
+              ? t("sync.matchesTip", { when: relativeTime(client.checked.at) })
+              : t("sync.repairing", { count: client.checked.repaired })
+            : undefined
+        }
+      >
+        <StatusDot tone={connected && !client.waiting() ? "success" : "warning"} />
+        {/* Sync health on the screen (plan.md 20.10): live, or what waits for the hub. */}
+        {client.waiting()
+          ? t("org.waitingSync", { count: client.waiting() })
+          : connected
+            ? t("member.live")
+            : t("member.offline")}
       </span>
     </header>
   );
