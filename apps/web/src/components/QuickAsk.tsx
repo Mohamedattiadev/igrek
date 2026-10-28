@@ -3,10 +3,9 @@ import { Copy, CornerDownLeft, Paperclip, Send, Trash2, X, Zap } from "lucide-re
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
-import { actions, contextFromPath } from "../lib/actions";
+import { actions, contextFromPath, type QuickAskRequest } from "../lib/actions";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
-import { takeQuickAskFromStart } from "../lib/desktop";
 import { useTerminals } from "../lib/live";
 import { EnhanceButton, EnhancePanel } from "./Enhance";
 import { MicButton } from "./MicButton";
@@ -38,14 +37,15 @@ function loadTurns(key: string): Turn[] {
  * Ctrl+Space side panel (plan.md 2.6): its own little conversation that knows
  * what you're working on, but never writes into the main session.
  */
-export function QuickAsk() {
+export function QuickAsk({ start }: { start: QuickAskRequest }) {
   const { t } = useTranslation();
   const location = useLocation();
   const terminals = useTerminals();
-  const [open, setOpen] = useState(takeQuickAskFromStart);
+  // It is loaded the moment it is first asked for (QuickAskGate), so it starts open with that request.
+  const [open, setOpen] = useState(true);
   const [mode, setMode] = useState<"quick" | "full">("quick");
-  const [input, setInput] = useState("");
-  const [attachment, setAttachment] = useState<{ name: string; text: string }>();
+  const [input, setInput] = useState(start.question ?? "");
+  const [attachment, setAttachment] = useState<{ name: string; text: string } | undefined>(start.attachment);
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<string>();
   const [enhancing, setEnhancing] = useState<string>();

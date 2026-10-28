@@ -11,6 +11,7 @@ import {
   SquareCheckBig,
   Star,
 } from "lucide-react";
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { dateTime, relativeTime } from "../../lib/format";
@@ -242,7 +243,22 @@ function useAuthorName(message: ChatMessage, member?: TeamMember): string {
   return member?.displayName ?? message.author ?? "";
 }
 
-export function MessageItem({
+/**
+ * A message is drawn again only when it changed (plan.md 19.10): a reload brings every message as
+ * a new object, so they are compared by what they hold. Its handlers are new each time but do
+ * the same thing for the same message.
+ */
+export const MessageItem = memo(
+  MessageView,
+  (a, b) =>
+    a.meId === b.meId &&
+    a.projectId === b.projectId &&
+    a.compact === b.compact &&
+    a.members === b.members &&
+    (a.message === b.message || JSON.stringify(a.message) === JSON.stringify(b.message)),
+);
+
+function MessageView({
   message,
   members,
   projectId,

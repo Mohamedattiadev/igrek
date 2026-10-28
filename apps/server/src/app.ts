@@ -25,6 +25,8 @@ export interface AppDeps {
   extraRoutes?: (app: Hono) => void;
   /** Checks a browser extension's pairing key; without it the extension's routes stay closed. */
   extensionKey?: (key: string | undefined) => boolean;
+  /** The person changed something: background work waits a moment (heavy.ts, plan.md 19.10). */
+  onActivity?: () => void;
 }
 
 /**
@@ -84,8 +86,23 @@ function serveBuilt(
   });
 }
 
-export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes, extensionKey }: AppDeps) {
+export function createApp({
+  config,
+  db,
+  token,
+  bus,
+  stops,
+  startedAt,
+  work,
+  extraRoutes,
+  extensionKey,
+  onActivity,
+}: AppDeps) {
   const app = new Hono();
+  app.use("/api/*", async (c, next) => {
+    if (c.req.method !== "GET" && c.req.header("x-igrek-caller") !== "agent") onActivity?.();
+    await next();
+  });
 
   app.use("*", async (c, next) => {
     await next();

@@ -23,6 +23,7 @@ import { ForwardDialog, QuoteBox } from "../components/chat/MessageExtras";
 import { MessageItem } from "../components/chat/MessageItem";
 import { TaskDialog } from "../components/chat/TaskDialog";
 import { TeamTimeline } from "../components/chat/Timeline";
+import { useMessageWindow } from "../components/chat/window";
 import { GapsLine } from "../components/GapsLine";
 import { Markdown } from "../components/Markdown";
 import { useTeamPeople } from "../components/TeamAvatar";
@@ -382,6 +383,8 @@ function ChannelView({
   const { t } = useTranslation();
   const unread = useUnreadStart(channel.id, messages);
   const list = useStickToBottom(messages.length, unread ? `${channel.id}:${unread.id}` : undefined);
+  const unreadAt = unread ? messages.findIndex((m) => m.id === unread.id) : -1;
+  const shown = useMessageWindow(messages.length, channel.id, list, unreadAt >= 0 ? unreadAt : undefined);
   const draft = useDraft(channel.id, undefined, onReload, onForward);
   const others = [...people.members.filter((m) => m.id !== people.meId), ...useBotMembers(channel.projectId)];
   return (
@@ -395,7 +398,8 @@ function ChannelView({
         {messages.length === 0 && (
           <p className="px-4 py-8 text-center text-[13px] text-fg-subtle">{t("teamChat.firstMessage")}</p>
         )}
-        {messages.map((m) => (
+        {shown.start > 0 && <div ref={shown.sentinel} style={{ height: 1 }} />}
+        {messages.slice(shown.start).map((m) => (
           <div key={m.id}>
             {unread?.id === m.id && <UnreadLine count={unread.count} />}
             <MessageItem

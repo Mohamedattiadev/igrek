@@ -2,6 +2,7 @@ import { ArrowLeft, FolderKanban, Hash, Lock, MessagesSquare, X } from "lucide-r
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TypingLine, UnreadLine } from "../components/chat/ChannelTools";
+import { useMessageWindow } from "../components/chat/window";
 import { Button, EmptyState } from "../components/ui";
 import { cn } from "../lib/cn";
 import { channelKey, directKey, type MemberClient } from "./client";
@@ -152,11 +153,14 @@ function ChannelView({
   const all = messagesIn(project, channelId);
   const top = all.filter((c) => !c.parentId);
   const end = useFollow(all.length, () => void client.markSeen(project.key, channelId));
+  const box = useRef<HTMLDivElement>(null);
   const viewer = client.me()?.role === "viewer";
   const me = client.me()?.id;
   const replies = (id: string) => all.filter((c) => c.parentId === id);
   const root = thread ? all.find((c) => c.id === thread) : undefined;
   const unread = top.filter((c) => c.at > firstUnread && c.authorId !== me);
+  const unreadAt = unread[0] ? top.indexOf(unread[0]) : -1;
+  const shown = useMessageWindow(top.length, channelId, box, unreadAt >= 0 ? unreadAt : undefined);
   const actionsFor = (c: MemberComment) => ({
     onQuote: viewer ? undefined : () => setQuote({ id: c.id, author: c.author, text: c.text }),
     onThread: () => setThread(c.id),
@@ -182,8 +186,9 @@ function ChannelView({
     <div className="flex min-h-0 min-w-0 flex-1">
       <section className={cn("min-w-0 flex-1 flex-col", root ? "hidden lg:flex" : "flex")}>
         <Header title={name} sub={channel?.topic || project.name} icon={Hash} onBack={onBack} />
-        <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-2">
-          {top.map((c) => (
+        <div ref={box} className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-2">
+          {shown.start > 0 && <div ref={shown.sentinel} style={{ height: 1 }} />}
+          {top.slice(shown.start).map((c) => (
             <div key={c.id}>
               {c.id === unread[0]?.id && <UnreadLine count={unread.length} />}
               <ChannelMessage

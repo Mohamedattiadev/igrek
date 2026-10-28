@@ -198,13 +198,40 @@ export function useAccounts(): Account[] {
   return accounts;
 }
 
+const PROJECTS_CACHE = "igrek.cache.projects";
+let projectsCache: ProjectListItem[] | undefined;
+
+/** The last list seen (this page, else this browser), so a page shows it at once (plan.md 19.10). */
+function cachedProjects(): ProjectListItem[] {
+  if (projectsCache) return projectsCache;
+  try {
+    return JSON.parse(localStorage.getItem(PROJECTS_CACHE) ?? "[]") as ProjectListItem[];
+  } catch {
+    return [];
+  }
+}
+
+/** The projects, shown from the last known list at once and refreshed from the server behind it. */
 export function useProjects(): ProjectListItem[] {
-  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [projects, setProjects] = useState<ProjectListItem[]>(cachedProjects);
   useEffect(() => {
+    let current = true;
     api
       .projects()
-      .then((list) => setProjects(list.filter((p) => !p.hidden)))
+      .then((list) => {
+        const shown = list.filter((p) => !p.hidden);
+        projectsCache = shown;
+        try {
+          localStorage.setItem(PROJECTS_CACHE, JSON.stringify(shown));
+        } catch {
+          // Storage full or off: it is only a head start.
+        }
+        if (current) setProjects(shown);
+      })
       .catch(() => undefined);
+    return () => {
+      current = false;
+    };
   }, []);
   return projects;
 }

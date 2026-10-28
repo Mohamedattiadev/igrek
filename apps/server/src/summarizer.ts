@@ -340,7 +340,10 @@ async function runClaudeNow(
 }
 
 export class Summarizer {
+  /** Background summaries wait their turn and for quiet (heavy.ts); set by the server at startup. */
+  heavy?: import("./heavy").HeavyWork;
   private timer?: ReturnType<typeof setInterval>;
+  private queued = false;
   private busy = false;
   private failed = new Map<string, number>();
   private readonly runnerDir: string;
@@ -375,7 +378,12 @@ export class Summarizer {
     const next = this.store
       .sessionsNeedingSummary(now, limitBusy(now))
       .find((id) => now - (this.failed.get(id) ?? 0) > 60 * 60_000);
-    if (next) await this.summarize(next).catch(() => undefined);
+    if (!next || this.queued) return;
+    const run = () => this.summarize(next);
+    // One waiting at a time: while the person works, the minute's tick does not stack up more.
+    this.queued = true;
+    await (this.heavy ? this.heavy.run("summary", run) : run()).catch(() => undefined);
+    this.queued = false;
   }
 
   async summarize(sessionId: string): Promise<SessionSummaryData> {

@@ -3,6 +3,7 @@
  * CPU while idle, its memory, and how long the main reads take, on a sealed-off test server.
  * Fails when one is past its limit; prints the numbers either way.
  */
+import { measurePages, PAGE_LIMIT_MS } from "./perf-pages";
 import { seedProject, startTestServer } from "./test-server";
 
 const LIMITS = { startMs: 3000, idleCpuPct: 2, rssMb: 200, routeMs: 200 };
@@ -30,15 +31,22 @@ for (const route of ROUTES) {
 }
 await server.stop();
 
+// Page switches in a real browser, when one and a built app are there (plan.md 19.10).
+const pages = await measurePages();
 const slow = Object.entries(routes).filter(([, ms]) => ms > LIMITS.routeMs);
 console.log(
-  JSON.stringify({ startMs, idleCpuPct: Number(idleCpuPct.toFixed(2)), rssMb: Math.round(rssMb), routes }, null, 2),
+  JSON.stringify(
+    { startMs, idleCpuPct: Number(idleCpuPct.toFixed(2)), rssMb: Math.round(rssMb), routes, pages },
+    null,
+    2,
+  ),
 );
 const problems = [
   startMs > LIMITS.startMs && `start ${startMs} ms > ${LIMITS.startMs}`,
   idleCpuPct > LIMITS.idleCpuPct && `idle CPU ${idleCpuPct.toFixed(1)}% > ${LIMITS.idleCpuPct}%`,
   rssMb > LIMITS.rssMb && `memory ${Math.round(rssMb)} MB > ${LIMITS.rssMb}`,
   ...slow.map(([route, ms]) => `${route} ${ms} ms > ${LIMITS.routeMs}`),
+  pages && pages.warm > PAGE_LIMIT_MS && `page switch ${pages.warm} ms > ${PAGE_LIMIT_MS}`,
 ].filter(Boolean);
 if (problems.length) {
   console.error(`x ${problems.join("\nx ")}`);

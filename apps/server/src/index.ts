@@ -82,6 +82,7 @@ import { registerArenaRoutes, registerFlowRoutes, registerImportRoutes } from ".
 import { Flows } from "./flows";
 import { startGateway } from "./gateway";
 import { Handoffs, registerHandoffRoutes } from "./handoff-routes";
+import { HeavyWork } from "./heavy";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
 import { registerI18nRoutes } from "./i18n-routes";
@@ -315,9 +316,12 @@ const embedder = new Embedder(join(config.dataDir, "models", "multilingual-e5-sm
 );
 const library = new Library(sqlite, bus, join(config.dataDir, "library"), embedder);
 library.resume();
+// Heavy background work runs one at a time, when the person is not clicking or typing (plan.md 19.10).
+const heavy = new HeavyWork();
+summarizer.heavy = heavy;
 // Projects as examples for the personas: shortly after start, then once a day.
-setTimeout(() => syncExamples(store, library), 90_000);
-setInterval(() => syncExamples(store, library), 24 * 60 * 60_000);
+setTimeout(() => void heavy.run("examples", async () => syncExamples(store, library)), 90_000);
+setInterval(() => void heavy.run("examples", async () => syncExamples(store, library)), 24 * 60 * 60_000);
 const lessons = new Lessons(
   sqlite,
   store,
@@ -335,7 +339,7 @@ const scanLessons = async () => {
   return lessons.processCandidates(5);
 };
 setInterval(() => {
-  if (readSettings(db).autoSummarize) void scanLessons().catch(() => undefined);
+  if (readSettings(db).autoSummarize) void heavy.run("lessons", scanLessons).catch(() => undefined);
 }, 10 * 60_000);
 const personas = new Personas(
   sqlite,
@@ -431,8 +435,8 @@ const schedules = new Schedules(
 const secretScanner = new SecretScanner(sqlite, store);
 const depWatcher = new DependencyWatcher(sqlite, store);
 // New commits are read for secrets every 10 minutes; dependencies are checked once a day.
-setTimeout(() => secretScanner.scanAll(), 60_000);
-setInterval(() => secretScanner.scanAll(), 10 * 60_000);
+setTimeout(() => void heavy.run("secrets", async () => secretScanner.scanAll()), 60_000);
+setInterval(() => void heavy.run("secrets", async () => secretScanner.scanAll()), 10 * 60_000);
 setTimeout(() => void depWatcher.daily(), 3 * 60_000);
 setInterval(() => void depWatcher.daily(), 60 * 60_000);
 const updater = new Updater();
@@ -454,7 +458,7 @@ setInterval(() => {
   if (now.getHours() < 21 || !readSettings(db).autoSummarize) return;
   const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   if (writeups.cachedRecap(day) || !writeups.dayStats(day).projects.length) return;
-  void writeups.recap(day, readSettings(db).language).catch(() => undefined);
+  void heavy.run("recap", () => writeups.recap(day, readSettings(db).language)).catch(() => undefined);
 }, 15 * 60_000);
 const environments = new Environments(
   sqlite,
@@ -663,7 +667,9 @@ setInterval(() => {
   const now = new Date();
   if (now.getDay() !== 1 || now.getHours() < 8 || !readSettings(db).autoSummarize) return;
   if (product.weekly(isoWeek(now.getTime() - 86_400_000))) return;
-  void product.writeWeekly(readSettings(db).language, now.getTime() - 3_600_000).catch(() => undefined);
+  void heavy
+    .run("weekly", () => product.writeWeekly(readSettings(db).language, now.getTime() - 3_600_000))
+    .catch(() => undefined);
 }, 30 * 60_000);
 const briefings = new Briefings(
   sqlite,
@@ -688,8 +694,8 @@ const knowledge = new Knowledge(
     runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku", system ? ["--append-system-prompt", system] : []),
 );
 // The news of each persona's field, on the schedule chosen on the Knowledge page (checked hourly).
-setTimeout(() => void knowledge.tick().catch(() => undefined), 5 * 60_000);
-setInterval(() => void knowledge.tick().catch(() => undefined), 60 * 60_000);
+setTimeout(() => void heavy.run("knowledge", () => knowledge.tick()).catch(() => undefined), 5 * 60_000);
+setInterval(() => void heavy.run("knowledge", () => knowledge.tick()).catch(() => undefined), 60 * 60_000);
 // Secrets and pages agents ask for through Igrek's MCP server (plan.md 16.3).
 const agentRequests = new AgentRequests(store, vault, envFiles, personas);
 // "// ai: do this!" comments typed in the user's editor become inbox items (plan.md 16.4).
@@ -700,8 +706,8 @@ const aiComments = new AiComments(
 aiComments.start();
 // The weekly server report: each server's security scan and "who used it" once a week (checked hourly).
 const serverWeek = new ServerWeek(sqlite, servers);
-setTimeout(() => void serverWeek.tick().catch(() => undefined), 10 * 60_000);
-setInterval(() => void serverWeek.tick().catch(() => undefined), 60 * 60_000);
+setTimeout(() => void heavy.run("servers", () => serverWeek.tick()).catch(() => undefined), 10 * 60_000);
+setInterval(() => void heavy.run("servers", () => serverWeek.tick()).catch(() => undefined), 60 * 60_000);
 insight.extraNotices = () => [
   ...serverWeek.notices(),
   ...aiComments.notices(),
@@ -744,6 +750,7 @@ const app = createApp({
   stops,
   startedAt: Date.now(),
   extensionKey: (key) => extensionKeys.valid(key),
+  onActivity: () => heavy.active(),
   extraRoutes: (hono) => {
     registerAgentRequestRoutes(hono, agentRequests);
     registerTerminalRoutes(hono, {

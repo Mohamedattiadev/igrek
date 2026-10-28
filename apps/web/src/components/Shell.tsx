@@ -44,7 +44,7 @@ import { LanguagePackBanner, useLanguagePackSync } from "./LanguagePack";
 import { Logo } from "./Logo";
 import { NavColorMenu } from "./NavColors";
 import { NAV_ITEMS, type NavItem } from "./nav";
-import { QuickAsk } from "./QuickAsk";
+import { QuickAskGate } from "./QuickAskGate";
 import { ScreenNote } from "./ScreenNote";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
@@ -813,7 +813,7 @@ export function Shell() {
           <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
         </Suspense>
       )}
-      <QuickAsk />
+      <QuickAskGate />
       <ExtensionPairPrompt />
       <WhatIs />
       <TooltipLayer />

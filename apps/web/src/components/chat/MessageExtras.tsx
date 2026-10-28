@@ -19,11 +19,19 @@ import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { Button, Dialog, field } from "../ui";
+import { SHOW_EVENT } from "./window";
 
 /** Scrolls to a message in the list and lights it up for a moment, like tapping a quote on WhatsApp. */
-export function showMessage(id: string): void {
+export function showMessage(id: string, again = true): void {
   const el = document.getElementById(`msg-${id}`);
-  if (!el) return;
+  if (!el) {
+    // Not drawn yet in a long conversation: the list opens up, then it is shown (window.ts).
+    if (again) {
+      dispatchEvent(new Event(SHOW_EVENT));
+      setTimeout(() => showMessage(id, false), 100);
+    }
+    return;
+  }
   el.scrollIntoView({ block: "center", behavior: "smooth" });
   el.classList.add("bg-accent-soft");
   setTimeout(() => el.classList.remove("bg-accent-soft"), 1500);
