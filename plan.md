@@ -1429,7 +1429,53 @@ Bugün: hub'da tek bir "takım" var (herkes aynı yerde), roller şirket çapın
 - [ ] İzleyici rolü (ör. müşteri, danışman): okur, yorum yazabilir, iş atayamaz
 - [ ] Hepsi uçtan uca şifreli kalır; hub sadece kimin hangi takımda olduğunu bilir
 
-**Bitti sayılır:** Genel müdür tarayıcıdan girip bütün projeleri ve takımları tek ekranda görüyor, özet isteyip bir projeyi deneyebiliyor, not ve yorum bırakıp bir takıma iş atıyor; takımlar birbirine iş açıp konuşuyor; bütün senaryolar denenmiş.
+> Kullanıcı (28 Ekim 2026): "bi de hoca istese normal bi bota yaz o bot ta ilgili kisiye isi atar fln, yani biz otomize etmeye calisyoruz ne mudur yorulsun neden calisanlar cok fazla beklesin di mi, toplantilar videolu toplan meet gibi seyler de ekleyebilir randevu almak gibi sey de olabilir meetlerin transcipti ozeti notu fln filen otomatik olmasi lazim randuvular bildirimler vs herseyi olmasi lazim bunlari da eklemek lazim plana profesyonal olmasi lazim meetler share yapabileck bi tahta olacak exclidraw gibi isterlerse yazar usturne gene herkesi gorur, bi de herseyin historyisi olmasi lazim yapilan isler randevular alinan notlar hem arkaya hem ileriye donuk soru sorup ne zmn bu yapildi fln ilen diye sorabilmem bilgi edinme sansimiz olmasi lazim, cok perfomans yani hizli sornu olmaycak google meet gibi yavas ve agir olmayack bi de sync 100% sorun olmayack, her seyi detayli olark yaz sorun olmasin plana en kralini yap"
+
+#### 20.7 Koordinatör bot: müdür yazar, bot dağıtır (kimse beklemesin)
+- [ ] Şirketin bir koordinatör botu (19.2'deki botlar gibi, adı değiştirilebilir, ör. @asistan): müdür ona düz cümleyle yazar ("ödeme sayfası Cuma'ya bitsin, Kerim baksın", "QA bu hafta neyi test etti?"); sohbetten, kanaldan, tarayıcıdan, telefondan (Telegram şefi)
+- [ ] İşi anlar ve dağıtır: kartı açar, doğru takımı ve kişiyi seçer (takımların sorumluluk alanı, kişinin uzmanlığı, şu anki iş yükü, izinde olup olmadığı), son tarih ve öncelik koyar; neden o kişiyi seçtiğini bir cümleyle yazar; müdür isterse değiştirir
+- [ ] Belirsizse sorar (tek soru): "Backend'e mi, Frontend'e mi?"; kesinse sormadan yapar ve müdüre "yaptım" der
+- [ ] Takip eder, müdür hatırlatmak zorunda kalmaz: kart başlamazsa kişiye hatırlatır, son tarih yaklaşınca ve geçince lidere sonra müdüre bildirir, kart bitince işi verene haber verir
+- [ ] İş beklemesin: kişi takılırsa ("onay bekliyor", "bilgi lazım") bot ilgili kişiyi bulup sorar; cevap gelince işe döner
+- [ ] Rapor: müdüre her sabah tek mesaj (dün biten, bugün süren, geciken, onay bekleyen); isterse saatini ve sıklığını seçer
+- [ ] Kurallar: bot sadece müdürün ve liderlerin verdiği yetkiyle atar; kimin ne atadığı denetim kaydında; kod birleştirme yine insanın onayıyla
+- [ ] Senaryolar: (a) müdür "@asistan Cuma'ya ödeme sayfası" yazar → Backend'de bir kişiye kart, son tarih Cuma, müdüre "Kerim'e verdim, iş yükü en az o" → Çarşamba yarısı yapılmadıysa Kerim'e ve lidere hatırlatma → bitince müdüre haber. (b) önizlemede müdürün notu → bot notu Frontend'e kart yapar → düzelince müdüre ekran görüntüsüyle haber. (c) QA'nın hata kartı → bot Backend'de boşta olan kişiye verir. (d) "geçen hafta ne bitti?" → bot geçmişten cevaplar (20.9)
+
+#### 20.8 Toplantılar: görüntülü görüşme, takvim ve randevu, tahta, otomatik not
+- [ ] Görüntülü ve sesli toplantı, uygulamanın içinde ve tarayıcıdan: kamera, mikrofon, ekran paylaşımı, toplantı içi sohbet, el kaldırma, sessize alma; bir kişiye, bir takıma ya da birkaç takıma
+- [ ] Hafif ve hızlı (Google Meet gibi ağır olmasın): WebRTC ile doğrudan bağlantı (küçük toplantılarda sunucusuz, kişiler birbirine bağlanır), ses önce gelir, bağlantı zayıfsa görüntü otomatik düşer; hub sadece bağlantıyı kurar (signaling), görüntü ve ses uçtan uca şifreli
+- [ ] Büyük toplantılar (5+ kişi) için ücretsiz, kendi sunucunda çalışan bir yönlendirici (SFU, ör. LiveKit ya da mediasoup, açık kaynak) seçeneği; NAT arkasındakiler için ücretsiz TURN (coturn). Nerede çalışacağı kullanıcıya sorulacak (PoultryCare sunucusu başkasının üretim sunucusu)
+- [ ] Risk: Linux masaüstü uygulamasının tarayıcı motorunda (WebKitGTK) WebRTC çoğu dağıtımda kapalı; olmadığı yerde toplantı tek tıkla sistem tarayıcısında açılır, bu açıkça söylenir
+- [ ] Ortak tahta: Excalidraw (zaten projede, MIT) toplantının içinde; herkes aynı anda çizer ve yazar, herkesin imleci ve adı görünür; tahta toplantıdan sonra da kalır ve projenin dokümanlarına kaydedilir
+- [ ] Otomatik kayıt (herkes görüp onaylarsa): konuşmanın yazıya dökümü yerel Whisper ile (ücretsiz, cihazda, kimseye gitmez), kim ne dedi; toplantı bitince özet, alınan kararlar ve çıkan işler; işler doğru kişilere kart olur (koordinatör bot), kararlar proje hafızasına girer; not ve özet katılanlara ve ilgili takım kanalına gider
+- [ ] Takvim ve randevu: toplantı planlama, kişilerin boş saatleri (çalışma saatleri, izinler, diğer toplantılar), "Kerim ile 30 dakika bul" dendiğinde ortak boşluk önerisi; tekrarlayan toplantılar; müdürle randevu alma sayfası (boş saatlerinden biri seçilir)
+- [ ] Bildirimler: davet, kabul ve ret, 10 dakika kala hatırlatma, "toplantı başladı", geç kalana bildirim; masaüstünde, tarayıcıda, Telegram'da
+- [ ] Dış takvim: .ics dışa ve içe aktarma (Google ve Outlook ile ücretsiz uyumlu); toplantıya katılım bağlantısı dışarıdan biri için tek seferlik (misafir)
+- [ ] Toplantının sayfası: gündem (önceden yazılır), katılanlar, döküm, özet, kararlar, işler, tahta, kayıt; aranabilir
+
+#### 20.9 Her şeyin geçmişi ve ona soru sormak (geçmişe ve geleceğe)
+- [ ] Tek bir zaman çizelgesi: yapılan işler (oturumlar, commitler, kartlar), mesajlar, toplantılar ve notları, kararlar, randevular, duyurular, botların yaptıkları; kişi, takım, proje ve tarihe göre süzülür
+- [ ] Hiçbir şey kaybolmaz: düzenlenen ve silinen şeylerin önceki hali (yetkiliye) görünür, kimin ne zaman değiştirdiği kayıtlı
+- [ ] Soru sormak: "ödeme modülü ne zaman bitti?", "Kerim geçen ay neler yaptı?", "bu kararı hangi toplantıda aldık?", "sunucu en son ne zaman çöktü?"; cevap kaynağıyla (hangi oturum, kart, toplantı, mesaj) ve tarihle gelir, tıklayınca oraya gider
+- [ ] İleriye dönük sorular: "gelecek hafta ne var?", "Cuma'ya ne yetişmeli?", "kimin izni var?"; takvim, son tarihler ve planlardan
+- [ ] Dizin bilgisayarda: geçmiş yerel olarak dizinlenir (tam metin + anlam araması, kütüphanedeki yerel model), soru Claude'a sadece bulunan parçalarla gider
+- [ ] Kişinin sadece görmeye yetkili olduğu şeylerden cevap alır (özel oturumlar, gizli projeler, başkasının doğrudan mesajları cevaba girmez)
+
+#### 20.10 Hız ve senkron güvencesi (%100)
+- [ ] Toplantı: katılınca 1 saniyede ses, 2 saniyede görüntü; işlemci ve bant genişliği ölçülür, zayıf bağlantıda kalite otomatik düşer
+- [ ] Senkron: her olay sıralı numaralı ve zincirli (bugün var); eksik olay fark edilince otomatik tamamlanır (bugün var); bunlara ek: iki cihazın aynı veriyi gördüğünü kanıtlayan düzenli özet karşılaştırması (her proje için bir özet değeri, farklıysa farkı onarır)
+- [ ] Çevrimdışı: internet gidince yazılanlar sırada bekler, gelince gider; iki kişi aynı kartı değiştirdiyse ikisi de kaybolmadan birleşir ya da çakışma açıkça gösterilir
+- [ ] Testler: iki ve üç cihazlı senkron testleri, hub yeniden başlarken, ağ kopup gelirken, olayların karışık sırada geldiği durumlar; her sürümde çalışır
+- [ ] Senkron sağlığı ekranda: "her şey senkron" ya da "3 olay bekliyor, 2 saniye önce denendi"; sorun varsa nedeni
+
+#### 20.11 Bitti sayılması için uçtan uca senaryolar
+- [ ] Müdür telefonundan (Telegram) koordinatör bota bir iş yazar; iş doğru kişide, takvimde ve panoda; kişi bitirir; müdüre haber gelir; müdür hiçbir şeyi elle atamadı
+- [ ] İki takımla görüntülü toplantı: tahtada birlikte çizilir, toplantı biter, döküm, özet, kararlar ve işler kendiliğinden yerine gider
+- [ ] Müdür "Kerim'le bu hafta 30 dakika" der; ortak boşluk bulunur, iki tarafa davet ve hatırlatma gider
+- [ ] Müdür "geçen ayki sunucu sorununu kim çözmüştü, ne yapmıştı?" diye sorar; cevap kaynaklarıyla gelir
+- [ ] Ağ kopup gelir, iki cihaz aynı kartı değiştirir; hiçbir şey kaybolmaz, iki tarafta aynı görünür
+
+**Bitti sayılır:** Genel müdür tarayıcıdan girip bütün projeleri ve takımları tek ekranda görüyor, özet isteyip bir projeyi deneyebiliyor, not ve yorum bırakıp bir takıma iş atıyor; takımlar birbirine iş açıp konuşuyor; müdür bir bota yazınca işler kendiliğinden doğru kişilere gidip takip ediliyor; görüntülü toplantılar hafif, tahtalı ve kendiliğinden notlu; her şeyin geçmişine ve geleceğine soru sorulabiliyor; senkron ölçülerek güvende; bütün senaryolar denenmiş.
 
 ---
 
