@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { Badge } from "../../components/ui";
 import { ActiveDot, HealthBadge, useSummaryText } from "../../components/work";
 import { mainModel, modelName, relativeTime } from "../../lib/format";
+import { offscreen } from "../../lib/offscreen";
 import { PersonaIcon, useMyName, usePersonaLabel, usePersonas } from "../../lib/personas";
 import { useSettings } from "../../lib/settings";
 
@@ -31,6 +32,7 @@ export function SessionRow({ session, projectId }: { session: SessionListItem; p
     <Link
       to={`/p/${projectId}/s/${session.id}`}
       data-nav-item
+      style={offscreen(56)}
       className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
     >
       <ActiveDot active={session.active} />

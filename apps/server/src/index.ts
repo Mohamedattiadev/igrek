@@ -40,6 +40,7 @@ import { registerBotRoutes } from "./bot-routes";
 import { Bots } from "./bots";
 import { Bridges } from "./bridges";
 import { Briefings } from "./briefing";
+import { Budgets } from "./budgets";
 import { Bus, StopRegistry } from "./bus";
 import { Calendar } from "./calendar";
 import { ChatFiles } from "./chat-files";
@@ -169,7 +170,7 @@ import { Sync } from "./sync/client";
 import { Seats } from "./sync/seats";
 import { Chat } from "./team-chat";
 import { registerTeamChatRoutes } from "./team-chat-routes";
-import { registerTeamRoutes } from "./team-routes";
+import { companyOf, registerTeamRoutes } from "./team-routes";
 import { registerTelegramRoutes, Telegram } from "./telegram";
 import { registerTerminalRoutes } from "./terminal-routes";
 import { Terminals } from "./terminals";
@@ -527,7 +528,8 @@ void bridges.load().catch(() => undefined);
 const runStatus = new Map<string, string>();
 let pendingApprovals = 0;
 bus.subscribe((m) => {
-  if (m.type === "alert") void bridges.send({ event: m.kind, title: m.title, link: m.link });
+  // A teammate's budget stays on the admin's screen; it is not sent on to chat bridges.
+  if (m.type === "alert" && m.kind !== "budget") void bridges.send({ event: m.kind, title: m.title, link: m.link });
   else if (m.type === "approvals") {
     if (m.approvals.length > pendingApprovals)
       void bridges.send({ event: "approval", title: m.approvals[0]?.command.slice(0, 120) ?? "", link: "/inbox" });
@@ -1126,12 +1128,18 @@ const app = createApp({
     });
     registerLessonRoutes(hono, { lessons, personas, store, scan: scanLessons });
     registerAssistRoutes(hono, assist, privateValues);
+    const budgets = new Budgets(sqlite, bus);
     registerTeamRoutes(hono, sync, store, {
       language: () => readSettings(db).language,
       runnerDir: join(config.dataDir, "runner"),
       stops,
       seats,
+      budgets,
     });
+    // Past a budget, the admin hears of it even with the Company page closed (once a week each).
+    setInterval(() => {
+      if (sync.status().user?.role === "admin") budgets.check(companyOf(sync, seats));
+    }, 15 * 60_000);
     registerEnhanceRoutes(hono, enhancer);
     registerHttpRoutes(hono, store);
     registerI18nRoutes(hono, languagePacks, translator, () => readSettings(db).language);

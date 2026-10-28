@@ -1094,6 +1094,14 @@ export const migrations: string[] = [
      part TEXT NOT NULL,
      PRIMARY KEY (project_id, part)
    );`,
+  // Budgets per person on the Company page (budgets.ts); "noticed" is the week a notice went out.
+  // "member" is a hub user id (there is no users table on this computer).
+  `CREATE TABLE seat_budgets (
+     member TEXT PRIMARY KEY NOT NULL,
+     week_pct INTEGER,
+     week_tokens INTEGER,
+     noticed TEXT
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

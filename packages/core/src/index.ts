@@ -560,6 +560,12 @@ export interface Seat {
   week: { sessions: number; input: number; output: number; models: Record<string, number> };
 }
 
+/** A person's budget on the Company page (budgets.ts): a share of their weekly limit, or tokens a week. */
+export interface SeatBudget {
+  weekPct?: number;
+  weekTokens?: number;
+}
+
 export interface RateLimitInfo {
   fiveHour?: number;
   fiveHourResetsAt?: number;
@@ -968,7 +974,7 @@ export type ServerMessage =
   /** Something that needs a desktop notification right away (a site went down, a new app error). */
   | {
       type: "alert";
-      kind: "down" | "up" | "appError" | "backupFailed";
+      kind: "down" | "up" | "appError" | "backupFailed" | "budget";
       title: string;
       link: string;
       /** The project it is about, when there is one (routines listen for it). */

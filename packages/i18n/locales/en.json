@@ -3226,7 +3226,8 @@
     "alert_up": "Site back up",
     "alert_appError": "New error in your app",
     "alert_backupFailed": "Backup failed",
-    "teamMessage": "New message from {{name}}"
+    "teamMessage": "New message from {{name}}",
+    "alert_budget": "Past the budget"
   },
   "briefing": {
     "title": "Morning briefing",
@@ -5382,7 +5383,22 @@
     "tab_rules": "Rules",
     "tab_sharing": "Sharing",
     "tab_audit": "Record",
-    "tab_hub": "Hub and key"
+    "tab_hub": "Hub and key",
+    "budgetPct": "% of the weekly limit",
+    "budgetTokens": "M tokens a week",
+    "budgetSave": "Save",
+    "budgetIs": "Budget: {{what}}",
+    "budgetPctOf": "{{pct}}% of the weekly limit",
+    "budgetTokensOf": "{{tokens}} tokens a week",
+    "budgetNone": "No budget",
+    "budgetChange": "Change",
+    "budgetSet": "Set a budget",
+    "watchBudget": "{{name}} is past their budget this week",
+    "perMonth": "${{usd}}/month",
+    "priceUnknown": "price not known",
+    "billTotal": "Known plans: ${{usd}} a month (list prices, before tax).",
+    "billUnknown_one": "{{count}} account's price is not known: its plan was not reported, or it is Claude Max ($100 or $200, and which one Igrek cannot see).",
+    "billUnknown_other": "{{count}} accounts' prices are not known: their plan was not reported, or it is Claude Max ($100 or $200, and which one Igrek cannot see)."
   },
   "serverAccess": {
     "title": "Who used this server",

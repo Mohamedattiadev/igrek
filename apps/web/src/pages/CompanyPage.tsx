@@ -1,4 +1,4 @@
-import type { Seat } from "@igrek/core";
+import type { Seat, SeatBudget } from "@igrek/core";
 import { AlertTriangle, Building2, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ import { cn } from "../lib/cn";
 import { compactNumber, modelName, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { useSettings } from "../lib/settings";
+import { BudgetLine, overBudget, planPrice, useBudgets } from "./company/CompanyBudgets";
 import { CompanyRules } from "./company/CompanyRules";
 import { CompanyWork } from "./company/CompanyWork";
 import { AdminPanel, RecoveryBody, Sharing } from "./Team";
@@ -47,7 +48,19 @@ const nearFull = (s: Seat) => s.accounts.some((a) => (a.fiveHour ?? 0) >= FULL |
 const topModel = (s: Seat) => Object.entries(s.week.models).sort((a, b) => b[1] - a[1])[0]?.[0];
 
 /** One person as a card (plan.md 19.8): who, their accounts with big limit bars, their week. */
-function SeatCard({ seat, newest }: { seat: Seat; newest?: string }) {
+function SeatCard({
+  seat,
+  newest,
+  budget,
+  admin,
+  onBudget,
+}: {
+  seat: Seat;
+  newest?: string;
+  budget?: SeatBudget;
+  admin: boolean;
+  onBudget: (b: SeatBudget) => Promise<void>;
+}) {
   const { t } = useTranslation();
   const model = topModel(seat);
   const old = newest && seat.version && seat.version !== newest;
@@ -109,6 +122,7 @@ function SeatCard({ seat, newest }: { seat: Seat; newest?: string }) {
           </span>
         )}
       </p>
+      <BudgetLine seat={seat} budget={budget} admin={admin} onSave={onBudget} />
     </Card>
   );
 }
@@ -122,10 +136,11 @@ function SeatCard({ seat, newest }: { seat: Seat; newest?: string }) {
  * What an admin should look at (plan.md 18.6), beyond full limits: an AI account signed out, an
  * old Igrek, an Igrek that has not reported for a day.
  */
-function Watch({ seats, newest }: { seats: Seat[]; newest?: string }) {
+function Watch({ seats, newest, budgets }: { seats: Seat[]; newest?: string; budgets: Record<string, SeatBudget> }) {
   const { t } = useTranslation();
   const day = Date.now() - 86_400_000;
   const items = seats.flatMap((s) => [
+    ...(overBudget(s, budgets[s.memberId]) ? [t("company.watchBudget", { name: s.name })] : []),
     ...s.accounts
       .filter((a) => !a.loggedIn)
       .map((a) => t("company.watchSignedOut", { name: s.name, account: a.label })),
@@ -154,11 +169,17 @@ function Watch({ seats, newest }: { seats: Seat[]; newest?: string }) {
 function Plans({ seats }: { seats: Seat[] }) {
   const { t } = useTranslation();
   const plans = new Map<string, string[]>();
+  const prices = new Map<string, number | undefined>();
   for (const s of seats)
     for (const a of s.accounts) {
       const name = `${a.provider === "codex" ? "Codex" : "Claude"} ${a.plan ? a.plan.charAt(0).toUpperCase() + a.plan.slice(1) : t("company.planUnknown")}`;
       plans.set(name, [...(plans.get(name) ?? []), s.name]);
+      prices.set(name, planPrice(a.provider, a.plan));
     }
+  const known = [...plans].reduce((n, [plan, who]) => n + (prices.get(plan) ?? 0) * who.length, 0);
+  const unknown = [...plans]
+    .filter(([plan]) => prices.get(plan) === undefined)
+    .reduce((n, [, who]) => n + who.length, 0);
   return (
     <Card>
       <h3 className="border-b border-border px-pad py-2 text-[13px] font-semibold">{t("company.plansTitle")}</h3>
@@ -169,10 +190,21 @@ function Plans({ seats }: { seats: Seat[] }) {
               {who.length} x {plan}
             </span>
             <span className="min-w-0 flex-1 truncate text-end text-fg-subtle">{who.join(", ")}</span>
+            <span className="w-24 text-end tabular-nums">
+              {prices.get(plan) !== undefined
+                ? t("company.perMonth", { usd: (prices.get(plan) ?? 0) * who.length })
+                : t("company.priceUnknown")}
+            </span>
           </li>
         ))}
         {!plans.size && <li className="px-pad py-3 text-fg-subtle">{t("company.plansNone")}</li>}
       </ul>
+      {plans.size > 0 && (
+        <p className="border-t border-border px-pad py-2 text-[12px] text-fg-muted">
+          {known > 0 && t("company.billTotal", { usd: known })}
+          {unknown > 0 && ` ${t("company.billUnknown", { count: unknown })}`}
+        </p>
+      )}
     </Card>
   );
 }
@@ -192,6 +224,8 @@ function CompanyOverview() {
   );
   useEffect(load, [load]);
   useServerEvent("team-changed", load);
+  const { budgets, save } = useBudgets();
+  const admin = useTeamPeople().status?.user?.role === "admin";
   const list = [...(seats ?? [])].sort(
     (a, b) => Number(nearFull(b)) - Number(nearFull(a)) || a.name.localeCompare(b.name),
   );
@@ -228,12 +262,19 @@ function CompanyOverview() {
             </p>
           )}
           <div className="grid gap-3 md:grid-cols-2">
-            <Watch seats={list} newest={newest} />
+            <Watch seats={list} newest={newest} budgets={budgets} />
             <Plans seats={list} />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             {list.map((s) => (
-              <SeatCard key={s.memberId} seat={s} newest={newest} />
+              <SeatCard
+                key={s.memberId}
+                seat={s}
+                newest={newest}
+                budget={budgets[s.memberId]}
+                admin={admin}
+                onBudget={(b) => save(s.memberId, b)}
+              />
             ))}
           </div>
           <Card className="flex flex-wrap items-center justify-between gap-3 p-pad">

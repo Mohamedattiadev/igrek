@@ -3226,7 +3226,8 @@
     "alert_up": "Site tekrar açık",
     "alert_appError": "Uygulamanda yeni hata",
     "alert_backupFailed": "Yedekleme başarısız",
-    "teamMessage": "{{name}} yeni mesaj yazdı"
+    "teamMessage": "{{name}} yeni mesaj yazdı",
+    "alert_budget": "Bütçe aşıldı"
   },
   "briefing": {
     "title": "Sabah brifingi",
@@ -5382,7 +5383,22 @@
     "tab_rules": "Kurallar",
     "tab_sharing": "Paylaşım",
     "tab_audit": "Kayıt",
-    "tab_hub": "Hub ve anahtar"
+    "tab_hub": "Hub ve anahtar",
+    "budgetPct": "haftalık limitin %",
+    "budgetTokens": "M token / hafta",
+    "budgetSave": "Kaydet",
+    "budgetIs": "Bütçe: {{what}}",
+    "budgetPctOf": "haftalık limitin %{{pct}}'i",
+    "budgetTokensOf": "haftada {{tokens}} token",
+    "budgetNone": "Bütçe yok",
+    "budgetChange": "Değiştir",
+    "budgetSet": "Bütçe koy",
+    "watchBudget": "{{name}} bu hafta bütçesini aştı",
+    "perMonth": "${{usd}}/ay",
+    "priceUnknown": "fiyat bilinmiyor",
+    "billTotal": "Bilinen planlar: ayda ${{usd}} (liste fiyatı, vergi hariç).",
+    "billUnknown_one": "{{count}} hesabın fiyatı bilinmiyor: planı raporlanmadı ya da Claude Max (100 ya da 200 dolar; hangisi olduğu Igrek'e görünmüyor).",
+    "billUnknown_other": "{{count}} hesabın fiyatı bilinmiyor: planları raporlanmadı ya da Claude Max (100 ya da 200 dolar; hangisi olduğu Igrek'e görünmüyor)."
   },
   "serverAccess": {
     "title": "Bu sunucuyu kimler kullandı",
