@@ -1,9 +1,11 @@
 import type { Database } from "bun:sqlite";
 import {
   CHAT_REACTIONS,
+  type ChatAttachment,
   type ChatChannel,
   type ChatMessage,
   type ChatReaction,
+  type LinkPreview,
   type TaskStatus,
   type TeamTimelineItem,
 } from "@igrek/core";
@@ -50,10 +52,12 @@ type MessageRow = {
   starred: number;
   forwarded: number;
   read: number;
+  preview: string | null;
+  attachment: string | null;
 };
 
 const SELECT_MESSAGE = `SELECT c.id, c.target_id, c.parent_id, c.author_id, c.author_name, c.text, c.at, c.bot, c.task_id,
-  c.quote_of, c.edited_at, c.deleted, c.pinned, c.starred, c.forwarded, c.read,
+  c.quote_of, c.edited_at, c.deleted, c.pinned, c.starred, c.forwarded, c.read, c.preview, c.attachment,
   (SELECT COUNT(*) FROM comments r WHERE r.parent_id = c.id) AS replies,
   (SELECT MAX(r.at) FROM comments r WHERE r.parent_id = c.id) AS last_reply,
   t.title AS task_title, t.status AS task_status, t.assignee_name AS task_assignee
@@ -66,6 +70,7 @@ interface Extras {
   reactions?: Reactions;
   quote?: ChatMessage["quote"];
   seenBy?: string[];
+  attachment?: ChatMessage["attachment"];
 }
 
 /** Only what is set, so a plain message stays small on the wire. */
@@ -77,6 +82,7 @@ function flags(r: MessageRow): Partial<ChatMessage> {
     ...(r.starred ? { starred: true } : {}),
     ...(r.forwarded ? { forwarded: true } : {}),
     ...(r.read ? {} : { unread: true }),
+    ...(r.preview && !r.deleted ? { preview: JSON.parse(r.preview) as LinkPreview } : {}),
   };
 }
 
@@ -96,6 +102,7 @@ function toMessage(r: MessageRow, extras: Extras = {}): ChatMessage {
     ...flags(r),
     ...(extras.quote ? { quote: extras.quote } : {}),
     ...(extras.seenBy?.length ? { seenBy: extras.seenBy } : {}),
+    ...(extras.attachment && !r.deleted ? { attachment: extras.attachment } : {}),
     ...(r.last_reply ? { lastReplyAt: r.last_reply } : {}),
     ...(r.task_id && r.task_title && r.task_status
       ? {
@@ -119,6 +126,8 @@ export class Chat {
   constructor(
     private readonly db: Database,
     private readonly bus: Bus,
+    /** Whether a file's bytes are here yet (they arrive in parts after the message may). */
+    private readonly hasFile: (hash: string) => boolean = () => false,
   ) {}
 
   /** Every channel of the given projects: "general" always, those made here or by teammates, those with messages. */
@@ -210,7 +219,15 @@ export class Chat {
     const reactions = this.reactionsOf(rows);
     const quotes = this.quotesOf(rows);
     const seen = this.seenOf(rows);
-    return rows.map((r) => toMessage(r, { reactions: reactions.get(r.id), quote: quotes.get(r.id), seenBy: seen(r) }));
+    return rows.map((r) => {
+      const file = r.attachment ? (JSON.parse(r.attachment) as ChatAttachment) : undefined;
+      return toMessage(r, {
+        reactions: reactions.get(r.id),
+        quote: quotes.get(r.id),
+        seenBy: seen(r),
+        attachment: file ? { ...file, here: this.hasFile(file.hash) } : undefined,
+      });
+    });
   }
 
   /** The message each one answers: who wrote it and how it starts. */
@@ -326,13 +343,15 @@ export class Chat {
     taskId?: string;
     quoteId?: string;
     forwarded?: boolean;
+    preview?: LinkPreview;
+    attachment?: ChatAttachment;
   }): string {
     const id = crypto.randomUUID();
     this.db
       .query(
         `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read, parent_id, bot, task_id,
-           quote_of, forwarded)
-         VALUES (?, ?, 'channel', ?, NULL, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`,
+           quote_of, forwarded, preview, attachment, attachment_hash)
+         VALUES (?, ?, 'channel', ?, NULL, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         id,
@@ -347,6 +366,9 @@ export class Chat {
         args.taskId ?? null,
         args.quoteId ?? null,
         args.forwarded ? 1 : 0,
+        args.preview ? JSON.stringify(args.preview) : null,
+        args.attachment ? JSON.stringify(args.attachment) : null,
+        args.attachment?.hash ?? null,
       );
     this.bus.publish({ type: "chat-changed", channelId: args.channel });
     return id;
@@ -388,6 +410,14 @@ export class Chat {
       .query("UPDATE comments SET pinned = ?, update_at = ?, update_sent = 0 WHERE id = ? AND deleted = 0")
       .run(on ? 1 : 0, Date.now(), messageId);
     this.changed(messageId);
+  }
+
+  /** The name and type a file was sent with, for serving it. */
+  attachmentOf(hash: string): ChatAttachment | undefined {
+    const row = this.db.query("SELECT attachment FROM comments WHERE attachment_hash = ? LIMIT 1").get(hash) as {
+      attachment: string;
+    } | null;
+    return row ? (JSON.parse(row.attachment) as ChatAttachment) : undefined;
   }
 
   /** Starred for me only; it never leaves this computer. */

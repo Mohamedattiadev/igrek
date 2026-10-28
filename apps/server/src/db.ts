@@ -1023,6 +1023,28 @@ export const migrations: string[] = [
    CREATE TABLE chat_muted (
      channel TEXT PRIMARY KEY NOT NULL
    );`,
+  // A link's card in a team chat message (link-preview.ts): fetched by the writer, kept as sent.
+  `ALTER TABLE comments ADD COLUMN preview TEXT;`,
+  // Direct messages between two teammates (sync/direct.ts), sealed for their devices alone. "peer"
+  // is the other person's hub user id (there is no users table on this computer); "sent" is 0
+  // until mine went out.
+  `CREATE TABLE direct_messages (
+     id TEXT PRIMARY KEY NOT NULL,
+     peer TEXT NOT NULL,
+     mine INTEGER NOT NULL,
+     author_name TEXT,
+     text TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     read INTEGER NOT NULL DEFAULT 0,
+     sent INTEGER NOT NULL DEFAULT 1,
+     quote_of TEXT
+   );
+   CREATE INDEX direct_messages_peer ON direct_messages(peer, at);`,
+  // A file, picture or voice message sent with a team chat message (chat-files.ts): its hash,
+  // name, size and type; the bytes are kept in a folder of their own, found by the hash.
+  `ALTER TABLE comments ADD COLUMN attachment TEXT;
+   ALTER TABLE comments ADD COLUMN attachment_hash TEXT;
+   CREATE INDEX comments_attachment ON comments(attachment_hash);`,
 ];
 
 export function migrate(sqlite: Database): number {

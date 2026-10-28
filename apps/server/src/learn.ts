@@ -558,7 +558,31 @@ export class Learn {
     });
   }
 
-  /** Asks the package registry and endoflife.date for the newest version of each sheet, once a day. */
+  /** The newest version a sheet's registry names: npm, endoflife.date or PyPI. */
+  private async newest(latest: string): Promise<string | undefined> {
+    const [where, name] = latest.split(":") as [string, string];
+    const ask = (url: string) => this.fetcher(url, { signal: AbortSignal.timeout(10_000) });
+    if (where === "npm") {
+      const res = await ask(`https://registry.npmjs.org/${name.replace("/", "%2F")}/latest`);
+      return res.ok ? ((await res.json()) as { version?: string }).version : undefined;
+    }
+    if (where === "eol") {
+      const res = await ask(`https://endoflife.date/api/v1/products/${encodeURIComponent(name)}/releases/latest`);
+      return res.ok
+        ? ((await res.json()) as { result?: { latest?: { name?: string } } }).result?.latest?.name
+        : undefined;
+    }
+    if (where === "pypi") {
+      const res = await ask(`https://pypi.org/pypi/${encodeURIComponent(name)}/json`);
+      return res.ok ? ((await res.json()) as { info?: { version?: string } }).info?.version : undefined;
+    }
+    return undefined;
+  }
+
+  /**
+   * Asks the package registries for the newest version of each sheet, once a day. All at once: one
+   * after another, some fifty sheets on a slow line kept a click waiting for minutes.
+   */
   async checkLatest(force = false): Promise<LatestInfo[]> {
     const fresh = new Map(
       (this.db.query("SELECT sheet, at FROM learn_latest").all() as { sheet: string; at: number }[]).map((r) => [
@@ -566,43 +590,22 @@ export class Learn {
         r.at,
       ]),
     );
-    for (const s of this.content.sheets) {
-      if (!s.latest) continue;
-      if (!force && Date.now() - (fresh.get(s.id) ?? 0) < DAY) continue;
-      const [where, name] = s.latest.split(":") as [string, string];
-      try {
-        let version: string | undefined;
-        if (where === "npm") {
-          const res = await this.fetcher(`https://registry.npmjs.org/${name.replace("/", "%2F")}/latest`, {
-            signal: AbortSignal.timeout(15_000),
-          });
-          version = res.ok ? ((await res.json()) as { version?: string }).version : undefined;
-        } else if (where === "eol") {
-          const res = await this.fetcher(
-            `https://endoflife.date/api/v1/products/${encodeURIComponent(name)}/releases/latest`,
-            {
-              signal: AbortSignal.timeout(15_000),
-            },
-          );
-          version = res.ok
-            ? ((await res.json()) as { result?: { latest?: { name?: string } } }).result?.latest?.name
-            : undefined;
-        } else if (where === "pypi") {
-          const res = await this.fetcher(`https://pypi.org/pypi/${encodeURIComponent(name)}/json`, {
-            signal: AbortSignal.timeout(15_000),
-          });
-          version = res.ok ? ((await res.json()) as { info?: { version?: string } }).info?.version : undefined;
-        }
+    const due = this.content.sheets.filter(
+      (s): s is typeof s & { latest: string } => !!s.latest && (force || Date.now() - (fresh.get(s.id) ?? 0) >= DAY),
+    );
+    // Offline or a service down: that sheet is asked again next time.
+    const found = await Promise.all(due.map((s) => this.newest(s.latest).catch(() => undefined)));
+    this.db.transaction(() => {
+      due.forEach((s, i) => {
+        const version = found[i];
         if (version)
           this.db.run("INSERT OR REPLACE INTO learn_latest (sheet, latest, at) VALUES (?, ?, ?)", [
             s.id,
             version,
             Date.now(),
           ]);
-      } catch {
-        // offline or the service is down; next time
-      }
-    }
+      });
+    })();
     return this.latest();
   }
 

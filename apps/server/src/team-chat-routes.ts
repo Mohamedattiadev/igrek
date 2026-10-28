@@ -5,6 +5,8 @@ import type { Hono } from "hono";
 import type { Board } from "./board";
 import { taskMark } from "./board-auto";
 import type { StopRegistry } from "./bus";
+import { ChatFiles, MAX_FILE } from "./chat-files";
+import { cleanPreview, linkPreview } from "./link-preview";
 import { runClaude } from "./summarizer";
 import type { Sync } from "./sync/client";
 import { asksIgrek, type Chat, channelId, taskEvent } from "./team-chat";
@@ -12,6 +14,7 @@ import { asksIgrek, type Chat, channelId, taskEvent } from "./team-chat";
 interface Deps {
   db: Database;
   chat: Chat;
+  files: ChatFiles;
   board: Board;
   sync: Sync;
   projects: () => { id: string; name: string }[];
@@ -112,6 +115,136 @@ async function answer(deps: Deps, projectId: string, channel: string, asked: Cha
   }
 }
 
+/** Files, pictures and voice messages in a channel (chat-files.ts). */
+function registerFileRoutes(
+  app: Hono,
+  { chat, files, sync }: Deps,
+  projectOf: (channel: string) => { id: string; name: string } | undefined,
+): void {
+  // The file itself is the body; its name, a line of text and a quoted message ride in the query.
+  app.post("/api/chat/channels/:id/files", async (c) => {
+    const channel = c.req.param("id");
+    const project = projectOf(channel);
+    if (!project) return c.json({ error: "Channel not found" }, 404);
+    if (Number(c.req.header("content-length") ?? 0) > MAX_FILE)
+      return c.json({ error: "Files up to 10 MB can be sent in the chat" }, 413);
+    try {
+      const attachment = files.save(
+        new Uint8Array(await c.req.arrayBuffer()),
+        c.req.query("name") ?? "file",
+        c.req.header("content-type") ?? "",
+      );
+      const text = (c.req.query("text") ?? "").trim();
+      const id = chat.post({
+        projectId: project.id,
+        channel,
+        text,
+        author: sync.identity().name,
+        mentions: text ? await sync.mentionsIn(text) : [],
+        quoteId: c.req.query("quote") || undefined,
+        attachment,
+      });
+      void sync.flush();
+      return c.json(chat.message(id));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+
+  // Pictures and voice messages open in the page; anything else is only ever a download, so a
+  // file a teammate sent can never run as a page of this app.
+  app.get("/api/chat/files/:hash", (c) => {
+    const hash = c.req.param("hash");
+    const bytes = files.read(hash);
+    if (!bytes) return c.json({ error: "Not here (yet)" }, 404);
+    const row = chat.attachmentOf(hash);
+    const inline = !!row && ChatFiles.inline(row.type);
+    return new Response(Buffer.from(bytes), {
+      headers: {
+        "content-type": inline && row ? row.type : "application/octet-stream",
+        "content-disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(row?.name ?? "file")}`,
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "cache-control": "private, max-age=31536000, immutable",
+      },
+    });
+  });
+}
+
+/** Direct messages between me and one teammate (sync/direct.ts), sealed for our devices alone. */
+function registerDirectRoutes(app: Hono, { sync }: Deps): void {
+  const isMember = (peer: string) => sync.memberList().some((m) => m.id === peer && m.id !== sync.identity().id);
+  app.get("/api/chat/direct", (c) => c.json(sync.direct.conversations()));
+  // Listed before they are marked read, so the page knows where the "Unread messages" line goes.
+  app.get("/api/chat/direct/:peer/messages", (c) => {
+    const list = sync.direct.messages(c.req.param("peer"));
+    sync.direct.markRead(c.req.param("peer"));
+    return c.json(list);
+  });
+  app.post("/api/chat/direct/:peer/messages", async (c) => {
+    const peer = c.req.param("peer");
+    if (!isMember(peer)) return c.json({ error: "Not a teammate" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { text?: string; quoteId?: string };
+    const text = (body.text ?? "").trim();
+    if (!text) return c.json({ error: "Write something" }, 400);
+    const id = sync.direct.post(peer, text, body.quoteId || undefined);
+    void sync.flush();
+    return c.json(sync.direct.messages(peer).find((m) => m.id === id));
+  });
+}
+
+/** The team's timeline and the company's work view, across every shared project. */
+function registerTeamViewRoutes(
+  app: Hono,
+  { chat, board, sync }: Deps,
+  shared: () => { id: string; name: string }[],
+): void {
+  // The team's timeline of the last days (7 unless asked), across every shared project.
+  app.get("/api/team/timeline", (c) => {
+    const days = Math.min(Math.max(Number(c.req.query("days")) || 7, 1), 60);
+    return c.json(chat.timeline(shared(), Date.now() - days * 86_400_000));
+  });
+
+  // The company's work view: every card of the shared projects, and commits and sessions per person
+  // this week ("" is me: my own sessions carry no author here).
+  app.get("/api/team/work", (c) => {
+    const projects = shared();
+    const ids = projects.map((p) => p.id);
+    return c.json({
+      projects,
+      tasks: board.listMany(ids),
+      week: chat.workSince(ids, Date.now() - 7 * 86_400_000),
+      me: sync.identity().name ?? "",
+    });
+  });
+}
+
+/** What the box being written in asks for (a pasted link's card, "typing..."), and muting a channel. */
+function registerComposerRoutes(
+  app: Hono,
+  { chat, sync }: Deps,
+  projectOf: (channel: string) => { id: string; name: string } | undefined,
+): void {
+  app.post("/api/chat/channels/:id/mute", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { on?: boolean };
+    chat.setMuted(c.req.param("id"), !!body.on);
+    return c.json({ ok: true });
+  });
+
+  // A link pasted in the composer: its card, fetched here only because the writer is about to send it.
+  app.get("/api/chat/link-preview", async (c) => {
+    const preview = await linkPreview(c.req.query("url") ?? "").catch(() => undefined);
+    return preview ? c.json(preview) : c.json({ error: "No preview for this address" }, 404);
+  });
+
+  // A key pressed in the composer: teammates see "typing..." for a few seconds.
+  app.post("/api/chat/channels/:id/typing", (c) => {
+    const project = projectOf(c.req.param("id"));
+    if (project) void sync.sendTyping(project.id, c.req.param("id"));
+    return c.json({ ok: true });
+  });
+}
+
 /**
  * What makes the team chat feel like WhatsApp (plan.md 19.9): pinned, starred and searched
  * messages, muting, "typing...", editing and deleting my own, pins, stars and forwarding.
@@ -125,19 +258,6 @@ function registerWhatsAppRoutes(
   app.get("/api/chat/channels/:id/pinned", (c) => c.json(chat.pinned(c.req.param("id"))));
   app.get("/api/chat/channels/:id/search", (c) => c.json(chat.search(c.req.param("id"), c.req.query("q") ?? "")));
   app.get("/api/chat/starred", (c) => c.json(chat.starred(shared().map((p) => p.id))));
-
-  app.post("/api/chat/channels/:id/mute", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { on?: boolean };
-    chat.setMuted(c.req.param("id"), !!body.on);
-    return c.json({ ok: true });
-  });
-
-  // A key pressed in the composer: teammates see "typing..." for a few seconds.
-  app.post("/api/chat/channels/:id/typing", (c) => {
-    const project = projectOf(c.req.param("id"));
-    if (project) void sync.sendTyping(project.id, c.req.param("id"));
-    return c.json({ ok: true });
-  });
 
   // My own message, written again or deleted for everyone.
   app.patch("/api/chat/messages/:id", async (c) => {
@@ -200,6 +320,10 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
   };
   const projectOf = (channel: string) => shared().find((p) => channel.startsWith(`${p.id}:`));
   registerWhatsAppRoutes(app, deps, shared, projectOf);
+  registerComposerRoutes(app, deps, projectOf);
+  registerTeamViewRoutes(app, deps, shared);
+  registerDirectRoutes(app, deps);
+  registerFileRoutes(app, deps, projectOf);
 
   app.get("/api/chat/channels", (c) => c.json(chat.channels(shared())));
 
@@ -229,7 +353,12 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
     const channel = c.req.param("id");
     const project = projectOf(channel);
     if (!project) return c.json({ error: "Channel not found" }, 404);
-    const body = (await c.req.json().catch(() => ({}))) as { text?: string; parentId?: string; quoteId?: string };
+    const body = (await c.req.json().catch(() => ({}))) as {
+      text?: string;
+      parentId?: string;
+      quoteId?: string;
+      preview?: unknown;
+    };
     const text = (body.text ?? "").trim();
     if (!text) return c.json({ error: "Write something" }, 400);
     const id = chat.post({
@@ -238,6 +367,7 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
       text,
       parentId: body.parentId || undefined,
       quoteId: body.quoteId || undefined,
+      preview: cleanPreview(body.preview),
       author: sync.identity().name,
       mentions: await sync.mentionsIn(text),
     });
@@ -245,25 +375,6 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
     const posted = chat.message(id);
     if (posted && asksIgrek(text)) void answer(deps, project.id, channel, posted);
     return c.json(posted);
-  });
-
-  // The team's timeline of the last days (7 unless asked), across every shared project.
-  app.get("/api/team/timeline", (c) => {
-    const days = Math.min(Math.max(Number(c.req.query("days")) || 7, 1), 60);
-    return c.json(chat.timeline(shared(), Date.now() - days * 86_400_000));
-  });
-
-  // The company's work view: every card of the shared projects, and commits and sessions per person
-  // this week ("" is me: my own sessions carry no author here).
-  app.get("/api/team/work", (c) => {
-    const projects = shared();
-    const ids = projects.map((p) => p.id);
-    return c.json({
-      projects,
-      tasks: board.listMany(ids),
-      week: chat.workSince(ids, Date.now() - 7 * 86_400_000),
-      me: sync.identity().name ?? "",
-    });
   });
 
   // A reaction under a message, given or taken back.

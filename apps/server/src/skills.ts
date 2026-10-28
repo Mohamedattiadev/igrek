@@ -79,13 +79,18 @@ export class Skills {
   }
 
   private async json<T>(url: string): Promise<T> {
-    const res = await this.get(url, { headers: { accept: "application/json", "user-agent": "igrek" } });
+    const res = await this.get(url, {
+      headers: { accept: "application/json", "user-agent": "igrek" },
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) throw new Error(`${new URL(url).host} answered ${res.status}`);
     return (await res.json()) as T;
   }
 
   private async raw(source: string, path: string): Promise<string> {
-    const res = await this.get(`https://raw.githubusercontent.com/${source}/HEAD/${path}`);
+    const res = await this.get(`https://raw.githubusercontent.com/${source}/HEAD/${path}`, {
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) throw new Error(`GitHub answered ${res.status} for ${path}`);
     return res.text();
   }

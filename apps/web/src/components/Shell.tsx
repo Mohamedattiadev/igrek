@@ -227,19 +227,22 @@ function ToolStripLink({
   );
 }
 
-/** Unread team chat messages and who wrote them, for the strip's badge; they clear when their channel is opened. */
+/**
+ * Unread team chat and direct messages and who wrote them, for the strip's badge; they clear when
+ * their channel or conversation is opened.
+ */
 function useChatUnread(): { count: number; from: string[] } {
   const [unread, setUnread] = useState<{ count: number; from: string[] }>({ count: 0, from: [] });
   const load = useCallback(
     () =>
-      void api
-        .chatChannels()
-        .then((list) =>
+      void Promise.all([api.chatChannels(), api.directChats().catch(() => [])])
+        .then(([list, directs]) => {
+          const fresh = directs.filter((d) => d.unread > 0);
           setUnread({
-            count: list.reduce((n, c) => n + c.unread, 0),
-            from: [...new Set(list.flatMap((c) => c.unreadFrom))],
-          }),
-        )
+            count: list.reduce((n, c) => n + c.unread, 0) + fresh.reduce((n, d) => n + d.unread, 0),
+            from: [...new Set([...list.flatMap((c) => c.unreadFrom), ...fresh.map((d) => d.name).filter(Boolean)])],
+          });
+        })
         .catch(() => undefined),
     [],
   );

@@ -16,6 +16,8 @@ import { dateTime, relativeTime } from "../../lib/format";
 import { Markdown } from "../Markdown";
 import { TeamAvatar } from "../TeamAvatar";
 import { Badge } from "../ui";
+import { AttachmentView } from "./Attachments";
+import { LinkCard } from "./LinkCard";
 import { DeletedNote, MoreMenu, QuoteBox, SeenTicks } from "./MessageExtras";
 import { MentionTask, ReactionChips, ReactionPicker } from "./Reactions";
 
@@ -103,6 +105,8 @@ export interface MessageHandlers {
   onQuote?: () => void;
   onEdit?: () => void;
   onForward?: () => void;
+  /** A direct message: only quoting; reactions, pins and the rest are for channels. */
+  plain?: boolean;
 }
 
 /** React, quote-reply, open its thread, and the rest behind "more", over the message while it is pointed at. */
@@ -120,7 +124,7 @@ function Actions({
   const canTask = !!handlers.onTask && !message.task && !message.bot;
   return (
     <div className="absolute -top-3 end-2 hidden gap-0.5 rounded-ui border border-border bg-bg p-0.5 shadow-ui group-focus-within:flex group-hover:flex">
-      <ReactionPicker message={message} className={action} />
+      {!handlers.plain && <ReactionPicker message={message} className={action} />}
       {handlers.onQuote && (
         <button
           type="button"
@@ -143,14 +147,16 @@ function Actions({
           <MessageSquareReply size={14} aria-hidden="true" />
         </button>
       )}
-      <MoreMenu
-        message={message}
-        actions={{
-          onEdit: handlers.onEdit,
-          onForward: handlers.onForward,
-          onTask: canTask ? handlers.onTask : undefined,
-        }}
-      />
+      {!handlers.plain && (
+        <MoreMenu
+          message={message}
+          actions={{
+            onEdit: handlers.onEdit,
+            onForward: handlers.onForward,
+            onTask: canTask ? handlers.onTask : undefined,
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -204,6 +210,8 @@ function Body({
       )}
       {message.quote && <QuoteBox quote={message.quote} />}
       <Markdown text={highlight(message.text)} className="prose-igrek text-[13.5px]" />
+      {message.preview && <LinkCard preview={message.preview} />}
+      {message.attachment && <AttachmentView file={message.attachment} />}
       {message.task && <TaskChip task={message.task} projectId={projectId} />}
       <MentionTask message={message} members={members} meId={meId} />
     </>

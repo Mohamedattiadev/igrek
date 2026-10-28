@@ -1,4 +1,4 @@
-import type { ChatChannel, ChatMessage, TeamMember } from "@igrek/core";
+import type { ChatChannel, ChatMessage, LinkPreview, TeamMember } from "@igrek/core";
 import {
   FileText,
   FolderKanban,
@@ -18,6 +18,7 @@ import { Link, useSearchParams } from "react-router";
 import { ChannelList } from "../components/chat/ChannelList";
 import { MuteButton, SidePanel, TypingLine, UnreadLine, useTyping } from "../components/chat/ChannelTools";
 import { Composer } from "../components/chat/Composer";
+import { DirectView } from "../components/chat/DirectView";
 import { ForwardDialog, QuoteBox } from "../components/chat/MessageExtras";
 import { MessageItem } from "../components/chat/MessageItem";
 import { TaskDialog } from "../components/chat/TaskDialog";
@@ -83,11 +84,21 @@ function useDraft(
       initialText: editing?.text ?? "",
       onCancel: reset,
       onTyping: () => void api.chatTyping(channelId).catch(() => undefined),
-      onSend: (text: string) =>
-        (editing ? api.editChat(editing.id, text) : api.postChat(channelId, text, parentId, quoting?.id)).then(() => {
-          reset();
-          reload();
-        }),
+      // A file goes out on its own, quoting what was being answered; threads keep to text.
+      onFile: parentId
+        ? undefined
+        : (file: File) =>
+            api.sendChatFile(channelId, file, file.name, undefined, quoting?.id).then(() => {
+              reset();
+              reload();
+            }),
+      onSend: (text: string, preview?: LinkPreview) =>
+        (editing ? api.editChat(editing.id, text) : api.postChat(channelId, text, parentId, quoting?.id, preview)).then(
+          () => {
+            reset();
+            reload();
+          },
+        ),
     },
     handlers: (m: ChatMessage) => ({
       onQuote: () => {
@@ -413,7 +424,23 @@ export function TeamChatPage() {
     [],
   );
   useEffect(loadChannels, [loadChannels]);
-  const channel = channels?.find((c) => c.id === params.get("c")) ?? channels?.[0];
+  const [directs, setDirects] = useState<{ peer: string; unread: number }[]>([]);
+  const loadDirects = useCallback(
+    () =>
+      void api
+        .directChats()
+        .then(setDirects)
+        .catch(() => undefined),
+    [],
+  );
+  useEffect(loadDirects, [loadDirects]);
+  const team = { members: people.status?.members ?? [], meId: people.status?.user?.id };
+  const teammates = team.members
+    .filter((m) => m.id !== team.meId)
+    .map((member) => ({ member, unread: directs.find((d) => d.peer === member.id)?.unread ?? 0 }));
+  const picked = params.get("c") ?? "";
+  const peer = picked.startsWith("dm:") ? teammates.find((p) => `dm:${p.member.id}` === picked)?.member : undefined;
+  const channel = peer ? undefined : (channels?.find((c) => c.id === picked) ?? channels?.[0]);
   const [typing, setTyping] = useTyping(channel?.id);
   const loadMessages = useCallback(() => {
     if (channel)
@@ -425,6 +452,7 @@ export function TeamChatPage() {
   useEffect(loadMessages, [loadMessages]);
   useServerEvent("chat-changed", (m) => {
     if (m.typing) return m.channelId === channel?.id && setTyping(m.typing);
+    if (m.channelId.startsWith("dm:")) return loadDirects();
     if (m.channelId === channel?.id) {
       if (m.writing !== undefined) setWriting(m.writing);
       else loadMessages();
@@ -437,9 +465,8 @@ export function TeamChatPage() {
     setParams(threadId ? { c: id, thread: threadId } : { c: id });
   };
   const timeline = params.get("view") === "timeline";
-  const team = { members: people.status?.members ?? [], meId: people.status?.user?.id };
 
-  if (channels && !channels.length)
+  if (channels && !channels.length && !teammates.length)
     return (
       <div className="p-6">
         <EmptyState icon={MessagesSquare} title={t("teamChat.emptyTitle")} body={t("teamChat.emptyBody")} />
@@ -455,7 +482,8 @@ export function TeamChatPage() {
       <div className="hidden w-60 shrink-0 border-e border-border bg-bg-subtle md:block">
         <ChannelList
           channels={channels ?? []}
-          selected={channel?.id}
+          people={teammates}
+          selected={peer ? picked : channel?.id}
           timeline={timeline}
           onTimeline={() => setParams({ view: "timeline" })}
           onPick={(id) => open(id)}
@@ -471,6 +499,7 @@ export function TeamChatPage() {
           <TeamTimeline />
         </div>
       )}
+      {peer && !timeline && <DirectView key={peer.id} peer={peer} members={team.members} meId={team.meId} />}
       {channel && !timeline && (
         <ChannelView
           key={channel.id}

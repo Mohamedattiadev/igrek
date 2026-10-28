@@ -13,6 +13,7 @@ import type {
   TeamMember,
   TeamStatus,
 } from "@igrek/core";
+import { cleanAttachment, cleanPreview } from "@igrek/core";
 import type { Bus } from "../bus";
 import {
   type DeviceKey,
@@ -28,6 +29,7 @@ import {
   unwrapTeamKey,
   wrapTeamKey,
 } from "./crypto";
+import { DirectMessages } from "./direct";
 import { scrubDeep } from "./scrub";
 
 interface SyncConfig {
@@ -80,6 +82,18 @@ const PRESENCE_TTL = 60_000;
 /** "Kerim is typing..." lasts this long after their last key, unless another one comes. */
 const TYPING_TTL = 6_000;
 
+/** A teammate's file description, only its known parts, ready to store. */
+function attachmentText(value: unknown): string | null {
+  const file = cleanAttachment(value);
+  return file ? JSON.stringify(file) : null;
+}
+
+/** A teammate's link card, only its known parts, ready to store. */
+function previewText(value: unknown): string | null {
+  const preview = cleanPreview(value);
+  return preview ? JSON.stringify(preview) : null;
+}
+
 /** A comment or chat message as it goes to teammates: only the parts it has. */
 function commentPayload(cm: Record<string, unknown>): Record<string, unknown> {
   return {
@@ -94,6 +108,8 @@ function commentPayload(cm: Record<string, unknown>): Record<string, unknown> {
     ...(cm.task_id ? { taskId: cm.task_id } : {}),
     ...(cm.quote_of ? { quoteId: cm.quote_of } : {}),
     ...(cm.forwarded ? { forwarded: true } : {}),
+    ...(cm.preview ? { preview: JSON.parse(String(cm.preview)) } : {}),
+    ...(cm.attachment ? { attachment: JSON.parse(String(cm.attachment)) } : {}),
   };
 }
 
@@ -147,7 +163,34 @@ export class Sync {
     private readonly bus: Bus,
     private readonly file: string,
     private readonly myName: () => string = () => hostname(),
-  ) {}
+  ) {
+    this.direct = new DirectMessages({
+      db,
+      bus,
+      me: () => (this.config ? { id: this.config.user.id, name: this.identity().name ?? "" } : undefined),
+      nameOf: (id) => this.authorName(id),
+      device: () => (this.config?.device ? { ...this.config.device, id: deviceOf(this.config.token) } : undefined),
+      keysOf: (id) => this.deviceKeysOf(id),
+      send: (message) => this.send(message),
+      cursor: (key) => this.cursor("seq", key),
+      setCursor: (key, seq) => this.setCursor("seq", key, seq),
+    });
+  }
+
+  /** Direct messages between two teammates, sealed for their devices alone (direct.ts). */
+  readonly direct: DirectMessages;
+  private deviceKeys = new Map<string, { at: number; keys: { deviceId: string; publicKey: string }[] }>();
+
+  /** A user's devices' public keys, asked of the hub at most once a minute. */
+  private async deviceKeysOf(userId: string): Promise<{ deviceId: string; publicKey: string }[]> {
+    const known = this.deviceKeys.get(userId);
+    if (known && Date.now() - known.at < 60_000) return known.keys;
+    const keys = await this.hubRequest<{ deviceId: string; publicKey: string }[]>(
+      `/api/users/${encodeURIComponent(userId)}/device-keys`,
+    ).catch(() => known?.keys ?? []);
+    this.deviceKeys.set(userId, { at: Date.now(), keys });
+    return keys;
+  }
 
   // ---- setup ---------------------------------------------------------------------
 
@@ -837,6 +880,8 @@ export class Sync {
       const list = await this.hubRequest<TeamMember[]>("/api/members");
       this.members = new Map(list.map((m) => [m.id, m]));
       this.renameMembers(list);
+      this.direct.subscribe(list.map((m) => m.id));
+      for (const m of list) this.direct.rename(m.id, m.displayName || m.username);
       this.bus.publish({ type: "team-changed" });
     } catch {
       // Offline: keep the last known list.
@@ -986,7 +1031,9 @@ export class Sync {
     const head = this.chainHead(project, mine);
     const n = (head?.n ?? 0) + 1;
     const prev = head?.hash ?? "";
-    const sealed = await encrypt(this.currentKey(), aadFor(project, kind, n, prev), scrubDeep(value));
+    // A file's parts are bytes, not text: masking what looks like a secret would break the file.
+    const clean = kind === "file-part" ? value : scrubDeep(value);
+    const sealed = await encrypt(this.currentKey(), aadFor(project, kind, n, prev), clean);
     const hash = chainHash(prev, n, sealed.nonce, sealed.data);
     // The hash makes the id unique, so a resend is never mistaken for an old copy.
     const ok = this.send({
@@ -1316,6 +1363,7 @@ export class Sync {
         }
         await this.publishChat(key, project.id);
       }
+      await this.direct.flush();
       this.lastSyncAt = Date.now();
     } finally {
       this.flushing = false;
@@ -1325,7 +1373,7 @@ export class Sync {
   private unsentComments(projectId: string): Record<string, unknown>[] {
     return this.db
       .query(
-        "SELECT id, target_kind, target_id, text, mentions, at, parent_id, bot, task_id, quote_of, forwarded FROM comments WHERE project_id = ? AND author_id IS NULL AND sent = 0 ORDER BY at LIMIT 50",
+        "SELECT id, target_kind, target_id, text, mentions, at, parent_id, bot, task_id, quote_of, forwarded, preview, attachment FROM comments WHERE project_id = ? AND author_id IS NULL AND sent = 0 ORDER BY at LIMIT 50",
       )
       .all(projectId) as Record<string, unknown>[];
   }
@@ -1346,6 +1394,8 @@ export class Sync {
       if (ok) this.chat?.markChannelSent(ch.id);
     }
     for (const cm of this.unsentComments(projectId)) {
+      // A file goes first, in parts, so it is (nearly) there when its message is.
+      if (cm.attachment && !(await this.publishFile(key, JSON.parse(String(cm.attachment)).hash))) continue;
       const ok = await this.publish(key, "comment", `c-${cm.id}-${cm.task_id ?? ""}`, commentPayload(cm));
       // Turned into a card while it was on its way: it stays unsent and goes again with the card.
       if (ok)
@@ -1359,6 +1409,22 @@ export class Sync {
       if (ok) this.chat?.markReactionSent(r.messageId, r.reaction, r.at);
     }
     await this.publishChatChanges(key, projectId);
+  }
+
+  /** A chat file in parts (chat-files.ts); false when one did not go out. */
+  private async publishFile(key: string, hash: string): Promise<boolean> {
+    const parts = this.files?.parts(hash) ?? [];
+    for (let i = 0; i < parts.length; i++)
+      if (
+        !(await this.publish(key, "file-part", `f-${hash.slice(0, 24)}-${i}`, {
+          hash,
+          i,
+          n: parts.length,
+          data: parts[i],
+        }))
+      )
+        return false;
+    return parts.length > 0;
   }
 
   /** Edits, deletions and pins of messages teammates already have, then how far I have read. */
@@ -1499,7 +1565,9 @@ export class Sync {
       if (msg.op === "alert") this.alerts = [msg.alert as HubAlertInfo, ...this.alerts].slice(0, 20);
       this.bus.publish({ type: "team-changed" });
     } else if (msg.op === "events") {
-      await this.applyEvents(String(msg.project), msg.events as WireEvent[]);
+      if (this.direct.isRoom(String(msg.project)))
+        await this.direct.apply(String(msg.project), msg.events as WireEvent[]);
+      else await this.applyEvents(String(msg.project), msg.events as WireEvent[]);
     } else if (msg.op === "presence") {
       await this.applyPresence(
         msg as unknown as { project: string; author: string; nonce: string; data: string; at: number; epoch?: number },
@@ -1559,6 +1627,22 @@ export class Sync {
     else if (kind === "reaction") this.chat?.applyReaction(value, author);
     else if (kind === "chat-update") this.chat?.applyUpdate(value, author);
     else if (kind === "seen") this.chat?.applySeen(projectId, value, author);
+    else if (kind === "file-part") this.applyFilePart(value);
+  }
+
+  /** A part of a teammate's file; when the file is whole, the messages it belongs to show it. */
+  private applyFilePart(value: Record<string, unknown>): void {
+    const part = {
+      hash: String(value.hash ?? ""),
+      i: Number(value.i),
+      n: Number(value.n),
+      data: String(value.data ?? ""),
+    };
+    if (!this.files?.receivePart(part)) return;
+    const rows = this.db.query("SELECT DISTINCT target_id FROM comments WHERE attachment_hash = ?").all(part.hash) as {
+      target_id: string;
+    }[];
+    for (const r of rows) this.bus.publish({ type: "chat-changed", channelId: r.target_id });
   }
 
   /** A teammate typing; a stale one (the hub replays the last presence to newcomers) is ignored. */
@@ -1794,6 +1878,8 @@ export class Sync {
   shareUsage: () => boolean = () => true;
   /** The team chat (team-chat.ts), set by the server at startup. */
   chat?: import("../team-chat").Chat;
+  /** The team chat's files, pictures and voice messages (chat-files.ts), set by the server at startup. */
+  files?: import("../chat-files").ChatFiles;
   /** The lessons book (plan.md 4.4), set by the server at startup. */
   lessons?: import("../lessons").Lessons;
 
@@ -1810,9 +1896,9 @@ export class Sync {
     this.db
       .query(
         `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, sent, parent_id, bot, task_id,
-           quote_of, forwarded)
+           quote_of, forwarded, preview, attachment, attachment_hash)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, (SELECT id FROM comments WHERE id = ?), ?, (SELECT id FROM board_tasks WHERE id = ?),
-           ?, ?)
+           ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET task_id = COALESCE(excluded.task_id, comments.task_id)`,
       )
       .run(
@@ -1830,6 +1916,9 @@ export class Sync {
         String(value.taskId ?? ""),
         value.quoteId ? String(value.quoteId).slice(0, 64) : null,
         value.forwarded ? 1 : 0,
+        previewText(value.preview),
+        attachmentText(value.attachment),
+        cleanAttachment(value.attachment)?.hash ?? null,
       );
     if (value.targetKind === "channel") this.bus.publish({ type: "chat-changed", channelId: String(value.targetId) });
   }

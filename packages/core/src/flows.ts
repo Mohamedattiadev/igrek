@@ -221,6 +221,53 @@ export interface ChatMessage {
   seenBy?: string[];
   /** Not read when the channel was opened: the "Unread messages" line goes above the first one. */
   unread?: boolean;
+  /** The link's card, fetched by the writer's Igrek when they sent it (readers fetch nothing). */
+  preview?: LinkPreview;
+  /** A file, picture or voice message sent with it (chat-files.ts); "here" once its parts arrived. */
+  attachment?: ChatAttachment & { here: boolean };
+}
+
+export interface ChatAttachment {
+  /** SHA-256 of the file: its name on disk and its check after the trip through the hub. */
+  hash: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
+/** An attachment's description that came with a message: only its known parts, of the right kinds. */
+export function cleanAttachment(value: unknown): ChatAttachment | undefined {
+  const v = value as Record<string, unknown> | null;
+  if (!v || typeof v.hash !== "string" || !/^[0-9a-f]{64}$/.test(v.hash)) return undefined;
+  return {
+    hash: v.hash,
+    name: String(v.name ?? "file").slice(0, 120),
+    size: Math.max(0, Number(v.size) || 0),
+    type: String(v.type ?? "application/octet-stream").slice(0, 80),
+  };
+}
+
+export interface LinkPreview {
+  url: string;
+  title: string;
+  description?: string;
+  site?: string;
+  /** A small picture as a data URL, so it needs no fetch to show. */
+  image?: string;
+}
+
+/** A preview that came with a message (from this page or a teammate): only its known parts, cut to size. */
+export function cleanPreview(value: unknown): LinkPreview | undefined {
+  const v = value as Record<string, unknown> | null;
+  if (!v || typeof v.url !== "string" || typeof v.title !== "string" || !/^https?:\/\//.test(v.url)) return undefined;
+  const image = typeof v.image === "string" && /^data:image\/(png|jpeg|webp|gif);base64,/.test(v.image) ? v.image : "";
+  return {
+    url: v.url.slice(0, 2000),
+    title: v.title.slice(0, 200),
+    ...(typeof v.description === "string" && v.description ? { description: v.description.slice(0, 300) } : {}),
+    ...(typeof v.site === "string" && v.site ? { site: v.site.slice(0, 80) } : {}),
+    ...(image && image.length < 80 * 1024 * 1.4 ? { image } : {}),
+  };
 }
 
 /** The reactions a message can get; the page draws each with an icon (no emoji in Igrek). */

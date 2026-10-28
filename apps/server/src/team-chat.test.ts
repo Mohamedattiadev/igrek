@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { Hono } from "hono";
 import { Board } from "./board";
 import { BoardAuto, taskMark } from "./board-auto";
 import { Bus } from "./bus";
+import { ChatFiles } from "./chat-files";
 import { openDb } from "./db";
 import type { Sync } from "./sync/client";
 import { asksIgrek, Chat, channelId, taskEvent } from "./team-chat";
@@ -12,7 +16,8 @@ function setup() {
   const { sqlite } = openDb(":memory:");
   sqlite.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p1', 'shop', '/tmp/shop', 1)").run();
   const bus = new Bus();
-  const chat = new Chat(sqlite, bus);
+  const files = new ChatFiles(mkdtempSync(join(tmpdir(), "igrek-chat-files-")));
+  const chat = new Chat(sqlite, bus, (hash) => files.has(hash));
   const flowsStarted: string[] = [];
   const board = new Board(sqlite, bus, { start: () => flowsStarted.push("run") && { id: "run" } } as never);
   const kerim = { id: "u-kerim", username: "kerim", displayName: "Kerim", role: "member" as const };
@@ -27,6 +32,7 @@ function setup() {
   registerTeamChatRoutes(app, {
     db: sqlite,
     chat,
+    files,
     board,
     sync,
     projects: () => [{ id: "p1", name: "shop" }],
@@ -40,7 +46,7 @@ function setup() {
       headers: { "content-type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-  return { sqlite, chat, board, call, flowsStarted };
+  return { sqlite, chat, board, call, flowsStarted, files, app };
 }
 
 describe("team chat", () => {
@@ -299,6 +305,50 @@ describe("team chat like WhatsApp (plan.md 19.9)", () => {
       quote: unknown;
     };
     expect(orphan.quote).toEqual({ id: "gone", mine: false, text: "", missing: true });
+  });
+
+  test("a link's card sent along is kept with the message, cleaned; a deleted message loses it", async () => {
+    const { call, chat } = setup();
+    const preview = { url: "https://example.com/cart", title: "Cart", site: "example.com", script: "x" };
+    const m = (await (await call(`${url}/messages`, { text: "see https://example.com/cart", preview })).json()) as {
+      id: string;
+      preview: unknown;
+    };
+    expect(m.preview).toEqual({ url: "https://example.com/cart", title: "Cart", site: "example.com" });
+    const bad = (await (
+      await call(`${url}/messages`, { text: "x", preview: { url: "javascript:1", title: "t" } })
+    ).json()) as { preview?: unknown };
+    expect(bad.preview).toBeUndefined();
+    chat.remove(m.id);
+    expect(chat.message(m.id)?.preview).toBeUndefined();
+  });
+
+  test("a picture shows in the page, any other file is only a download, never a page of the app", async () => {
+    const { app } = setup();
+    const upload = (name: string, type: string, body: Uint8Array) =>
+      app.request(`${url}/files?name=${encodeURIComponent(name)}&text=${encodeURIComponent("look")}`, {
+        method: "POST",
+        headers: { "content-type": type },
+        body: Buffer.from(body),
+      });
+    const png = (await (await upload("shot.png", "image/png", new Uint8Array([137, 80, 78, 71]))).json()) as {
+      text: string;
+      attachment: { hash: string; here: boolean; type: string };
+    };
+    expect(png).toMatchObject({ text: "look", attachment: { here: true, type: "image/png", name: "shot.png" } });
+    const shown = await app.request(`/api/chat/files/${png.attachment.hash}`);
+    expect(shown.headers.get("content-type")).toBe("image/png");
+    expect(shown.headers.get("content-disposition")).toStartWith("inline");
+    const page = (await (
+      await upload("x.html", "text/html", new TextEncoder().encode("<script>1</script>"))
+    ).json()) as {
+      attachment: { hash: string };
+    };
+    const served = await app.request(`/api/chat/files/${page.attachment.hash}`);
+    expect(served.headers.get("content-type")).toBe("application/octet-stream");
+    expect(served.headers.get("content-disposition")).toStartWith("attachment");
+    expect(served.headers.get("x-content-type-options")).toBe("nosniff");
+    expect((await app.request(`/api/chat/files/${"0".repeat(64)}`)).status).toBe(404);
   });
 
   test("my own message can be edited and deleted, a teammate's cannot; the change goes out once", async () => {

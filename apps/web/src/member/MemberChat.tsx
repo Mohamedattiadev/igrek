@@ -1,6 +1,7 @@
-import { Ban, Hash, KanbanSquare, MessageSquareReply, Send, Sparkles, SquareCheckBig, X } from "lucide-react";
+import { Ban, FileText, Hash, KanbanSquare, MessageSquareReply, Send, Sparkles, SquareCheckBig, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { LinkCard } from "../components/chat/LinkCard";
 import { Badge, Button } from "../components/ui";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -60,6 +61,14 @@ function Text({ c, project }: { c: MemberComment; project: MemberProject }) {
     <>
       {c.quoteId && <Quoted project={project} id={c.quoteId} />}
       <p className="whitespace-pre-wrap text-[13.5px]">{c.text}</p>
+      {c.preview && <LinkCard preview={c.preview} />}
+      {c.attachment && (
+        <span className="mt-1.5 inline-flex items-center gap-2 rounded-ui border border-border px-2.5 py-1 text-[12.5px]">
+          <FileText size={13} className="text-accent" aria-hidden="true" />
+          {c.attachment.name}
+          <span className="text-fg-subtle">{t("member.fileInIgrek")}</span>
+        </span>
+      )}
     </>
   );
 }

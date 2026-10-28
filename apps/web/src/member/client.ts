@@ -1,10 +1,14 @@
 import {
   aadFor,
+  type ChatAttachment,
+  cleanAttachment,
+  cleanPreview,
   decrypt,
   encrypt,
   generateDeviceKey,
   importTeamKey,
   keyCheck,
+  type LinkPreview,
   projectKey,
   type TeamKey,
   unwrapTeamKey,
@@ -82,6 +86,10 @@ export interface MemberComment {
   taskId?: string;
   /** The message this one answers (team chat, plan.md 19.9). */
   quoteId?: string;
+  /** The link's card the writer sent along. */
+  preview?: LinkPreview;
+  /** A file sent with it; its bytes are opened in Igrek on a computer. */
+  attachment?: ChatAttachment;
   editedAt?: number;
   deleted?: boolean;
 }
@@ -197,6 +205,8 @@ const FOLDS: Record<string, Fold> = {
       ...(v.bot ? { bot: true } : {}),
       ...(v.taskId ? { taskId: String(v.taskId) } : {}),
       ...(v.quoteId ? { quoteId: String(v.quoteId) } : {}),
+      ...(cleanPreview(v.preview) ? { preview: cleanPreview(v.preview) } : {}),
+      ...(cleanAttachment(v.attachment) ? { attachment: cleanAttachment(v.attachment) } : {}),
     });
   },
   reaction: (p, v, e) => {

@@ -193,6 +193,9 @@ export function createHubServer(
     }
   });
   app.get("/api/key-wraps", (c) => c.json({ keyEpoch: hub.keyEpoch(), wraps: hub.wrapsFor(c.get("auth").deviceHash) }));
+  // A teammate's devices' public keys, so a direct message can be sealed for them alone
+  // (plan.md 19.9): only their devices, and the sender's own, can open it; the hub cannot.
+  app.get("/api/users/:id/device-keys", (c) => c.json(hub.deviceKeysOf(c.req.param("id"))));
   app.post("/api/logout", (c) => {
     hub.logout(c.get("auth").deviceHash);
     return c.json({ ok: true });

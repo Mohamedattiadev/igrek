@@ -4644,7 +4644,8 @@
     "chat": "Messages",
     "noChannels": "No messages yet. Channels appear here once someone writes in one from Igrek.",
     "stats_one": "{{sessions}} sessions, {{count}} open card",
-    "stats_other": "{{sessions}} sessions, {{count}} open cards"
+    "stats_other": "{{sessions}} sessions, {{count}} open cards",
+    "fileInIgrek": "opens in Igrek"
   },
   "experts": {
     "askWhich": "Which experts should look at the project? Each one reads it and writes their view; three work at a time, the rest wait their turn.",
@@ -5297,7 +5298,22 @@
     "panelEmpty_pinned": "Nothing is pinned in this channel.",
     "panelEmpty_starred": "You have not starred any message.",
     "closePanel": "Close",
-    "searchPlaceholder": "Search # {{channel}}"
+    "searchPlaceholder": "Search # {{channel}}",
+    "direct": "Direct messages",
+    "directSealed": "Only the two of you",
+    "directSealedTip": "Sealed for your two people's devices: the hub, an admin or anyone else on the team cannot read it.",
+    "directFirst": "No messages with {{name}} yet. What you write here only {{name}} can read.",
+    "directPlaceholder": "Write to {{name}}",
+    "attach": "Send a file or picture (up to 10 MB)",
+    "voice": "Record a voice message",
+    "voiceStop": "Stop and send",
+    "voiceFile": "voice message",
+    "voiceMessage": "Voice message",
+    "voiceNoRecorder": "This window cannot record sound (no MediaRecorder). Send a recording as a file instead.",
+    "voiceNoMic": "No microphone can be reached here.",
+    "voiceDenied": "The microphone was not allowed or is in use. Allow it for Igrek and try again.",
+    "fileComing": "{{name}} is on its way...",
+    "directHint": "Enter sends, Shift+Enter starts a new line."
   },
   "company": {
     "watchTitle": "Worth a look",

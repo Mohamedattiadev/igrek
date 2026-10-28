@@ -76,7 +76,7 @@
     "noExcessiveCognitiveComplexity:apps/server/src/insight/tools.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/knowledge.ts": 2,
     "noExcessiveCognitiveComplexity:apps/server/src/langpacks.ts": 1,
-    "noExcessiveCognitiveComplexity:apps/server/src/learn.ts": 6,
+    "noExcessiveCognitiveComplexity:apps/server/src/learn.ts": 5,
     "noExcessiveCognitiveComplexity:apps/server/src/lessons.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/library.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/mcp.ts": 1,

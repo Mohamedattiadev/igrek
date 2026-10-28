@@ -671,6 +671,18 @@ export class Hub {
   }
 
   /** Devices that should receive a newly made key (everyone active with a public key). */
+  /** One user's devices that have a key, while the user is not disabled. */
+  deviceKeysOf(userId: string): { deviceId: string; publicKey: string }[] {
+    return (
+      this.db
+        .query(
+          `SELECT d.token_hash, d.public_key FROM devices d JOIN users u ON u.id = d.user_id
+           WHERE d.user_id = ? AND d.public_key IS NOT NULL AND u.disabled = 0`,
+        )
+        .all(userId) as { token_hash: string; public_key: string }[]
+    ).map((r) => ({ deviceId: r.token_hash.slice(0, 16), publicKey: r.public_key }));
+  }
+
   activeDeviceKeys(): { deviceId: string; publicKey: string }[] {
     return (
       this.db

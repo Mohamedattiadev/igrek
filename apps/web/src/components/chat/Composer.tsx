@@ -1,9 +1,12 @@
-import type { TeamMember } from "@igrek/core";
+import type { LinkPreview, TeamMember } from "@igrek/core";
 import { Send, Sparkles, X } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { Button } from "../ui";
+import { AttachButtons } from "./Attachments";
+import { LinkCard } from "./LinkCard";
+import { useLinkPreview } from "./link-preview";
 
 type Suggestion = { name: string; label: string; ai?: boolean };
 
@@ -53,20 +56,28 @@ export function Composer({
   initialText = "",
   onCancel,
   onTyping,
+  onFile,
+  hint,
 }: {
   placeholder: string;
   members: TeamMember[];
-  onSend: (text: string) => Promise<unknown>;
+  onSend: (text: string, preview?: LinkPreview) => Promise<unknown>;
   autoFocus?: boolean;
   /** Shown above the box: the quoted message, or "Editing". */
   banner?: ReactNode;
   initialText?: string;
   onCancel?: () => void;
   onTyping?: () => void;
+  /** A file, picture or voice message to send; without it there is no paperclip or voice button. */
+  onFile?: (file: File) => Promise<unknown>;
+  /** The line under the box, when the channel's one (about @ai) does not apply. */
+  hint?: string;
 }) {
   const { t } = useTranslation();
   const [text, setText] = useState(initialText);
   const ping = useTypingPing(onTyping);
+  const link = useLinkPreview(text);
+  const [fileError, setFileError] = useState<string>();
   const [picked, setPicked] = useState(0);
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -86,8 +97,9 @@ export function Composer({
     if (!text.trim() || busy) return;
     setBusy(true);
     try {
-      await onSend(text.trim());
+      await onSend(text.trim(), link.preview);
       setText("");
+      link.reset();
     } finally {
       setBusy(false);
       input.current?.focus();
@@ -140,7 +152,13 @@ export function Composer({
         </div>
       )}
       {banner && onCancel && <ComposerBanner onCancel={onCancel}>{banner}</ComposerBanner>}
+      {link.preview && (
+        <ComposerBanner onCancel={link.dismiss}>
+          <LinkCard preview={link.preview} />
+        </ComposerBanner>
+      )}
       <div className="flex items-end gap-2 rounded-xl border border-border bg-bg px-3 py-2 focus-within:border-accent">
+        {onFile && <AttachButtons onFile={onFile} onError={setFileError} />}
         <textarea
           ref={input}
           value={text}
@@ -163,7 +181,9 @@ export function Composer({
           aria-label={t("teamChat.send")}
         />
       </div>
-      <p className="mt-1 px-1 text-[11px] text-fg-subtle">{t("teamChat.composerHint")}</p>
+      <p className={cn("mt-1 px-1 text-[11px]", fileError ? "text-warning" : "text-fg-subtle")} role="status">
+        {fileError ?? hint ?? t("teamChat.composerHint")}
+      </p>
     </div>
   );
 }

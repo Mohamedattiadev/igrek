@@ -55,6 +55,7 @@ import type {
   LibraryItem,
   LibrarySuggestion,
   LimitsOverview,
+  LinkPreview,
   Meeting,
   MemorySection,
   MonthlyReport,
@@ -1075,11 +1076,29 @@ export const api = {
     request<ChatMessage[]>(
       `/api/chat/channels/${encodeURIComponent(channel)}/messages${thread ? `?thread=${encodeURIComponent(thread)}` : ""}`,
     ),
-  postChat: (channel: string, text: string, parentId?: string, quoteId?: string) =>
+  postChat: (channel: string, text: string, parentId?: string, quoteId?: string, preview?: LinkPreview) =>
     request<ChatMessage>(`/api/chat/channels/${encodeURIComponent(channel)}/messages`, {
       method: "POST",
-      body: JSON.stringify({ text, parentId, quoteId }),
+      body: JSON.stringify({ text, parentId, quoteId, preview }),
     }),
+  directChats: () => request<{ peer: string; name: string; last: number; unread: number }[]>("/api/chat/direct"),
+  directMessages: (peer: string) => request<ChatMessage[]>(`/api/chat/direct/${encodeURIComponent(peer)}/messages`),
+  postDirect: (peer: string, text: string, quoteId?: string) =>
+    request<ChatMessage>(`/api/chat/direct/${encodeURIComponent(peer)}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ text, quoteId }),
+    }),
+  /** A file, picture or voice message into a channel: the bytes are the body, the rest the query. */
+  sendChatFile: (channel: string, file: Blob, name: string, text?: string, quoteId?: string) =>
+    request<ChatMessage>(
+      `/api/chat/channels/${encodeURIComponent(channel)}/files?${new URLSearchParams({
+        name,
+        ...(text ? { text } : {}),
+        ...(quoteId ? { quote: quoteId } : {}),
+      })}`,
+      { method: "POST", headers: { "content-type": file.type || "application/octet-stream" }, body: file },
+    ),
+  linkPreview: (url: string) => request<LinkPreview>(`/api/chat/link-preview?url=${encodeURIComponent(url)}`),
   editChat: (id: string, text: string) =>
     request<ChatMessage>(`/api/chat/messages/${id}`, { method: "PATCH", body: JSON.stringify({ text }) }),
   deleteChat: (id: string) => request<ChatMessage>(`/api/chat/messages/${id}`, { method: "DELETE" }),

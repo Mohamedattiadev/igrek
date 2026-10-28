@@ -4644,7 +4644,8 @@
     "chat": "Mesajlar",
     "noChannels": "Henüz mesaj yok. Biri Igrek'ten bir kanala yazınca kanallar burada görünür.",
     "stats_one": "{{sessions}} oturum, {{count}} açık kart",
-    "stats_other": "{{sessions}} oturum, {{count}} açık kart"
+    "stats_other": "{{sessions}} oturum, {{count}} açık kart",
+    "fileInIgrek": "Igrek'te açılır"
   },
   "experts": {
     "askWhich": "Projeye hangi uzmanlar baksın? Her biri projeyi okur ve görüşünü yazar; aynı anda üçü çalışır, diğerleri sırasını bekler.",
@@ -5297,7 +5298,22 @@
     "panelEmpty_pinned": "Bu kanalda sabitlenen bir şey yok.",
     "panelEmpty_starred": "Henüz yıldızladığın mesaj yok.",
     "closePanel": "Kapat",
-    "searchPlaceholder": "# {{channel}} içinde ara"
+    "searchPlaceholder": "# {{channel}} içinde ara",
+    "direct": "Doğrudan mesajlar",
+    "directSealed": "Sadece ikiniz",
+    "directSealedTip": "İkinizin cihazları için şifrelenir: hub, yönetici ya da takımdaki başka biri okuyamaz.",
+    "directFirst": "{{name}} ile henüz mesaj yok. Buraya yazdıklarını sadece {{name}} okuyabilir.",
+    "directPlaceholder": "{{name}} kişisine yaz",
+    "attach": "Dosya ya da resim gönder (10 MB'a kadar)",
+    "voice": "Sesli mesaj kaydet",
+    "voiceStop": "Durdur ve gönder",
+    "voiceFile": "sesli mesaj",
+    "voiceMessage": "Sesli mesaj",
+    "voiceNoRecorder": "Bu pencere ses kaydedemiyor (MediaRecorder yok). Bir kaydı dosya olarak gönderebilirsin.",
+    "voiceNoMic": "Burada mikrofona erişilemiyor.",
+    "voiceDenied": "Mikrofona izin verilmedi ya da başka bir şey kullanıyor. Igrek'e izin verip tekrar dene.",
+    "fileComing": "{{name}} geliyor...",
+    "directHint": "Enter gönderir, Shift+Enter yeni satır."
   },
   "company": {
     "watchTitle": "Bakmaya değer",

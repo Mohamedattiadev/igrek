@@ -124,10 +124,21 @@ export function useDesktopNotifications(): void {
   // The counts at start are what was already there, not news.
   const counted = useRef(false);
   const countChannels = (announce: boolean) =>
-    void api
-      .chatChannels()
-      .then((list) => {
+    void Promise.all([api.chatChannels(), api.directChats().catch(() => [])])
+      .then(([channels, directs]) => {
         counted.current = true;
+        // A direct conversation is never muted: it counts like a channel of its own.
+        const list = [
+          ...channels,
+          ...directs.map((d) => ({
+            id: `dm:${d.peer}`,
+            name: d.name,
+            project: "",
+            muted: false,
+            unread: d.unread,
+            unreadFrom: [d.name],
+          })),
+        ];
         for (const c of list) {
           const before = seen.current.channels.get(c.id) ?? 0;
           seen.current.channels.set(c.id, c.unread);
@@ -135,7 +146,7 @@ export function useDesktopNotifications(): void {
           chime();
           show(
             t("notify.teamMessage", { name: c.unreadFrom.at(-1) ?? "" }),
-            `# ${c.name} · ${c.project}`,
+            c.project ? `# ${c.name} · ${c.project}` : t("teamChat.direct"),
             `/chat?c=${encodeURIComponent(c.id)}`,
           );
         }

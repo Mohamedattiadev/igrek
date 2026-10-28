@@ -79,3 +79,31 @@ describe("secret scrubbing", () => {
     expect(scrubDeep({ a: ["API_TOKEN=supersecretvalue123"], n: 3 })).toEqual({ a: ["API_TOKEN=supe••••e123"], n: 3 });
   });
 });
+
+describe("direct messages", () => {
+  test("only the devices it was sealed for can open it; another key holder, or a changed copy, cannot", async () => {
+    const { openDirect, sealDirect } = await import("@igrek/core");
+    const { generateDeviceKey } = await import("./crypto");
+    const [ati, atiLaptop, kerim, admin] = await Promise.all([1, 2, 3, 4].map(() => generateDeviceKey()));
+    if (!ati || !atiLaptop || !kerim || !admin) throw new Error("no keys");
+    const devices = [
+      { deviceId: "kerim-pc", publicKey: kerim.publicKey },
+      { deviceId: "ati-laptop", publicKey: atiLaptop.publicKey },
+    ];
+    const sealed = await sealDirect(ati.privateJwk, ati.publicKey, devices, "dm-room:dm", { text: "only for you" });
+    expect(sealed.data).not.toContain("only for you");
+    expect(await openDirect(kerim.privateJwk, "kerim-pc", "dm-room:dm", sealed.nonce, sealed.data)).toEqual({
+      text: "only for you",
+    });
+    // My other computer reads my own message too.
+    expect(await openDirect(atiLaptop.privateJwk, "ati-laptop", "dm-room:dm", sealed.nonce, sealed.data)).toEqual({
+      text: "only for you",
+    });
+    await expect(openDirect(admin.privateJwk, "admin-pc", "dm-room:dm", sealed.nonce, sealed.data)).rejects.toThrow();
+    // Someone else's key under Kerim's device name does not open it either.
+    await expect(openDirect(admin.privateJwk, "kerim-pc", "dm-room:dm", sealed.nonce, sealed.data)).rejects.toThrow();
+    await expect(
+      openDirect(kerim.privateJwk, "kerim-pc", "other-room:dm", sealed.nonce, sealed.data),
+    ).rejects.toThrow();
+  });
+});

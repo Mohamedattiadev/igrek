@@ -177,3 +177,47 @@ export async function unwrapTeamKey(
   const raw = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromBase64Url(nonce) }, key, fromBase64Url(wrapped));
   return toBase64Url(new Uint8Array(raw));
 }
+
+/**
+ * Direct messages between two people (plan.md 19.9). Each message has a key of its own, wrapped for
+ * every device of the two (their keys come from the hub, which only stores public halves). A
+ * teammate holding the team key, an admin, or the hub cannot open it. The wraps use their own
+ * derivation (epoch -1), so they can never stand in for a team key's wrap.
+ */
+const DIRECT = -1;
+
+export async function sealDirect(
+  fromPrivate: DevicePrivate,
+  fromPublic: string,
+  devices: { deviceId: string; publicKey: string }[],
+  aad: string,
+  value: unknown,
+): Promise<{ nonce: string; data: string }> {
+  const key = generateTeamKey();
+  const sealed = await encrypt(await importTeamKey(key), aad, value);
+  const wraps = await Promise.all(
+    devices.map(async (d) => [d.deviceId, await wrapTeamKey(fromPrivate, d.publicKey, DIRECT, key)] as const),
+  );
+  return {
+    nonce: sealed.nonce,
+    data: JSON.stringify({ c: sealed.data, from: fromPublic, w: Object.fromEntries(wraps) }),
+  };
+}
+
+export async function openDirect<T>(
+  myPrivate: DevicePrivate,
+  myDevice: string,
+  aad: string,
+  nonce: string,
+  data: string,
+): Promise<T> {
+  const envelope = JSON.parse(data) as {
+    c: string;
+    from: string;
+    w: Record<string, { nonce: string; wrapped: string }>;
+  };
+  const wrap = envelope.w?.[myDevice];
+  if (!wrap) throw new Error("Not sealed for this device");
+  const key = await unwrapTeamKey(myPrivate, envelope.from, DIRECT, wrap.nonce, wrap.wrapped);
+  return decrypt<T>(await importTeamKey(key), aad, nonce, envelope.c);
+}

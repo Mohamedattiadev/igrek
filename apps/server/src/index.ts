@@ -39,6 +39,7 @@ import { Bridges } from "./bridges";
 import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
 import { Calendar } from "./calendar";
+import { ChatFiles } from "./chat-files";
 import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { ChatStream } from "./chat-stream";
 import { Chats } from "./chats";
@@ -574,8 +575,10 @@ sync.board = board;
 const seats = new Seats(sqlite, () => accounts.list(), APP_VERSION);
 sync.seats = seats;
 sync.shareUsage = () => readSettings(db).shareUsage;
-const chat = new Chat(sqlite, bus);
+const chatFiles = new ChatFiles(join(config.dataDir, "chat-files"));
+const chat = new Chat(sqlite, bus, (hash) => chatFiles.has(hash));
 sync.chat = chat;
+sync.files = chatFiles;
 // The board follows the work: a minute at most behind, sooner when a session or commit comes in.
 const boardAuto = new BoardAuto(sqlite, board, (taskId, status) => chat.noteTask(taskId, status));
 let boardAutoAt = 0;
@@ -712,6 +715,7 @@ const app = createApp({
     registerTeamChatRoutes(hono, {
       db: sqlite,
       chat,
+      files: chatFiles,
       board,
       sync,
       projects: () => store.listProjects().map((p) => ({ id: p.id, name: p.name })),

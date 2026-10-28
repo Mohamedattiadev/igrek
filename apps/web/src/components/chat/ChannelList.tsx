@@ -1,9 +1,10 @@
-import type { ChatChannel } from "@igrek/core";
+import type { ChatChannel, TeamMember } from "@igrek/core";
 import { Activity, FolderKanban, Hash, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { TeamAvatar } from "../TeamAvatar";
 import { Button, Dialog, field } from "../ui";
 
 function NewChannel({
@@ -86,9 +87,56 @@ function NewChannel({
   );
 }
 
-/** Channels grouped by project, like a Slack sidebar: unread ones bold with their count. */
+/** Each teammate, for a direct conversation sealed for the two of you; unread ones bold with their count. */
+function DirectList({
+  people,
+  selected,
+  onPick,
+}: {
+  people: { member: TeamMember; unread: number }[];
+  selected?: string;
+  onPick: (id: string) => void;
+}) {
+  const { t } = useTranslation();
+  if (!people.length) return null;
+  return (
+    <section>
+      <h2 className="px-2 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
+        {t("teamChat.direct")}
+      </h2>
+      <ul>
+        {people.map(({ member, unread }) => {
+          const id = `dm:${member.id}`;
+          return (
+            <li key={member.id}>
+              <button
+                type="button"
+                onClick={() => onPick(id)}
+                aria-current={selected === id ? "page" : undefined}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-ui px-2 py-1 text-start text-[13px]",
+                  selected === id ? "bg-accent-soft text-accent" : "text-fg-muted hover:bg-bg-hover",
+                  unread > 0 && selected !== id && "font-semibold text-fg",
+                )}
+              >
+                <TeamAvatar member={member} size={18} />
+                <span className="min-w-0 flex-1 truncate">{member.displayName || member.username}</span>
+                {unread > 0 && selected !== id && (
+                  <span className="rounded-full bg-accent px-1.5 text-[10.5px] font-semibold text-white">{unread}</span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Channels grouped by project, like a Slack sidebar, then direct messages: unread ones bold with their count. */
 export function ChannelList({
   channels,
+  people = [],
   selected,
   timeline,
   onTimeline,
@@ -96,6 +144,7 @@ export function ChannelList({
   onMade,
 }: {
   channels: ChatChannel[];
+  people?: { member: TeamMember; unread: number }[];
   selected?: string;
   timeline: boolean;
   onTimeline: () => void;
@@ -169,6 +218,7 @@ export function ChannelList({
             </ul>
           </section>
         ))}
+        <DirectList people={people} selected={timeline ? undefined : selected} onPick={onPick} />
       </div>
       <NewChannel
         projects={projects}

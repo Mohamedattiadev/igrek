@@ -8,6 +8,7 @@ import { Hub } from "../../../hub/src/hub";
 import { createHubServer } from "../../../hub/src/server";
 import { Board } from "../board";
 import { Bus, StopRegistry } from "../bus";
+import { ChatFiles } from "../chat-files";
 import { migrate } from "../db";
 import type { Flows } from "../flows";
 import { Lessons } from "../lessons";
@@ -356,6 +357,56 @@ describe("team sync", () => {
     await a.sync.sendTyping("p1", "p1:general");
     await until(() => typing.length > 0);
     expect(b.sync.typingIn("local-p:general")).toEqual(["mohamed"]);
+  }, 30_000);
+
+  test("a file sent in a channel reaches the teammate whole, in encrypted parts", async () => {
+    const mine = new ChatFiles(join(dir, "a-files"));
+    const theirs = new ChatFiles(join(dir, "b-files"));
+    a.sync.files = mine;
+    b.sync.files = theirs;
+    a.sync.chat = new Chat(a.db, a.bus, (h) => mine.has(h));
+    b.sync.chat = new Chat(b.db, b.bus, (h) => theirs.has(h));
+    // 600 KB that look like a secret here and there: the parts must not be masked like text.
+    const bytes = new TextEncoder().encode(`AKIA${"ABCDEFGHIJKLMNOP".repeat(40_000)}`);
+    const file = mine.save(bytes, "keys-doc.txt", "text/plain");
+    const id = a.sync.chat.post({
+      projectId: "p1",
+      channel: "p1:general",
+      text: "the document",
+      author: "mohamed",
+      mentions: [],
+      attachment: file,
+    });
+    await a.sync.flush();
+    await until(() => !!b.sync.chat?.message(id)?.attachment?.here, 15_000);
+    expect(theirs.read(file.hash)).toEqual(bytes);
+    expect(b.sync.chat.message(id)?.attachment).toMatchObject({ name: "keys-doc.txt", size: bytes.length });
+  }, 30_000);
+
+  test("a direct message reaches only the teammate it is for; the hub keeps nothing it can read", async () => {
+    const kerimId = b.sync.identity().id ?? "";
+    const meId = a.sync.identity().id ?? "";
+    await until(
+      () => a.sync.memberList().some((m) => m.id === kerimId) && b.sync.memberList().some((m) => m.id === meId),
+    );
+    const id = a.sync.direct.post(kerimId, "Salary numbers: only for you");
+    await a.sync.flush();
+    await until(() => b.sync.direct.messages(meId).some((m) => m.id === id));
+    expect(b.sync.direct.messages(meId).find((m) => m.id === id)).toMatchObject({
+      text: "Salary numbers: only for you",
+      mine: false,
+      unread: true,
+    });
+    expect(b.sync.direct.conversations()[0]).toMatchObject({ peer: meId, unread: 1 });
+    // His answer, quoting mine, comes back the same way.
+    const back = b.sync.direct.post(meId, "Got it", id);
+    await b.sync.flush();
+    await until(() => a.sync.direct.messages(kerimId).some((m) => m.id === back));
+    expect(a.sync.direct.messages(kerimId).find((m) => m.id === back)?.quote).toMatchObject({ id, mine: true });
+    const stored = new Database(join(dir, "hub.db"), { readonly: true });
+    const all = stored.query("SELECT data FROM events WHERE kind = 'dm'").all() as { data: string }[];
+    expect(all.length).toBeGreaterThan(1);
+    expect(all.some((e) => e.data.includes("Salary") || e.data.includes("Got it"))).toBe(false);
   }, 30_000);
 
   test("a teammate renamed on the hub is shown with the new name, on what they sent before too", async () => {
