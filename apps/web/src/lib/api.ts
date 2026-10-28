@@ -252,7 +252,7 @@ export interface ServerFinding {
 /** Who used a server this week (apps/server/src/server-access.ts). */
 export interface ServerAccess {
   now: { user: string; tty: string; since: string; from: string }[];
-  logins: { at: number; user: string; ip: string; method: string; key?: string; who?: string }[];
+  logins: { at: number; user: string; ip: string; method: string; key?: string; who?: string; left?: number }[];
   keys: { fingerprint: string; label: string; account: string }[];
   failed: { total: number; top: { ip: string; count: number }[] };
   sudo: { at: number; user: string; command: string }[];

@@ -10,7 +10,10 @@ const KEYS = `for f in /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys; 
 
 export const ACCESS_COMMAND = [
   `echo "WHO:$(who 2>/dev/null | awk '{f=$5; gsub(/[()]/, "", f); print $1"~"$2"~"$3" "$4"~"f}' | tr '\\n' ';')"`,
-  `echo "ACCEPTED:$(journalctl -u ssh -u sshd ${SINCE} -o short-iso 2>/dev/null | grep 'Accepted ' | awk '{u="";ip="";m="";k=""; for(i=1;i<=NF;i++){if($i=="Accepted")m=$(i+1); if($i=="for")u=$(i+1); if($i=="from")ip=$(i+1); if($i ~ /^SHA256:/)k=$i}; print $1"~"u"~"ip"~"m"~"k}' | tail -300 | tr '\\n' ';')"`,
+  `echo "ACCEPTED:$(journalctl -u ssh -u sshd ${SINCE} -o short-iso 2>/dev/null | grep 'Accepted ' | awk '{u="";ip="";m="";k="";p=""; for(i=1;i<=NF;i++){if($i=="Accepted")m=$(i+1); if($i=="for")u=$(i+1); if($i=="from")ip=$(i+1); if($i=="port")p=$(i+1); if($i ~ /^SHA256:/)k=$i}; print $1"~"u"~"ip"~"m"~"k"~"p}' | tail -300 | tr '\\n' ';')"`,
+  // Sign-outs. sshd logs them from the session's own scope, not from ssh.service, so they are
+  // found by sshd's name; the address and port tie each one to its sign-in.
+  `echo "LEFT:$(journalctl -t sshd -t sshd-session ${SINCE} -o short-iso 2>/dev/null | grep 'Disconnected from user ' | awk '{for(i=1;i<=NF;i++) if($i=="user"){print $1"~"$(i+1)"~"$(i+2)"~"$(i+4); break}}' | tail -400 | tr '\\n' ';')"`,
   `echo "KEYS:$(${KEYS} | tr '\\n' ';')"`,
   `echo "FAILEDN:$(journalctl -u ssh -u sshd ${SINCE} 2>/dev/null | grep -cE 'Failed (password|publickey)|Invalid user')"`,
   `echo "FAILEDBY:$(journalctl -u ssh -u sshd ${SINCE} 2>/dev/null | grep -E 'Failed (password|publickey)|Invalid user' | grep -oE 'from [0-9a-f.:]+' | awk '{print $2}' | sort | uniq -c | sort -rn | head -8 | awk '{print $2"~"$1}' | tr '\\n' ';')"`,
@@ -21,7 +24,17 @@ export const ACCESS_COMMAND = [
 
 export interface AccessReport {
   now: { user: string; tty: string; since: string; from: string }[];
-  logins: { at: number; user: string; ip: string; method: string; key?: string; who?: string }[];
+  /** who: the key's label; "" for a known key without one, missing for a key nobody here has. */
+  logins: {
+    at: number;
+    user: string;
+    ip: string;
+    method: string;
+    key?: string;
+    who?: string;
+    /** When the session ended; missing while it is still open (or the sign-out was not logged). */
+    left?: number;
+  }[];
   keys: { fingerprint: string; label: string; account: string }[];
   failed: { total: number; top: { ip: string; count: number }[] };
   sudo: { at: number; user: string; command: string }[];
@@ -47,22 +60,35 @@ export function accessReport(output: string): AccessReport {
     const at = line.indexOf(":");
     if (at > 0 && /^[A-Z]+$/.test(line.slice(0, at))) scan.set(line.slice(0, at), line.slice(at + 1));
   }
+  // ssh-keygen writes "no comment" for a key without a label.
   const keys = lines(scan.get("KEYS")).map(([fingerprint = "", label = "", account = ""]) => ({
     fingerprint,
-    label,
+    label: label === "no comment" ? "" : label,
     account,
   }));
   const labelOf = new Map(keys.map((k) => [k.fingerprint, k.label]));
+  // The first sign-out from the same address and port after the sign-in.
+  const left = lines(scan.get("LEFT")).map(([at = "", user = "", ip = "", port = ""]) => ({
+    at: isoTime(at),
+    key: `${user}~${ip}~${port}`,
+  }));
+  const leftAt = (at: number, user: string, ip: string, port: string) =>
+    left.find((l) => l.key === `${user}~${ip}~${port}` && l.at >= at)?.at;
   return {
     now: lines(scan.get("WHO")).map(([user = "", tty = "", since = "", from = ""]) => ({ user, tty, since, from })),
     logins: lines(scan.get("ACCEPTED"))
-      .map(([at = "", user = "", ip = "", method = "", key = ""]) => ({
-        at: isoTime(at),
-        user,
-        ip,
-        method,
-        ...(key ? { key, who: labelOf.get(key) } : {}),
-      }))
+      .map(([at = "", user = "", ip = "", method = "", key = "", port = ""]) => {
+        const time = isoTime(at);
+        const end = port ? leftAt(time, user, ip, port) : undefined;
+        return {
+          at: time,
+          user,
+          ip,
+          method,
+          ...(key ? { key, who: labelOf.get(key) } : {}),
+          ...(end ? { left: end } : {}),
+        };
+      })
       .reverse(),
     keys,
     failed: {

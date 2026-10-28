@@ -71,8 +71,8 @@ export class ServerWeek {
         .map((f) => f.id)
         .slice(0, 3),
       logins: access.logins.length,
-      people: new Set(access.logins.map((l) => l.who ?? `${l.user}@${l.ip}`)).size,
-      unknownKeys: access.logins.filter((l) => l.key && !l.who).length,
+      people: new Set(access.logins.map((l) => l.who || l.key || `${l.user}@${l.ip}`)).size,
+      unknownKeys: access.logins.filter((l) => l.key && l.who === undefined).length,
       passwordLogins: access.logins.filter((l) => l.method === "password").length,
       failed: access.failed.total,
     };

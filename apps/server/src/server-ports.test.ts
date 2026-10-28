@@ -44,8 +44,10 @@ describe("who used a server", () => {
     const report = accessReport(
       [
         "WHO:root~pts/0~2026-10-27 10:02~85.10.1.2;",
-        "ACCEPTED:2026-10-26T09:00:00+0300~root~85.10.1.2~publickey~SHA256:aaa;2026-10-27T10:02:00+0300~root~31.4.5.6~publickey~SHA256:bbb;2026-10-27T11:00:00+0300~deploy~31.4.5.6~password~;",
-        "KEYS:SHA256:aaa~ati@laptop~root;SHA256:bbb~kerim@macbook~root;",
+        "ACCEPTED:2026-10-26T09:00:00+0300~root~85.10.1.2~publickey~SHA256:aaa~40100;2026-10-27T10:02:00+0300~root~31.4.5.6~publickey~SHA256:bbb~52000;2026-10-27T11:00:00+0300~deploy~31.4.5.6~password~~52010;2026-10-27T12:00:00+0300~root~85.10.1.2~publickey~SHA256:ccc~40200;",
+        // The same address and port the day before is an older session, not this one's end.
+        "LEFT:2026-10-26T09:00:20+0300~root~85.10.1.2~40100;2026-10-26T12:00:00+0300~root~31.4.5.6~52000;2026-10-27T10:47:00+0300~root~31.4.5.6~52000;",
+        "KEYS:SHA256:aaa~ati@laptop~root;SHA256:bbb~kerim@macbook~root;SHA256:ccc~no comment~root;",
         "FAILEDN:340",
         "FAILEDBY:45.9.1.1~200;61.2.2.2~140;",
         "SUDO:2026-10-27T11:05:00+0300~deploy~/usr/bin/apt update;",
@@ -53,12 +55,22 @@ describe("who used a server", () => {
       ].join("\n"),
     );
     expect(report.readable).toBe(true);
+    // A known key without a label is "", not unknown.
     expect(report.logins.map((l) => [l.user, l.who ?? l.method])).toEqual([
+      ["root", ""],
       ["deploy", "password"],
       ["root", "kerim@macbook"],
       ["root", "ati@laptop"],
     ]);
-    expect(report.logins[1]?.at).toBe(Date.parse("2026-10-27T10:02:00+03:00"));
+    expect(report.keys[2]?.label).toBe("");
+    // Each sign-in gets the sign-out from its own address and port; one without is still open.
+    expect(report.logins.map((l) => l.left)).toEqual([
+      undefined,
+      undefined,
+      Date.parse("2026-10-27T10:47:00+03:00"),
+      Date.parse("2026-10-26T09:00:20+03:00"),
+    ]);
+    expect(report.logins[2]?.at).toBe(Date.parse("2026-10-27T10:02:00+03:00"));
     expect(report.now).toEqual([{ user: "root", tty: "pts/0", since: "2026-10-27 10:02", from: "85.10.1.2" }]);
     expect(report.failed).toEqual({
       total: 340,

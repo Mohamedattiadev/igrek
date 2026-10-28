@@ -79,7 +79,7 @@ describe("a server's security and health findings", () => {
     const hijacked = [
       VPS,
       "MINER:4242/www-data/398.0/xmrig;",
-      "HOTCPU:4242/www-data/398.0/xmrig;5150/postgres/91.0/postgres;",
+      "HOTCPU:4242/www-data/398.0/xmrig;5150/postgres/91.0/postgres;3672161/root/100/ps;",
       'POOL:45.9.148.21:3333|users:(("xmrig",pid=4242,fd=12));',
       "TMPEXE:4242=/tmp/.x/xmrig;",
       "BACKDOOR:777~www-data~sh -i;",
@@ -104,7 +104,8 @@ describe("a server's security and health findings", () => {
       "cron-download",
     ])
       expect(ids).toContain(id);
-    // The miner's process is stopped by the fix; a busy database alone is only "worth a look".
+    // The miner's process is stopped by the fix; a busy database alone is only "worth a look", and the
+    // scan's own ps (always busy in its own list) is not counted.
     expect(list.find((f) => f.id === "miner")?.fix).toBe("kill -9 4242");
     expect(list.find((f) => f.id === "backdoor")?.detail).toEqual({ processes: "sh -i (777, www-data)" });
     expect(list.find((f) => f.id === "hot-cpu")).toMatchObject({

@@ -72,7 +72,9 @@ export const SCAN_COMMAND = [
   // Web shells: PHP files that run what a request sends them.
   `echo "WEBSHELL:$(timeout 20 grep -rlE 'eval\\(base64_decode|eval\\(gzinflate|assert\\(\\$_(POST|GET|REQUEST)|(system|shell_exec|passthru|exec)\\(\\$_(POST|GET|REQUEST)' /var/www /srv /home --include=*.php 2>/dev/null | head -5 | tr '\\n' ' ')"`,
   // Who may sign in as root with a key: a key added by an intruder is how they keep a door open.
-  `echo "ROOTKEYS:$(awk 'NF{print $NF}' /root/.ssh/authorized_keys 2>/dev/null | tr '\\n' ';')"`,
+  // Each key's label, or the start of its fingerprint when it has none (the last word of the line
+  // would then be the key itself).
+  `echo "ROOTKEYS:$(ssh-keygen -lf /root/.ssh/authorized_keys 2>/dev/null | awk '{c=$3; for(i=4;i<NF;i++) c=c" "$i; if (c=="no comment") c=substr($2,1,15); gsub(/;/, ",", c); print c}' | tr '\\n' ';')"`,
 ].join("; ");
 
 type Severity = "high" | "medium" | "low" | "info";
@@ -261,7 +263,8 @@ function threats(scan: Map<string, string>): Finding[] {
       fix: `kill -9 ${backdoor.map(([pid]) => pid).join(" ")}`,
     });
   // A busy server is not a hacked one: high CPU is only worth a look when nothing else explains it.
-  const hot = procs(scan.get("HOTCPU") ?? "").filter((p) => !miners.some((m) => m.pid === p.pid));
+  // ps itself is left out: it has only just started, so it always looks busy in its own list.
+  const hot = procs(scan.get("HOTCPU") ?? "").filter((p) => p.name !== "ps" && !miners.some((m) => m.pid === p.pid));
   if (hot.length)
     out.push({
       id: "hot-cpu",

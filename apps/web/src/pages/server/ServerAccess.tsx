@@ -1,17 +1,24 @@
 import type { ServerInfo } from "@igrek/core";
+import type { TFunction } from "i18next";
 import { KeyRound, LogIn, ShieldAlert, ShieldX, TerminalSquare, Users } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { type ServerAccess as Access, api } from "../../lib/api";
 import { dateTime, relativeTime } from "../../lib/format";
+import { duration } from "../tools/Time";
+
+/** When a session ended, as how long it lasted; a command run over SSH is often over in seconds. */
+function leftAfter(ms: number, t: TFunction): string {
+  return ms < 60_000 ? t("serverAccess.leftSoon") : t("serverAccess.stayed", { time: duration(ms / 60_000, t) });
+}
 
 /** The week in four numbers and the things worth a look, in sentences. */
 function WeekSummary({ report }: { report: Access }) {
   const { t } = useTranslation();
-  const people = new Set(report.logins.map((l) => l.who ?? `${l.user}@${l.ip}`));
+  const people = new Set(report.logins.map((l) => l.who || l.key || `${l.user}@${l.ip}`));
   const addresses = new Set(report.logins.map((l) => l.ip));
-  const unknownKey = report.logins.filter((l) => l.key && !l.who);
+  const unknownKey = report.logins.filter((l) => l.key && l.who === undefined);
   const password = report.logins.filter((l) => l.method === "password");
   const stats = [
     { label: t("serverAccess.logins"), value: report.logins.length },
@@ -146,13 +153,16 @@ export function ServerAccess({ server }: { server: ServerInfo }) {
                       </td>
                       <td className="py-1.5 font-medium">{l.user}</td>
                       <td className="py-1.5">
-                        {l.who ? (
-                          l.who
+                        {l.who !== undefined ? (
+                          l.who || t("serverAccess.noLabel")
                         ) : l.key ? (
                           <Badge tone="danger">{t("serverAccess.unknownKeyBadge")}</Badge>
                         ) : (
                           <Badge tone={l.method === "password" ? "warning" : "neutral"}>{l.method}</Badge>
                         )}
+                      </td>
+                      <td className="py-1.5 text-fg-muted" title={l.left ? dateTime(l.left) : undefined}>
+                        {l.left ? leftAfter(l.left - l.at, t) : t("serverAccess.noSignOut")}
                       </td>
                       <td className="px-pad py-1.5 text-end font-mono text-[11.5px] text-fg-muted">{l.ip}</td>
                     </tr>
