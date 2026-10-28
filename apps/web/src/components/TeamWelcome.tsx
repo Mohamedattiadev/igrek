@@ -23,7 +23,7 @@ export function TeamWelcome({ team }: { team: boolean }) {
       .catch(() => undefined);
   }, [team]);
   useEffect(load, [load]);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && load());
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && load());
   if (!team) return null;
   const places = [
     { to: "/chat", icon: MessagesSquare, key: "messages" },

@@ -1,10 +1,24 @@
 import type { ChatChannel, ChatMessage, TeamMember } from "@igrek/core";
-import { FileText, FolderKanban, Hash, KanbanSquare, MessagesSquare, Sparkles, X } from "lucide-react";
+import {
+  FileText,
+  FolderKanban,
+  Hash,
+  KanbanSquare,
+  MessagesSquare,
+  Pencil,
+  Pin,
+  Search,
+  Sparkles,
+  Star,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { ChannelList } from "../components/chat/ChannelList";
+import { MuteButton, SidePanel, TypingLine, UnreadLine, useTyping } from "../components/chat/ChannelTools";
 import { Composer } from "../components/chat/Composer";
+import { ForwardDialog, QuoteBox } from "../components/chat/MessageExtras";
 import { MessageItem } from "../components/chat/MessageItem";
 import { TaskDialog } from "../components/chat/TaskDialog";
 import { TeamTimeline } from "../components/chat/Timeline";
@@ -14,15 +28,82 @@ import { Button, EmptyState } from "../components/ui";
 import { api } from "../lib/api";
 import { useServerEvent } from "../lib/live";
 
-/** A list that stays at its newest message while new ones come in. */
-function useStickToBottom(dep: unknown) {
+/**
+ * A list that stays at its newest message while new ones come in. Opened with unread messages, it
+ * starts at the "Unread messages" line instead, once.
+ */
+function useStickToBottom(dep: unknown, start?: string) {
   const ref = useRef<HTMLDivElement>(null);
+  const placed = useRef<string>(undefined);
   // biome-ignore lint/correctness/useExhaustiveDependencies: scrolls when the list changes
   useEffect(() => {
     const el = ref.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    const line = el.querySelector("#unread-line");
+    if (start && line && placed.current !== start) {
+      placed.current = start;
+      line.scrollIntoView({ block: "start" });
+    } else el.scrollTop = el.scrollHeight;
   }, [dep]);
   return ref;
+}
+
+/**
+ * The next message of a channel or thread: plain, an answer quoting one, or one of mine being
+ * edited; and the reply, edit and forward handlers each message gets.
+ */
+function useDraft(
+  channelId: string,
+  parentId: string | undefined,
+  reload: () => void,
+  onForward: (m: ChatMessage) => void,
+) {
+  const { t } = useTranslation();
+  const [quoting, setQuoting] = useState<ChatMessage>();
+  const [editing, setEditing] = useState<ChatMessage>();
+  const reset = () => {
+    setQuoting(undefined);
+    setEditing(undefined);
+  };
+  const banner = editing ? (
+    <p className="flex items-center gap-1.5 text-[12.5px] font-medium text-accent">
+      <Pencil size={13} aria-hidden="true" />
+      {t("teamChat.editing")}
+    </p>
+  ) : quoting ? (
+    <QuoteBox
+      quote={{ id: quoting.id, author: quoting.author, mine: quoting.mine, text: quoting.text }}
+      onClick={() => undefined}
+    />
+  ) : undefined;
+  return {
+    composer: {
+      key: `${channelId}-${editing?.id ?? ""}`,
+      banner,
+      initialText: editing?.text ?? "",
+      onCancel: reset,
+      onTyping: () => void api.chatTyping(channelId).catch(() => undefined),
+      onSend: (text: string) =>
+        (editing ? api.editChat(editing.id, text) : api.postChat(channelId, text, parentId, quoting?.id)).then(() => {
+          reset();
+          reload();
+        }),
+    },
+    handlers: (m: ChatMessage) => ({
+      onQuote: () => {
+        setEditing(undefined);
+        setQuoting(m);
+      },
+      onEdit:
+        m.mine && !m.bot
+          ? () => {
+              setQuoting(undefined);
+              setEditing(m);
+            }
+          : undefined,
+      onForward: () => onForward(m),
+    }),
+  };
 }
 
 function Thread({
@@ -33,6 +114,7 @@ function Thread({
   writing,
   onClose,
   onTask,
+  onForward,
 }: {
   channel: ChatChannel;
   root: ChatMessage;
@@ -41,6 +123,7 @@ function Thread({
   writing: boolean;
   onClose: () => void;
   onTask: (m: ChatMessage) => void;
+  onForward: (m: ChatMessage) => void;
 }) {
   const { t } = useTranslation();
   const [replies, setReplies] = useState<ChatMessage[]>([]);
@@ -53,8 +136,9 @@ function Thread({
     [channel.id, root.id],
   );
   useEffect(load, [load]);
-  useServerEvent("chat-changed", (m) => m.channelId === channel.id && !m.writing && load());
+  useServerEvent("chat-changed", (m) => m.channelId === channel.id && m.writing === undefined && !m.typing && load());
   const list = useStickToBottom(replies.length);
+  const draft = useDraft(channel.id, root.id, load, onForward);
   return (
     <aside aria-label={t("teamChat.thread")} className="flex w-full flex-col border-border lg:w-96 lg:border-s">
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-4">
@@ -78,17 +162,13 @@ function Thread({
             projectId={channel.projectId}
             compact
             onTask={() => onTask(m)}
+            {...draft.handlers(m)}
           />
         ))}
         {writing && <AiWriting />}
       </div>
       <div className="border-t border-border p-3">
-        <Composer
-          placeholder={t("teamChat.replyPlaceholder")}
-          members={members}
-          autoFocus
-          onSend={(text) => api.postChat(channel.id, text, root.id).then(load)}
-        />
+        <Composer placeholder={t("teamChat.replyPlaceholder")} members={members} autoFocus {...draft.composer} />
       </div>
     </aside>
   );
@@ -104,7 +184,17 @@ function AiWriting() {
   );
 }
 
-function ChannelHeader({ channel }: { channel: ChatChannel }) {
+type Panel = "search" | "pinned" | "starred";
+
+function ChannelHeader({
+  channel,
+  onPanel,
+  onChanged,
+}: {
+  channel: ChatChannel;
+  onPanel: (panel: Panel) => void;
+  onChanged: () => void;
+}) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -151,6 +241,24 @@ function ChannelHeader({ channel }: { channel: ChatChannel }) {
         >
           {busy ? t("briefing.writing") : t("chatTeam.summary")}
         </Button>
+        {(
+          [
+            ["search", Search],
+            ["pinned", Pin],
+            ["starred", Star],
+          ] as const
+        ).map(([panel, icon]) => (
+          <Button
+            key={panel}
+            size="sm"
+            variant="ghost"
+            icon={icon}
+            onClick={() => onPanel(panel)}
+            aria-label={t(`teamChat.panel_${panel}`)}
+            data-tip={t(`teamChat.panel_${panel}`)}
+          />
+        ))}
+        <MuteButton channel={channel} onChanged={onChanged} />
       </header>
       {summary && (
         <div className="flex items-start gap-2 border-b border-border bg-bg-subtle px-4 py-3 text-[13px]">
@@ -198,19 +306,104 @@ function ChannelSelect({
   );
 }
 
+/** Where the unread ones started when the channel was opened; kept while it stays open. */
+function useUnreadStart(channelId: string | undefined, messages: ChatMessage[]) {
+  const [start, setStart] = useState<{ channel: string; id: string; count: number }>();
+  useEffect(() => {
+    if (!channelId || start?.channel === channelId || !messages.length || messages[0]?.channelId !== channelId) return;
+    const unread = messages.filter((m) => m.unread && !m.mine);
+    setStart({ channel: channelId, id: unread[0]?.id ?? "", count: unread.length });
+  }, [channelId, messages, start?.channel]);
+  return start && start.channel === channelId && start.id ? start : undefined;
+}
+
+/** One channel: its header, the messages with the unread line and who is typing, and the box to write in. */
+function ChannelView({
+  channel,
+  channels,
+  thread,
+  writing,
+  typing,
+  messages,
+  people,
+  onReload,
+  onReloadChannels,
+  onOpen,
+  onTask,
+  onForward,
+  onPanel,
+}: {
+  channel: ChatChannel;
+  channels: ChatChannel[];
+  thread?: ChatMessage;
+  writing: boolean;
+  typing: string[];
+  messages: ChatMessage[];
+  people: { members: TeamMember[]; meId?: string };
+  onReload: () => void;
+  onReloadChannels: () => void;
+  onOpen: (id: string, threadId?: string) => void;
+  onTask: (m: ChatMessage) => void;
+  onForward: (m: ChatMessage) => void;
+  onPanel: (panel: Panel) => void;
+}) {
+  const { t } = useTranslation();
+  const unread = useUnreadStart(channel.id, messages);
+  const list = useStickToBottom(messages.length, unread ? `${channel.id}:${unread.id}` : undefined);
+  const draft = useDraft(channel.id, undefined, onReload, onForward);
+  const others = people.members.filter((m) => m.id !== people.meId);
+  return (
+    <section className={`min-w-0 flex-1 flex-col ${thread ? "hidden lg:flex" : "flex"}`}>
+      <ChannelSelect channels={channels} value={channel.id} onPick={onOpen} onTimeline={() => onOpen("timeline")} />
+      <ChannelHeader key={channel.id} channel={channel} onPanel={onPanel} onChanged={onReloadChannels} />
+      <div ref={list} className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+        {messages.length === 0 && (
+          <p className="px-4 py-8 text-center text-[13px] text-fg-subtle">{t("teamChat.firstMessage")}</p>
+        )}
+        {messages.map((m) => (
+          <div key={m.id}>
+            {unread?.id === m.id && <UnreadLine count={unread.count} />}
+            <MessageItem
+              message={m}
+              meId={people.meId}
+              members={people.members}
+              projectId={channel.projectId}
+              onThread={() => onOpen(channel.id, m.id)}
+              onTask={() => onTask(m)}
+              {...draft.handlers(m)}
+            />
+          </div>
+        ))}
+        {writing && !thread && <AiWriting />}
+      </div>
+      <TypingLine names={typing} />
+      <div className="p-3 pt-0">
+        <Composer
+          placeholder={t("teamChat.placeholder", { channel: channel.name })}
+          members={others}
+          {...draft.composer}
+        />
+      </div>
+    </section>
+  );
+}
+
 /**
  * The team chat (team-chat.ts): channels per shared project, threads, @teammate and @ai, and any
- * message can become a card on the board. Everything goes to the team end-to-end encrypted.
+ * message can become a card on the board. Like WhatsApp: quoted replies, edits and deletions,
+ * "seen" ticks, "typing...", pins, stars, search, forwarding, and a chime unless muted.
+ * Everything goes to the team end-to-end encrypted.
  */
 export function TeamChatPage() {
   const { t } = useTranslation();
   const people = useTeamPeople();
-  const members = (people.status?.members ?? []).filter((m) => m.id !== people.status?.user?.id);
   const [params, setParams] = useSearchParams();
   const [channels, setChannels] = useState<ChatChannel[]>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [writing, setWriting] = useState(false);
   const [taskFor, setTaskFor] = useState<ChatMessage>();
+  const [forwarding, setForwarding] = useState<ChatMessage>();
+  const [panel, setPanel] = useState<Panel>();
   const loadChannels = useCallback(
     () =>
       void api
@@ -221,6 +414,7 @@ export function TeamChatPage() {
   );
   useEffect(loadChannels, [loadChannels]);
   const channel = channels?.find((c) => c.id === params.get("c")) ?? channels?.[0];
+  const [typing, setTyping] = useTyping(channel?.id);
   const loadMessages = useCallback(() => {
     if (channel)
       void api
@@ -230,16 +424,20 @@ export function TeamChatPage() {
   }, [channel]);
   useEffect(loadMessages, [loadMessages]);
   useServerEvent("chat-changed", (m) => {
+    if (m.typing) return m.channelId === channel?.id && setTyping(m.typing);
     if (m.channelId === channel?.id) {
       if (m.writing !== undefined) setWriting(m.writing);
       else loadMessages();
     }
     if (m.writing === undefined) loadChannels();
   });
-  const list = useStickToBottom(messages.length);
   const thread = messages.find((m) => m.id === params.get("thread"));
-  const open = (id: string, threadId?: string) => setParams(threadId ? { c: id, thread: threadId } : { c: id });
+  const open = (id: string, threadId?: string) => {
+    if (id === "timeline") return setParams({ view: "timeline" });
+    setParams(threadId ? { c: id, thread: threadId } : { c: id });
+  };
   const timeline = params.get("view") === "timeline";
+  const team = { members: people.status?.members ?? [], meId: people.status?.user?.id };
 
   if (channels && !channels.length)
     return (
@@ -274,58 +472,57 @@ export function TeamChatPage() {
         </div>
       )}
       {channel && !timeline && (
-        <section className={`min-w-0 flex-1 flex-col ${thread ? "hidden lg:flex" : "flex"}`}>
-          <ChannelSelect
-            channels={channels ?? []}
-            value={channel.id}
-            onPick={open}
-            onTimeline={() => setParams({ view: "timeline" })}
-          />
-          <ChannelHeader key={channel.id} channel={channel} />
-          <div ref={list} className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-            {messages.length === 0 && (
-              <p className="px-4 py-8 text-center text-[13px] text-fg-subtle">{t("teamChat.firstMessage")}</p>
-            )}
-            {messages.map((m) => (
-              <MessageItem
-                key={m.id}
-                message={m}
-                meId={people.status?.user?.id}
-                members={people.status?.members ?? []}
-                projectId={channel.projectId}
-                onThread={() => open(channel.id, m.id)}
-                onTask={() => setTaskFor(m)}
-              />
-            ))}
-            {writing && !thread && <AiWriting />}
-          </div>
-          <div className="p-3 pt-0">
-            <Composer
-              key={channel.id}
-              placeholder={t("teamChat.placeholder", { channel: channel.name })}
-              members={members}
-              onSend={(text) => api.postChat(channel.id, text).then(loadMessages)}
-            />
-          </div>
-        </section>
+        <ChannelView
+          key={channel.id}
+          channel={channel}
+          channels={channels ?? []}
+          thread={thread}
+          writing={writing}
+          typing={typing}
+          messages={messages}
+          people={team}
+          onReload={loadMessages}
+          onReloadChannels={loadChannels}
+          onOpen={open}
+          onTask={setTaskFor}
+          onForward={setForwarding}
+          onPanel={(p) => {
+            setPanel(p);
+            if (thread) open(channel.id);
+          }}
+        />
       )}
-      {channel && thread && (
+      {channel && thread && !panel && (
         <Thread
           key={thread.id}
           channel={channel}
           root={thread}
-          members={people.status?.members ?? []}
-          meId={people.status?.user?.id}
+          members={team.members}
+          meId={team.meId}
           writing={writing}
           onClose={() => open(channel.id)}
           onTask={setTaskFor}
+          onForward={setForwarding}
         />
       )}
-      <TaskDialog
-        key={taskFor?.id}
-        message={taskFor}
-        members={people.status?.members ?? []}
-        onClose={() => setTaskFor(undefined)}
+      {channel && panel && !timeline && (
+        <SidePanel
+          key={panel}
+          kind={panel}
+          channel={channel}
+          onClose={() => setPanel(undefined)}
+          onOpen={(m) => {
+            setPanel(undefined);
+            open(m.channelId, m.parentId);
+          }}
+        />
+      )}
+      <TaskDialog key={taskFor?.id} message={taskFor} members={team.members} onClose={() => setTaskFor(undefined)} />
+      <ForwardDialog
+        key={forwarding?.id}
+        message={forwarding}
+        channels={channels ?? []}
+        onClose={() => setForwarding(undefined)}
       />
     </div>
   );

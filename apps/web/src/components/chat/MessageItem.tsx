@@ -1,11 +1,22 @@
 import type { ChatMessage, TaskStatus, TeamMember } from "@igrek/core";
-import { CircleAlert, KanbanSquare, MessageSquareReply, Sparkles, SquareCheckBig } from "lucide-react";
+import {
+  CircleAlert,
+  Forward,
+  KanbanSquare,
+  MessageSquareReply,
+  Pin,
+  Reply,
+  Sparkles,
+  SquareCheckBig,
+  Star,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { dateTime, relativeTime } from "../../lib/format";
 import { Markdown } from "../Markdown";
 import { TeamAvatar } from "../TeamAvatar";
 import { Badge } from "../ui";
+import { DeletedNote, MoreMenu, QuoteBox, SeenTicks } from "./MessageExtras";
 import { MentionTask, ReactionChips, ReactionPicker } from "./Reactions";
 
 const STATUS_TONE: Record<TaskStatus, "neutral" | "accent" | "warning" | "success"> = {
@@ -85,29 +96,46 @@ function RepliesLink({ message, onThread }: { message: ChatMessage; onThread?: (
   );
 }
 
-/** React, reply and "turn into a card", shown over the message while the pointer or focus is on it. */
-function Actions({
-  message,
-  canThread,
-  canTask,
-  onThread,
-  onTask,
-}: {
-  message: ChatMessage;
-  canThread: boolean;
-  canTask: boolean;
+export interface MessageHandlers {
   onThread?: () => void;
   onTask?: () => void;
+  /** Answer it with the message quoted above mine, like swiping it on WhatsApp. */
+  onQuote?: () => void;
+  onEdit?: () => void;
+  onForward?: () => void;
+}
+
+/** React, quote-reply, open its thread, and the rest behind "more", over the message while it is pointed at. */
+function Actions({
+  message,
+  compact,
+  handlers,
+}: {
+  message: ChatMessage;
+  compact?: boolean;
+  handlers: MessageHandlers;
 }) {
   const { t } = useTranslation();
   const action = "rounded px-2 py-1 text-[12px] hover:bg-bg-hover";
+  const canTask = !!handlers.onTask && !message.task && !message.bot;
   return (
     <div className="absolute -top-3 end-2 hidden gap-0.5 rounded-ui border border-border bg-bg p-0.5 shadow-ui group-focus-within:flex group-hover:flex">
       <ReactionPicker message={message} className={action} />
-      {canThread && (
+      {handlers.onQuote && (
         <button
           type="button"
-          onClick={onThread}
+          onClick={handlers.onQuote}
+          className={action}
+          data-tip={t("teamChat.quoteReply")}
+          aria-label={t("teamChat.quoteReply")}
+        >
+          <Reply size={14} aria-hidden="true" />
+        </button>
+      )}
+      {handlers.onThread && !compact && (
+        <button
+          type="button"
+          onClick={handlers.onThread}
           className={action}
           data-tip={t("teamChat.reply")}
           aria-label={t("teamChat.reply")}
@@ -115,18 +143,70 @@ function Actions({
           <MessageSquareReply size={14} aria-hidden="true" />
         </button>
       )}
-      {canTask && (
-        <button
-          type="button"
-          onClick={onTask}
-          className={action}
-          data-tip={t("teamChat.toTask")}
-          aria-label={t("teamChat.toTask")}
-        >
-          <SquareCheckBig size={14} aria-hidden="true" />
-        </button>
-      )}
+      <MoreMenu
+        message={message}
+        actions={{
+          onEdit: handlers.onEdit,
+          onForward: handlers.onForward,
+          onTask: canTask ? handlers.onTask : undefined,
+        }}
+      />
     </div>
+  );
+}
+
+/** The time, then what is true of the message: edited, pinned, starred, and for mine whether it was seen. */
+function Meta({ message }: { message: ChatMessage }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <time
+        className="text-[11px] text-fg-subtle"
+        dateTime={new Date(message.at).toISOString()}
+        title={dateTime(message.at)}
+      >
+        {relativeTime(message.at)}
+      </time>
+      {message.editedAt && !message.deleted && (
+        <span className="text-[11px] text-fg-subtle" title={dateTime(message.editedAt)}>
+          {t("teamChat.edited")}
+        </span>
+      )}
+      {message.pinned && <Pin size={12} className="self-center text-accent" aria-label={t("teamChat.pinned")} />}
+      {message.starred && <Star size={12} className="self-center text-warning" aria-label={t("teamChat.starred")} />}
+      <span className="self-center">
+        <SeenTicks message={message} />
+      </span>
+    </>
+  );
+}
+
+function Body({
+  message,
+  projectId,
+  members,
+  meId,
+}: {
+  message: ChatMessage;
+  projectId: string;
+  members: TeamMember[];
+  meId?: string;
+}) {
+  const { t } = useTranslation();
+  if (message.deleted) return <DeletedNote />;
+  return (
+    <>
+      {message.forwarded && (
+        <p className="flex items-center gap-1 text-[11.5px] text-fg-subtle italic">
+          <Forward size={12} aria-hidden="true" />
+          {t("teamChat.forwarded")}
+        </p>
+      )}
+      {message.quote && <QuoteBox quote={message.quote} />}
+      <Markdown text={highlight(message.text)} className="prose-igrek text-[13.5px]" />
+      {message.task && <TaskChip task={message.task} projectId={projectId} />}
+      <MentionTask message={message} members={members} meId={meId} />
+    </>
   );
 }
 
@@ -142,26 +222,26 @@ export function MessageItem({
   message,
   members,
   projectId,
-  onThread,
-  onTask,
   compact,
   meId,
+  ...handlers
 }: {
   message: ChatMessage;
   members: TeamMember[];
   meId?: string;
   projectId: string;
-  onThread?: () => void;
-  onTask?: () => void;
   compact?: boolean;
-}) {
+} & MessageHandlers) {
   const { t } = useTranslation();
   // My own messages carry no author id here; my face is the one with my id.
   const member = members.find((m) => m.id === (message.mine ? meId : message.authorId));
   const name = useAuthorName(message, member);
   if (isNote(message)) return <SystemNote message={message} />;
   return (
-    <article className="group relative flex gap-3 rounded-ui px-2 py-1.5 hover:bg-bg-hover">
+    <article
+      id={`msg-${message.id}`}
+      className={`group relative flex gap-3 rounded-ui px-2 py-1.5 transition-colors hover:bg-bg-hover ${message.reactions.length ? "pb-4" : ""}`}
+    >
       <span className="pt-0.5">
         <Face message={message} member={member} name={name} />
       </span>
@@ -169,27 +249,15 @@ export function MessageItem({
         <p className="flex items-baseline gap-2">
           <span className="text-[13.5px] font-semibold">{name}</span>
           {message.bot && <Badge tone="accent">{t("teamChat.aiBadge")}</Badge>}
-          <time
-            className="text-[11px] text-fg-subtle"
-            dateTime={new Date(message.at).toISOString()}
-            title={dateTime(message.at)}
-          >
-            {relativeTime(message.at)}
-          </time>
+          <Meta message={message} />
         </p>
-        <Markdown text={highlight(message.text)} className="prose-igrek text-[13.5px]" />
-        {message.task && <TaskChip task={message.task} projectId={projectId} />}
-        <MentionTask message={message} members={members} meId={meId} />
-        <ReactionChips message={message} />
-        {!compact && message.replies > 0 && <RepliesLink message={message} onThread={onThread} />}
+        <Body message={message} projectId={projectId} members={members} meId={meId} />
+        {!compact && message.replies > 0 && <RepliesLink message={message} onThread={handlers.onThread} />}
+        <div>
+          <ReactionChips message={message} />
+        </div>
       </div>
-      <Actions
-        message={message}
-        canThread={!!onThread && !compact}
-        canTask={!!onTask && !message.task && !message.bot}
-        onThread={onThread}
-        onTask={onTask}
-      />
+      {!message.deleted && <Actions message={message} compact={compact} handlers={handlers} />}
     </article>
   );
 }

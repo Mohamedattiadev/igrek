@@ -173,6 +173,8 @@ export interface ChatChannel {
   /** Who wrote the unread ones, for "2 from Kerim" beside the count. */
   unreadFrom: string[];
   messages: number;
+  /** No sound or desktop notice for it (set on this computer only). */
+  muted: boolean;
 }
 
 /** One line of the team's shared timeline: who worked on what, across the shared projects. */
@@ -207,6 +209,18 @@ export interface ChatMessage {
   task?: { id: string; title: string; status: TaskStatus; assignee?: string };
   /** Reactions under it, like WhatsApp's: how many, by whom, and whether one is mine. */
   reactions: { reaction: ChatReaction; count: number; mine: boolean; names: string[] }[];
+  /** The message this one answers, shown above it in a small box; "missing" until it is here. */
+  quote?: { id: string; author?: string; mine: boolean; text: string; missing?: boolean };
+  editedAt?: number;
+  /** "This message was deleted": the text is gone, the place in the talk stays. */
+  deleted?: boolean;
+  pinned?: boolean;
+  starred?: boolean;
+  forwarded?: boolean;
+  /** Teammates who have read the channel past this message (only for my own messages). */
+  seenBy?: string[];
+  /** Not read when the channel was opened: the "Unread messages" line goes above the first one. */
+  unread?: boolean;
 }
 
 /** The reactions a message can get; the page draws each with an icon (no emoji in Igrek). */

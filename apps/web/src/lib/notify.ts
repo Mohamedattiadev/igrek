@@ -14,6 +14,28 @@ export async function askNotificationPermission(): Promise<boolean> {
   return (await Notification.requestPermission()) === "granted";
 }
 
+/** A soft two-note chime for a new team message, made here: no sound file, nothing fetched. */
+function chime(): void {
+  try {
+    const ctx = new AudioContext();
+    for (const [i, freq] of [880, 1320].entries()) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const start = ctx.currentTime + i * 0.12;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.08, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.25);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.3);
+    }
+    setTimeout(() => void ctx.close(), 1000);
+  } catch {
+    // No audio here (a test browser, a locked-down system): the badge still shows.
+  }
+}
+
 /**
  * Desktop notifications (plan.md 11): a chat finished or waits for an approval, a terminal waits
  * for an answer, an approval is pending, a team run needs you, a project score dropped, a limit
@@ -34,6 +56,7 @@ export function useDesktopNotifications(): void {
     runs: new Map<string, FlowRun["status"]>(),
     scores: new Map<string, number>(),
     limits: new Set<string>(),
+    channels: new Map<string, number>(),
   });
   const enabled =
     settings.notifications && (inDesktopApp || ("Notification" in window && Notification.permission === "granted"));
@@ -97,6 +120,32 @@ export function useDesktopNotifications(): void {
       .catch(() => undefined);
   });
   useServerEvent("alert", (m) => show(t(`notify.alert_${m.kind}`), m.title, m.link));
+  // A teammate wrote in a channel that is not muted: a chime, and a notice while Igrek is away.
+  // The counts at start are what was already there, not news.
+  const counted = useRef(false);
+  const countChannels = (announce: boolean) =>
+    void api
+      .chatChannels()
+      .then((list) => {
+        counted.current = true;
+        for (const c of list) {
+          const before = seen.current.channels.get(c.id) ?? 0;
+          seen.current.channels.set(c.id, c.unread);
+          if (!announce || c.muted || c.unread <= before) continue;
+          chime();
+          show(
+            t("notify.teamMessage", { name: c.unreadFrom.at(-1) ?? "" }),
+            `# ${c.name} · ${c.project}`,
+            `/chat?c=${encodeURIComponent(c.id)}`,
+          );
+        }
+      })
+      .catch(() => undefined);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: counted once, at start
+  useEffect(() => countChannels(false), []);
+  useServerEvent("chat-changed", (m) => {
+    if (m.writing === undefined && !m.typing) countChannels(counted.current);
+  });
   useServerEvent("insight-changed", (m) => {
     void api
       .insight(m.projectId)

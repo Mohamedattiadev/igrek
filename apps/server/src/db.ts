@@ -999,6 +999,30 @@ export const migrations: string[] = [
      at INTEGER NOT NULL,
      data TEXT NOT NULL
    );`,
+  // Team chat like WhatsApp (plan.md 19.9). A reply quotes the message it answers (quote_of): a soft
+  // link, since the quoted message can reach a teammate after the reply, or never if they only have
+  // part of the history; it is shown as soon as it is here. My own message can be edited or deleted and anyone may pin one; such
+  // a change waits in update_sent until teammates heard of it. Starred is mine alone. chat_seen is
+  // how far each person has read a channel ("" is me), chat_muted the channels that make no sound.
+  `ALTER TABLE comments ADD COLUMN quote_of TEXT;
+   ALTER TABLE comments ADD COLUMN edited_at INTEGER;
+   ALTER TABLE comments ADD COLUMN deleted INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE comments ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE comments ADD COLUMN starred INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE comments ADD COLUMN forwarded INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE comments ADD COLUMN update_at INTEGER;
+   ALTER TABLE comments ADD COLUMN update_sent INTEGER NOT NULL DEFAULT 1;
+   CREATE TABLE chat_seen (
+     channel TEXT NOT NULL,
+     member TEXT NOT NULL,
+     member_name TEXT,
+     at INTEGER NOT NULL,
+     sent INTEGER NOT NULL DEFAULT 1,
+     PRIMARY KEY (channel, member)
+   );
+   CREATE TABLE chat_muted (
+     channel TEXT PRIMARY KEY NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

@@ -112,6 +112,85 @@ async function answer(deps: Deps, projectId: string, channel: string, asked: Cha
   }
 }
 
+/**
+ * What makes the team chat feel like WhatsApp (plan.md 19.9): pinned, starred and searched
+ * messages, muting, "typing...", editing and deleting my own, pins, stars and forwarding.
+ */
+function registerWhatsAppRoutes(
+  app: Hono,
+  { chat, sync }: Deps,
+  shared: () => { id: string; name: string }[],
+  projectOf: (channel: string) => { id: string; name: string } | undefined,
+): void {
+  app.get("/api/chat/channels/:id/pinned", (c) => c.json(chat.pinned(c.req.param("id"))));
+  app.get("/api/chat/channels/:id/search", (c) => c.json(chat.search(c.req.param("id"), c.req.query("q") ?? "")));
+  app.get("/api/chat/starred", (c) => c.json(chat.starred(shared().map((p) => p.id))));
+
+  app.post("/api/chat/channels/:id/mute", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { on?: boolean };
+    chat.setMuted(c.req.param("id"), !!body.on);
+    return c.json({ ok: true });
+  });
+
+  // A key pressed in the composer: teammates see "typing..." for a few seconds.
+  app.post("/api/chat/channels/:id/typing", (c) => {
+    const project = projectOf(c.req.param("id"));
+    if (project) void sync.sendTyping(project.id, c.req.param("id"));
+    return c.json({ ok: true });
+  });
+
+  // My own message, written again or deleted for everyone.
+  app.patch("/api/chat/messages/:id", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { text?: string };
+    const text = (body.text ?? "").trim();
+    if (!text) return c.json({ error: "Write something" }, 400);
+    if (!chat.edit(c.req.param("id"), text)) return c.json({ error: "Only your own messages can be edited" }, 403);
+    void sync.flush();
+    return c.json(chat.message(c.req.param("id")));
+  });
+
+  app.delete("/api/chat/messages/:id", (c) => {
+    if (!chat.remove(c.req.param("id"))) return c.json({ error: "Only your own messages can be deleted" }, 403);
+    void sync.flush();
+    return c.json(chat.message(c.req.param("id")));
+  });
+
+  app.post("/api/chat/messages/:id/pin", async (c) => {
+    const message = chat.message(c.req.param("id"));
+    if (!message || !projectOf(message.channelId)) return c.json({ error: "Message not found" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { on?: boolean };
+    chat.pin(message.id, !!body.on);
+    void sync.flush();
+    return c.json(chat.message(message.id));
+  });
+
+  app.post("/api/chat/messages/:id/star", async (c) => {
+    const message = chat.message(c.req.param("id"));
+    if (!message) return c.json({ error: "Message not found" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { on?: boolean };
+    chat.star(message.id, !!body.on);
+    return c.json(chat.message(message.id));
+  });
+
+  // A message sent on to another channel, marked "Forwarded" there.
+  app.post("/api/chat/messages/:id/forward", async (c) => {
+    const message = chat.message(c.req.param("id"));
+    const body = (await c.req.json().catch(() => ({}))) as { channel?: string };
+    const project = projectOf(String(body.channel ?? ""));
+    if (!message || message.deleted || !project) return c.json({ error: "Pick a channel" }, 400);
+    const id = chat.post({
+      projectId: project.id,
+      channel: String(body.channel),
+      text: message.text,
+      author: sync.identity().name,
+      mentions: [],
+      forwarded: true,
+    });
+    void sync.flush();
+    return c.json(chat.message(id));
+  });
+}
+
 /** The team chat (team-chat.ts): channels, messages, threads, @ai, and messages that become cards. */
 export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
   const { chat, sync, board } = deps;
@@ -120,6 +199,7 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
     return deps.projects().filter((p) => ids.has(p.id));
   };
   const projectOf = (channel: string) => shared().find((p) => channel.startsWith(`${p.id}:`));
+  registerWhatsAppRoutes(app, deps, shared, projectOf);
 
   app.get("/api/chat/channels", (c) => c.json(chat.channels(shared())));
 
@@ -135,18 +215,21 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
     }
   });
 
+  // Listed before they are marked read, so the page knows where the "Unread messages" line goes.
   app.get("/api/chat/channels/:id/messages", (c) => {
     const channel = c.req.param("id");
     const thread = c.req.query("thread");
+    const list = chat.messages(channel, thread || undefined);
     if (!thread) chat.markRead(channel);
-    return c.json(chat.messages(channel, thread || undefined));
+    if (!thread) void sync.flush();
+    return c.json(list);
   });
 
   app.post("/api/chat/channels/:id/messages", async (c) => {
     const channel = c.req.param("id");
     const project = projectOf(channel);
     if (!project) return c.json({ error: "Channel not found" }, 404);
-    const body = (await c.req.json().catch(() => ({}))) as { text?: string; parentId?: string };
+    const body = (await c.req.json().catch(() => ({}))) as { text?: string; parentId?: string; quoteId?: string };
     const text = (body.text ?? "").trim();
     if (!text) return c.json({ error: "Write something" }, 400);
     const id = chat.post({
@@ -154,6 +237,7 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
       channel,
       text,
       parentId: body.parentId || undefined,
+      quoteId: body.quoteId || undefined,
       author: sync.identity().name,
       mentions: await sync.mentionsIn(text),
     });

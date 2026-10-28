@@ -244,7 +244,7 @@ function useChatUnread(): { count: number; from: string[] } {
     [],
   );
   useEffect(load, [load]);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && load());
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && load());
   return unread;
 }
 
@@ -252,7 +252,7 @@ function useChatUnread(): { count: number; from: string[] } {
 function useInboxPeople(): { messages: number; mentions: number } {
   const { data: messages, reload: reloadMessages } = useLiveData(() => api.teamMessages(), []);
   const { data: notices, reload: reloadNotices } = useLiveData(() => api.inboxNotices(), []);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && reloadNotices());
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && reloadNotices());
   useServerEvent("team-changed", () => {
     reloadMessages();
     reloadNotices();

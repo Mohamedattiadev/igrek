@@ -34,9 +34,9 @@ function setup() {
     runnerDir: "/tmp",
     stops: new Map() as never,
   });
-  const call = (url: string, body?: unknown) =>
+  const call = (url: string, body?: unknown, method?: string) =>
     app.request(url, {
-      method: body === undefined ? "GET" : "POST",
+      method: method ?? (body === undefined ? "GET" : "POST"),
       headers: { "content-type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -271,5 +271,102 @@ describe("the board follows the work", () => {
       .run(`Docs ${taskMark(card.id)}`, now, now);
     expect(new BoardAuto(sqlite, board, (id, status) => chat.noteTask(id, status)).tick(now)).toBe(0);
     expect(board.get(card.id)?.status).toBe("done");
+  });
+});
+
+describe("team chat like WhatsApp (plan.md 19.9)", () => {
+  const general = channelId("p1", "general");
+  const url = `/api/chat/channels/${encodeURIComponent(general)}`;
+  const kerim = { id: "u-kerim", name: "Kerim" };
+  /** A message from Kerim, as it arrives from the hub. */
+  function fromKerim(sqlite: ReturnType<typeof setup>["sqlite"], id: string, text: string, at: number) {
+    sqlite
+      .query(
+        `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read, sent)
+         VALUES (?, 'p1', 'channel', ?, 'u-kerim', 'Kerim', ?, '[]', ?, 0, 1)`,
+      )
+      .run(id, general, text, at);
+  }
+
+  test("a reply quotes the message it answers; one quoting a message that is not here (yet) says so", async () => {
+    const { call, sqlite } = setup();
+    fromKerim(sqlite, "k1", "Can you look at the cart total?", 1);
+    const reply = (await (await call(`${url}/messages`, { text: "On it", quoteId: "k1" })).json()) as {
+      quote: unknown;
+    };
+    expect(reply.quote).toEqual({ id: "k1", author: "Kerim", mine: false, text: "Can you look at the cart total?" });
+    const orphan = (await (await call(`${url}/messages`, { text: "?", quoteId: "gone" })).json()) as {
+      quote: unknown;
+    };
+    expect(orphan.quote).toEqual({ id: "gone", mine: false, text: "", missing: true });
+  });
+
+  test("my own message can be edited and deleted, a teammate's cannot; the change goes out once", async () => {
+    const { call, sqlite, chat } = setup();
+    fromKerim(sqlite, "k1", "hello", 1);
+    const mine = (await (await call(`${url}/messages`, { text: "Shiped" })).json()) as { id: string };
+    sqlite.query("UPDATE comments SET sent = 1").run();
+    const edit = (id: string, text: string) => call(`/api/chat/messages/${id}`, { text }, "PATCH");
+    expect((await edit(mine.id, "Shipped")).status).toBe(200);
+    expect((await edit("k1", "changed")).status).toBe(403);
+    expect(chat.message(mine.id)).toMatchObject({ text: "Shipped", editedAt: expect.any(Number) });
+    const [out] = chat.unsentUpdates("p1");
+    expect(out).toMatchObject({ id: mine.id, text: "Shipped", deleted: false });
+    chat.markUpdateSent(out?.id ?? "", out?.at ?? 0);
+    expect(chat.unsentUpdates("p1")).toEqual([]);
+    expect(chat.remove(mine.id)).toBe(true);
+    expect(chat.message(mine.id)).toMatchObject({ text: "", deleted: true });
+    expect(chat.unsentUpdates("p1")[0]).toMatchObject({ deleted: true, text: "" });
+  });
+
+  test("a teammate's edit, deletion and pin arrive; only the writer may change the text, the newest change wins", () => {
+    const { sqlite, chat } = setup();
+    fromKerim(sqlite, "k1", "hello", 1);
+    chat.applyUpdate({ id: "k1", text: "hi all", editedAt: 5, pinned: false, at: 5 }, kerim);
+    expect(chat.message("k1")).toMatchObject({ text: "hi all", editedAt: 5 });
+    chat.applyUpdate({ id: "k1", text: "taken over", editedAt: 6, deleted: true, pinned: true, at: 6 }, { id: "u-x" });
+    expect(chat.message("k1")).toMatchObject({ text: "hi all", pinned: true });
+    chat.applyUpdate({ id: "k1", text: "old", editedAt: 4, pinned: false, at: 4 }, kerim);
+    expect(chat.message("k1")).toMatchObject({ text: "hi all", pinned: true });
+    chat.applyUpdate({ id: "k1", deleted: true, pinned: false, at: 7 }, kerim);
+    expect(chat.message("k1")).toMatchObject({ text: "", deleted: true });
+    expect(chat.message("k1")?.pinned).toBeUndefined();
+  });
+
+  test("opening a channel marks where the unread ones start and tells teammates; theirs show as seen on mine", async () => {
+    const { call, sqlite, chat } = setup();
+    const mine = (await (await call(`${url}/messages`, { text: "Ready for review" })).json()) as { id: string };
+    fromKerim(sqlite, "k1", "new one", Date.now() + 1);
+    const list = (await (await call(`${url}/messages`)).json()) as { id: string; unread?: boolean }[];
+    expect(list.map((m) => !!m.unread)).toEqual([false, true]);
+    expect(chat.unsentSeen("p1")).toEqual([{ channelId: general, at: expect.any(Number) }]);
+    // Kerim's computer says how far he read; its own project id is replaced by ours.
+    chat.applySeen("p1", { channelId: "their-id:general", at: Date.now() + 10 }, kerim);
+    expect(chat.message(mine.id)?.seenBy).toEqual(["Kerim"]);
+    expect(chat.message("k1")?.seenBy).toBeUndefined();
+  });
+
+  test("pins for everyone, stars for me, search finds every word, forward marks the copy, mute stays here", async () => {
+    const { call, chat } = setup();
+    await call("/api/chat/channels", { projectId: "p1", name: "ops" });
+    const a = (await (await call(`${url}/messages`, { text: "The deploy key is in the vault" })).json()) as {
+      id: string;
+    };
+    await call(`${url}/messages`, { text: "deploy went fine" });
+    await call(`/api/chat/messages/${a.id}/pin`, { on: true });
+    await call(`/api/chat/messages/${a.id}/star`, { on: true });
+    expect(((await (await call(`${url}/pinned`)).json()) as { id: string }[]).map((m) => m.id)).toEqual([a.id]);
+    expect(((await (await call("/api/chat/starred")).json()) as { id: string }[]).map((m) => m.id)).toEqual([a.id]);
+    const found = (await (await call(`${url}/search?q=${encodeURIComponent("DEPLOY vault")}`)).json()) as unknown[];
+    expect(found).toHaveLength(1);
+    expect(((await (await call(`${url}/search?q=100%25`)).json()) as unknown[]).length).toBe(0);
+    const ops = channelId("p1", "ops");
+    const copy = (await (await call(`/api/chat/messages/${a.id}/forward`, { channel: ops })).json()) as {
+      channelId: string;
+      forwarded: boolean;
+    };
+    expect(copy).toMatchObject({ channelId: ops, forwarded: true });
+    await call(`${url}/mute`, { on: true });
+    expect(chat.channels([{ id: "p1", name: "shop" }]).find((c) => c.id === general)?.muted).toBe(true);
   });
 });

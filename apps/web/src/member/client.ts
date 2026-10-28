@@ -72,12 +72,18 @@ export interface MemberComment {
   text: string;
   at: number;
   author: string;
+  /** The writer's hub id, so only they can edit or delete it. */
+  authorId: string;
   /** In a chat channel: the message this one answers in its thread. */
   parentId?: string;
   /** Igrek's answer to someone's @ai. */
   bot?: boolean;
   /** The board card the message became. */
   taskId?: string;
+  /** The message this one answers (team chat, plan.md 19.9). */
+  quoteId?: string;
+  editedAt?: number;
+  deleted?: boolean;
 }
 
 interface MemberChannel {
@@ -109,6 +115,8 @@ export interface MemberProject {
   comments: Map<string, MemberComment>;
   tasks: Map<string, MemberTask>;
   channels: Map<string, MemberChannel>;
+  /** Reactions per message: who (hub id) gave which. */
+  reactions: Map<string, Map<string, Set<string>>>;
 }
 
 export type MemberState =
@@ -134,7 +142,7 @@ const TOKEN = "token";
 const DEVICE = "device";
 const MAX_MESSAGES = 2000;
 
-type Fold = (p: MemberProject, v: Record<string, unknown>, e: { author: string; at: number }) => void;
+type Fold = (p: MemberProject, v: Record<string, unknown>, e: { author: string; authorId: string; at: number }) => void;
 
 /** How each kind of team event lands in a project, as Igrek on a computer reads them. */
 const FOLDS: Record<string, Fold> = {
@@ -184,10 +192,29 @@ const FOLDS: Record<string, Fold> = {
       text: String(v.text ?? ""),
       at: Number(v.at ?? e.at),
       author: e.author,
+      authorId: e.authorId,
       ...(v.parentId ? { parentId: String(v.parentId) } : {}),
       ...(v.bot ? { bot: true } : {}),
       ...(v.taskId ? { taskId: String(v.taskId) } : {}),
+      ...(v.quoteId ? { quoteId: String(v.quoteId) } : {}),
     });
+  },
+  reaction: (p, v, e) => {
+    const id = String(v.messageId ?? "");
+    const given = p.reactions.get(id) ?? new Map<string, Set<string>>();
+    const mine = given.get(e.authorId) ?? new Set<string>();
+    if (v.removed) mine.delete(String(v.reaction));
+    else mine.add(String(v.reaction));
+    given.set(e.authorId, mine);
+    p.reactions.set(id, given);
+  },
+  // An edit or deletion counts only from the one who wrote the message.
+  "chat-update": (p, v, e) => {
+    const c = p.comments.get(String(v.id ?? ""));
+    if (!c || c.authorId !== e.authorId) return;
+    if (v.deleted) Object.assign(c, { text: "", deleted: true });
+    else if (Number(v.editedAt ?? 0) > (c.editedAt ?? 0))
+      Object.assign(c, { text: String(v.text ?? ""), editedAt: Number(v.editedAt) });
   },
   channel: (p, v) => {
     const id = String(v.id ?? "");
@@ -424,6 +451,7 @@ export class MemberClient {
       comments: new Map(),
       channels: new Map(),
       tasks: new Map(),
+      reactions: new Map(),
     });
     this.send({ op: "sub", projects: [key] });
   }
@@ -431,7 +459,7 @@ export class MemberClient {
   private fold(project: string, event: WireEvent, v: Record<string, unknown>): void {
     const p = this.projects.get(project);
     const apply = FOLDS[event.kind];
-    if (p && apply) apply(p, v, { author: this.nameOf(event.author), at: event.at });
+    if (p && apply) apply(p, v, { author: this.nameOf(event.author), authorId: event.author, at: event.at });
   }
 
   // ---- what a web member may send -----------------------------------------------------
@@ -456,6 +484,16 @@ export class MemberClient {
     };
     await this.publish(project, "comment", `c-${value.id}`, value);
     this.fold(project, { kind: "comment", author: this.myId(), at: value.at } as WireEvent, value);
+    this.changed();
+  }
+
+  /** My reaction on a message, given or taken back (a second tap), like in Igrek. */
+  async react(project: string, messageId: string, reaction: string): Promise<void> {
+    const had = this.projects.get(project)?.reactions.get(messageId)?.get(this.myId())?.has(reaction) ?? false;
+    const value = { messageId, reaction, removed: had, at: Date.now() };
+    // Event ids are cut at 40 characters: the message id would leave every tap the same id.
+    await this.publish(project, "reaction", `r-${crypto.randomUUID()}`, value);
+    this.fold(project, { kind: "reaction", author: this.myId(), at: value.at } as WireEvent, value);
     this.changed();
   }
 

@@ -1,10 +1,11 @@
-import { Hash, KanbanSquare, MessageSquareReply, Send, Sparkles, SquareCheckBig, X } from "lucide-react";
+import { Ban, Hash, KanbanSquare, MessageSquareReply, Send, Sparkles, SquareCheckBig, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button } from "../components/ui";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import type { MemberClient, MemberComment, MemberProject } from "./client";
+import { MemberReactions } from "./MemberReactions";
 
 /** Every channel this browser knows of: made in Igrek, or seen in a message. */
 function channelsOf(project: MemberProject): { id: string; name: string; topic: string }[] {
@@ -28,13 +29,50 @@ function Note({ c }: { c: MemberComment }) {
   );
 }
 
+/** The message a reply quotes, in a small box above it. */
+function Quoted({ project, id }: { project: MemberProject; id: string }) {
+  const { t } = useTranslation();
+  const q = project.comments.get(id);
+  return (
+    <span className="mb-1 block max-w-md rounded-ui border-s-[3px] border-accent bg-bg-muted px-2 py-1 text-[12.5px]">
+      {q ? (
+        <>
+          <span className="block font-semibold text-accent">{q.author}</span>
+          <span className="line-clamp-2 text-fg-muted">{q.deleted ? t("teamChat.deleted") : q.text}</span>
+        </>
+      ) : (
+        <span className="text-fg-subtle italic">{t("teamChat.quoteMissing")}</span>
+      )}
+    </span>
+  );
+}
+
+function Text({ c, project }: { c: MemberComment; project: MemberProject }) {
+  const { t } = useTranslation();
+  if (c.deleted)
+    return (
+      <p className="flex items-center gap-1.5 text-[13px] text-fg-subtle italic">
+        <Ban size={13} aria-hidden="true" />
+        {t("teamChat.deleted")}
+      </p>
+    );
+  return (
+    <>
+      {c.quoteId && <Quoted project={project} id={c.quoteId} />}
+      <p className="whitespace-pre-wrap text-[13.5px]">{c.text}</p>
+    </>
+  );
+}
+
 function Message({
   c,
+  client,
   project,
   replies,
   onThread,
 }: {
   c: MemberComment;
+  client: MemberClient;
   project: MemberProject;
   replies?: number;
   onThread?: () => void;
@@ -60,8 +98,9 @@ function Message({
           </span>
           {c.bot && <Badge tone="accent">{t("teamChat.aiBadge")}</Badge>}
           <span className="text-[11px] text-fg-subtle">{relativeTime(c.at)}</span>
+          {c.editedAt && !c.deleted && <span className="text-[11px] text-fg-subtle">{t("teamChat.edited")}</span>}
         </p>
-        <p className="whitespace-pre-wrap text-[13.5px]">{c.text}</p>
+        <Text c={c} project={project} />
         {task && (
           <span className="mt-1.5 inline-flex items-center gap-2 rounded-ui border border-border px-2.5 py-1 text-[12.5px]">
             <SquareCheckBig size={13} className="text-accent" aria-hidden="true" />
@@ -77,6 +116,14 @@ function Message({
           >
             <MessageSquareReply size={13} aria-hidden="true" /> {t("teamChat.replies", { count: replies })}
           </button>
+        )}
+        {!c.deleted && (
+          <MemberReactions
+            client={client}
+            project={project}
+            messageId={c.id}
+            canReact={client.state.phase === "ready" && client.state.user.role !== "viewer"}
+          />
         )}
       </div>
       {onThread && !replies && (
@@ -188,6 +235,7 @@ export function MemberChat({ client, project }: { client: MemberClient; project:
             <Message
               key={c.id}
               c={c}
+              client={client}
               project={project}
               replies={repliesTo(c.id).length}
               onThread={() => setThread(c.id)}
@@ -215,9 +263,9 @@ export function MemberChat({ client, project }: { client: MemberClient; project:
             />
           </header>
           <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-2">
-            <Message c={root} project={project} />
+            <Message c={root} client={client} project={project} />
             {repliesTo(root.id).map((c) => (
-              <Message key={c.id} c={c} project={project} />
+              <Message key={c.id} c={c} client={client} project={project} />
             ))}
           </div>
           <div className="p-3 pt-0">

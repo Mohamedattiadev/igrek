@@ -10,6 +10,7 @@ import { Board } from "../board";
 import { Bus } from "../bus";
 import { migrate } from "../db";
 import type { Flows } from "../flows";
+import { Chat } from "../team-chat";
 import { Sync } from "./client";
 
 // A web member (plan.md 4.3) against a real hub and a real Igrek: what the browser does,
@@ -101,4 +102,35 @@ describe("web member", () => {
     const all = stored.query("SELECT data FROM events").all() as { data: string }[];
     expect(all.some((e) => e.data.includes("ship it") || e.data.includes("checkout"))).toBe(false);
   });
+
+  test("reactions go both ways between the browser and Igrek; an edit and a deletion reach the browser", async () => {
+    const chat = new Chat(db, new Bus());
+    admin.chat = chat;
+    const shop = [...browser.projects.values()][0];
+    if (!shop) throw new Error("no project");
+    const id = chat.post({
+      projectId: "p1",
+      channel: "p1:general",
+      text: "Deploy at 5?",
+      author: "mohamed",
+      mentions: [],
+    });
+    await admin.flush();
+    await until(() => shop.comments.has(id));
+    // From the browser to Igrek, then taken back with a second tap.
+    await browser.react(shop.key, id, "like");
+    await until(() => (chat.message(id)?.reactions ?? []).length > 0);
+    expect(chat.message(id)?.reactions[0]).toMatchObject({ reaction: "like", names: ["ayse"] });
+    await browser.react(shop.key, id, "like");
+    await until(() => (chat.message(id)?.reactions ?? []).length === 0);
+    // From Igrek to the browser.
+    chat.react(id, "celebrate", "mohamed");
+    chat.edit(id, "Deploy at 6?");
+    await admin.flush();
+    await until(() => (shop.reactions.get(id)?.size ?? 0) > 0 && shop.comments.get(id)?.text === "Deploy at 6?");
+    chat.remove(id);
+    await admin.flush();
+    await until(() => !!shop.comments.get(id)?.deleted);
+    expect(shop.comments.get(id)?.text).toBe("");
+  }, 30_000);
 });

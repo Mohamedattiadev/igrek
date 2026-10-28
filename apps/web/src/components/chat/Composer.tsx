@@ -1,6 +1,6 @@
 import type { TeamMember } from "@igrek/core";
-import { Send, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Send, Sparkles, X } from "lucide-react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { Button } from "../ui";
@@ -19,6 +19,27 @@ function suggestionsFor(text: string, members: TeamMember[], aiLabel: string): S
   return [...ai, ...people].slice(0, 6);
 }
 
+/** What the next message is: an answer quoting one, or one of mine being edited. Esc drops it. */
+function ComposerBanner({ children, onCancel }: { children: ReactNode; onCancel: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="mb-1.5 flex items-start gap-2">
+      <div className="min-w-0 flex-1">{children}</div>
+      <Button size="sm" variant="ghost" icon={X} onClick={onCancel} aria-label={t("teamChat.cancel")} />
+    </div>
+  );
+}
+
+/** At most one "typing" note to teammates every few seconds while keys are pressed. */
+function useTypingPing(onTyping?: () => void) {
+  const last = useRef(0);
+  return () => {
+    if (!onTyping || Date.now() - last.current < 3000) return;
+    last.current = Date.now();
+    onTyping();
+  };
+}
+
 /**
  * Where a message is written: Enter sends, Shift+Enter is a new line, "@" offers teammates and
  * @ai (Igrek answers in the thread with the writer's own Claude).
@@ -28,21 +49,33 @@ export function Composer({
   members,
   onSend,
   autoFocus,
+  banner,
+  initialText = "",
+  onCancel,
+  onTyping,
 }: {
   placeholder: string;
   members: TeamMember[];
   onSend: (text: string) => Promise<unknown>;
   autoFocus?: boolean;
+  /** Shown above the box: the quoted message, or "Editing". */
+  banner?: ReactNode;
+  initialText?: string;
+  onCancel?: () => void;
+  onTyping?: () => void;
 }) {
   const { t } = useTranslation();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText);
+  const ping = useTypingPing(onTyping);
   const [picked, setPicked] = useState(0);
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
   // A thread opens with its reply box ready: focused once, when it opens.
+  // A quote or an edit focuses the box too, like WhatsApp after a swipe.
+  const hasBanner = !!banner;
   useEffect(() => {
-    if (autoFocus) input.current?.focus();
-  }, [autoFocus]);
+    if (autoFocus || hasBanner) input.current?.focus();
+  }, [autoFocus, hasBanner]);
   const suggestions = suggestionsFor(text, members, t("teamChat.aiName"));
   const choose = (s: Suggestion) => {
     setText(text.replace(/@[\w.-]*$/, `@${s.name} `));
@@ -71,7 +104,10 @@ export function Composer({
     } else if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       void send();
-    }
+    } else if (e.key === "Escape" && onCancel) {
+      e.preventDefault();
+      onCancel();
+    } else ping();
   };
   return (
     <div className="relative">
@@ -103,6 +139,7 @@ export function Composer({
           ))}
         </div>
       )}
+      {banner && onCancel && <ComposerBanner onCancel={onCancel}>{banner}</ComposerBanner>}
       <div className="flex items-end gap-2 rounded-xl border border-border bg-bg px-3 py-2 focus-within:border-accent">
         <textarea
           ref={input}

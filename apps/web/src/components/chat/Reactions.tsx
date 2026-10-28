@@ -1,39 +1,23 @@
 import { CHAT_REACTIONS, type ChatMessage, type ChatReaction, type TeamMember } from "@igrek/core";
-import {
-  Check,
-  Eye,
-  Heart,
-  Laugh,
-  type LucideIcon,
-  PartyPopper,
-  SmilePlus,
-  SquareCheckBig,
-  ThumbsUp,
-} from "lucide-react";
+import { SmilePlus, SquareCheckBig } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
-
-/** Icons, not emoji (AGENTS.md): each reaction is a lucide icon with a colour of its own. */
-const ICONS: Record<ChatReaction, { icon: LucideIcon; tone: string }> = {
-  like: { icon: ThumbsUp, tone: "text-accent" },
-  love: { icon: Heart, tone: "text-danger" },
-  done: { icon: Check, tone: "text-success" },
-  laugh: { icon: Laugh, tone: "text-warning" },
-  seen: { icon: Eye, tone: "text-fg-muted" },
-  celebrate: { icon: PartyPopper, tone: "text-accent" },
-};
+import { REACTION_ICONS as ICONS } from "./reaction-icons";
 
 const react = (message: ChatMessage, reaction: ChatReaction) =>
   void api.reactToMessage(message.id, reaction).catch(() => undefined);
 
-/** The reactions under a message, like WhatsApp's: a count each, mine stand out, a tap takes mine back. */
+/**
+ * The reactions on a message, like WhatsApp's: one small pill sitting on the message's lower edge,
+ * an icon per kind (a count when more than one gave it), mine stand out, a tap takes mine back.
+ */
 export function ReactionChips({ message }: { message: ChatMessage }) {
   const { t } = useTranslation();
   if (!message.reactions.length) return null;
   return (
-    <div className="mt-1 flex flex-wrap gap-1">
+    <div className="relative z-10 -mb-3 mt-0.5 inline-flex items-center gap-0.5 rounded-full border border-border bg-bg p-0.5 shadow-ui">
       {message.reactions.map((r) => {
         const { icon: Icon, tone } = ICONS[r.reaction];
         const label = `${t(`teamChat.reaction_${r.reaction}`)}: ${r.names.join(", ")}`;
@@ -46,12 +30,12 @@ export function ReactionChips({ message }: { message: ChatMessage }) {
             aria-label={label}
             data-tip={label}
             className={cn(
-              "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[12px] tabular-nums",
-              r.mine ? "border-accent bg-accent-soft" : "border-border bg-bg hover:border-fg-subtle",
+              "inline-flex h-5 items-center gap-0.5 rounded-full px-1.5 text-[11.5px] tabular-nums hover:bg-bg-hover",
+              r.mine && "bg-accent-soft",
             )}
           >
             <Icon size={13} className={tone} aria-hidden="true" />
-            {r.count}
+            {r.count > 1 && r.count}
           </button>
         );
       })}

@@ -1075,10 +1075,33 @@ export const api = {
     request<ChatMessage[]>(
       `/api/chat/channels/${encodeURIComponent(channel)}/messages${thread ? `?thread=${encodeURIComponent(thread)}` : ""}`,
     ),
-  postChat: (channel: string, text: string, parentId?: string) =>
+  postChat: (channel: string, text: string, parentId?: string, quoteId?: string) =>
     request<ChatMessage>(`/api/chat/channels/${encodeURIComponent(channel)}/messages`, {
       method: "POST",
-      body: JSON.stringify({ text, parentId }),
+      body: JSON.stringify({ text, parentId, quoteId }),
+    }),
+  editChat: (id: string, text: string) =>
+    request<ChatMessage>(`/api/chat/messages/${id}`, { method: "PATCH", body: JSON.stringify({ text }) }),
+  deleteChat: (id: string) => request<ChatMessage>(`/api/chat/messages/${id}`, { method: "DELETE" }),
+  pinChat: (id: string, on: boolean) =>
+    request<ChatMessage>(`/api/chat/messages/${id}/pin`, { method: "POST", body: JSON.stringify({ on }) }),
+  starChat: (id: string, on: boolean) =>
+    request<ChatMessage>(`/api/chat/messages/${id}/star`, { method: "POST", body: JSON.stringify({ on }) }),
+  forwardChat: (id: string, channel: string) =>
+    request<ChatMessage>(`/api/chat/messages/${id}/forward`, { method: "POST", body: JSON.stringify({ channel }) }),
+  pinnedChat: (channel: string) => request<ChatMessage[]>(`/api/chat/channels/${encodeURIComponent(channel)}/pinned`),
+  starredChat: () => request<ChatMessage[]>("/api/chat/starred"),
+  searchChat: (channel: string, q: string) =>
+    request<ChatMessage[]>(`/api/chat/channels/${encodeURIComponent(channel)}/search?q=${encodeURIComponent(q)}`),
+  muteChannel: (channel: string, on: boolean) =>
+    request<{ ok: boolean }>(`/api/chat/channels/${encodeURIComponent(channel)}/mute`, {
+      method: "POST",
+      body: JSON.stringify({ on }),
+    }),
+  chatTyping: (channel: string) =>
+    request<{ ok: boolean }>(`/api/chat/channels/${encodeURIComponent(channel)}/typing`, {
+      method: "POST",
+      body: "{}",
     }),
   channelSummary: (channel: string) =>
     request<{ summary: string }>(`/api/channels/${encodeURIComponent(channel)}/summary`, {

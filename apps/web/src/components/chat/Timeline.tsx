@@ -84,7 +84,7 @@ export function TeamTimeline() {
     [],
   );
   useEffect(load, [load]);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && load());
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && load());
   const people = [...new Set((items ?? []).filter((i) => !i.mine && i.who).map((i) => i.who))];
   const shown = (items ?? []).filter((i) => !who || (who === "me" ? i.mine : i.who === who));
   const days = [...new Set(shown.map((i) => dayOf(i.at, i18n.language)))];

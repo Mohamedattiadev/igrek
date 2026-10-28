@@ -43,9 +43,17 @@ type MessageRow = {
   task_title: string | null;
   task_status: TaskStatus | null;
   task_assignee: string | null;
+  quote_of: string | null;
+  edited_at: number | null;
+  deleted: number;
+  pinned: number;
+  starred: number;
+  forwarded: number;
+  read: number;
 };
 
 const SELECT_MESSAGE = `SELECT c.id, c.target_id, c.parent_id, c.author_id, c.author_name, c.text, c.at, c.bot, c.task_id,
+  c.quote_of, c.edited_at, c.deleted, c.pinned, c.starred, c.forwarded, c.read,
   (SELECT COUNT(*) FROM comments r WHERE r.parent_id = c.id) AS replies,
   (SELECT MAX(r.at) FROM comments r WHERE r.parent_id = c.id) AS last_reply,
   t.title AS task_title, t.status AS task_status, t.assignee_name AS task_assignee
@@ -53,7 +61,26 @@ const SELECT_MESSAGE = `SELECT c.id, c.target_id, c.parent_id, c.author_id, c.au
 
 type Reactions = ChatMessage["reactions"];
 
-function toMessage(r: MessageRow, reactions: Reactions = []): ChatMessage {
+/** What a message adds to the plain row: its reactions, the message it quotes, who has seen it. */
+interface Extras {
+  reactions?: Reactions;
+  quote?: ChatMessage["quote"];
+  seenBy?: string[];
+}
+
+/** Only what is set, so a plain message stays small on the wire. */
+function flags(r: MessageRow): Partial<ChatMessage> {
+  return {
+    ...(r.edited_at ? { editedAt: r.edited_at } : {}),
+    ...(r.deleted ? { deleted: true } : {}),
+    ...(r.pinned ? { pinned: true } : {}),
+    ...(r.starred ? { starred: true } : {}),
+    ...(r.forwarded ? { forwarded: true } : {}),
+    ...(r.read ? {} : { unread: true }),
+  };
+}
+
+function toMessage(r: MessageRow, extras: Extras = {}): ChatMessage {
   return {
     id: r.id,
     channelId: r.target_id,
@@ -62,10 +89,13 @@ function toMessage(r: MessageRow, reactions: Reactions = []): ChatMessage {
     ...(r.author_id ? { authorId: r.author_id } : {}),
     mine: r.author_id === null,
     bot: r.bot === 1,
-    text: r.text,
+    text: r.deleted ? "" : r.text,
     at: r.at,
     replies: r.replies,
-    reactions,
+    reactions: extras.reactions ?? [],
+    ...flags(r),
+    ...(extras.quote ? { quote: extras.quote } : {}),
+    ...(extras.seenBy?.length ? { seenBy: extras.seenBy } : {}),
     ...(r.last_reply ? { lastReplyAt: r.last_reply } : {}),
     ...(r.task_id && r.task_title && r.task_status
       ? {
@@ -105,6 +135,11 @@ export class Chat {
           .all() as { target_id: string; last: number; unread: number; n: number; from_names: string }[]
       ).map((r) => [r.target_id, r]),
     );
+    const muted = new Set(
+      (this.db.query("SELECT channel AS channel_id FROM chat_muted").all() as { channel_id: string }[]).map(
+        (r) => r.channel_id,
+      ),
+    );
     const made = this.db.query("SELECT id, project_id, name, topic FROM channels").all() as {
       id: string;
       project_id: string;
@@ -132,6 +167,7 @@ export class Chat {
           unread: s?.unread ?? 0,
           unreadFrom: s ? (JSON.parse(s.from_names) as (string | null)[]).filter((n): n is string => !!n) : [],
           messages: s?.n ?? 0,
+          muted: muted.has(id),
         };
       })
       .sort((a, b) => a.project.localeCompare(b.project) || (a.name === "general" ? -1 : a.name.localeCompare(b.name)));
@@ -153,7 +189,7 @@ export class Chat {
   /** The channel's messages without replies (newest 200), or one thread's replies. */
   messages(channel: string, thread?: string): ChatMessage[] {
     if (thread)
-      return this.withReactions(
+      return this.decorate(
         this.db.query(`${SELECT_MESSAGE} WHERE c.parent_id = ? ORDER BY c.at`).all(thread) as MessageRow[],
       );
     const rows = this.db
@@ -161,16 +197,78 @@ export class Chat {
         `${SELECT_MESSAGE} WHERE c.target_kind = 'channel' AND c.target_id = ? AND c.parent_id IS NULL ORDER BY c.at DESC LIMIT 200`,
       )
       .all(channel) as MessageRow[];
-    return this.withReactions(rows.reverse());
+    return this.decorate(rows.reverse());
   }
 
   message(id: string): ChatMessage | undefined {
     const row = this.db.query(`${SELECT_MESSAGE} WHERE c.id = ?`).get(id) as MessageRow | null;
-    return row ? this.withReactions([row])[0] : undefined;
+    return row ? this.decorate([row])[0] : undefined;
+  }
+
+  /** Reactions, quotes and who has seen them, a few queries for the whole list. */
+  private decorate(rows: MessageRow[]): ChatMessage[] {
+    const reactions = this.reactionsOf(rows);
+    const quotes = this.quotesOf(rows);
+    const seen = this.seenOf(rows);
+    return rows.map((r) => toMessage(r, { reactions: reactions.get(r.id), quote: quotes.get(r.id), seenBy: seen(r) }));
+  }
+
+  /** The message each one answers: who wrote it and how it starts. */
+  private quotesOf(rows: MessageRow[]): Map<string, NonNullable<ChatMessage["quote"]>> {
+    const ids = rows.flatMap((r) => (r.quote_of ? [r.quote_of] : []));
+    const out = new Map<string, NonNullable<ChatMessage["quote"]>>();
+    if (!ids.length) return out;
+    const found = new Map(
+      (
+        this.db
+          .query(
+            "SELECT id, author_id, author_name, text, deleted FROM comments WHERE id IN (SELECT value FROM json_each(?))",
+          )
+          .all(JSON.stringify(ids)) as {
+          id: string;
+          author_id: string | null;
+          author_name: string | null;
+          text: string;
+          deleted: number;
+        }[]
+      ).map((q) => [q.id, q]),
+    );
+    for (const r of rows) {
+      if (!r.quote_of) continue;
+      const q = found.get(r.quote_of);
+      out.set(
+        r.id,
+        q
+          ? {
+              id: q.id,
+              mine: q.author_id === null,
+              text: q.deleted ? "" : q.text.slice(0, 200),
+              ...(q.author_name ? { author: q.author_name } : {}),
+            }
+          : { id: r.quote_of, mine: false, text: "", missing: true },
+      );
+    }
+    return out;
+  }
+
+  /** For my own messages: the teammates who have read their channel past it. */
+  private seenOf(rows: MessageRow[]): (r: MessageRow) => string[] | undefined {
+    const channels = [...new Set(rows.filter((r) => r.author_id === null).map((r) => r.target_id))];
+    if (!channels.length) return () => undefined;
+    const marks = this.db
+      .query(
+        `SELECT channel AS channel_id, COALESCE(member_name, '') AS name, at FROM chat_seen
+         WHERE member != '' AND channel IN (SELECT value FROM json_each(?))`,
+      )
+      .all(JSON.stringify(channels)) as { channel_id: string; name: string; at: number }[];
+    return (r) =>
+      r.author_id === null
+        ? marks.filter((m) => m.channel_id === r.target_id && m.at >= r.at && m.name).map((m) => m.name)
+        : undefined;
   }
 
   /** The reactions under each message, in one query: grouped by kind, with who gave them. */
-  private withReactions(rows: MessageRow[]): ChatMessage[] {
+  private reactionsOf(rows: MessageRow[]): Map<string, Reactions> {
     const given = new Map<string, Reactions>();
     const found = this.db
       .query(
@@ -195,7 +293,7 @@ export class Chat {
       if (f.member_name) entry.names.push(f.member_name);
       given.set(f.comment_id, list);
     }
-    return rows.map((r) => toMessage(r, given.get(r.id)));
+    return given;
   }
 
   /**
@@ -226,12 +324,15 @@ export class Chat {
     mentions: string[];
     bot?: boolean;
     taskId?: string;
+    quoteId?: string;
+    forwarded?: boolean;
   }): string {
     const id = crypto.randomUUID();
     this.db
       .query(
-        `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read, parent_id, bot, task_id)
-         VALUES (?, ?, 'channel', ?, NULL, ?, ?, ?, ?, 1, ?, ?, ?)`,
+        `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read, parent_id, bot, task_id,
+           quote_of, forwarded)
+         VALUES (?, ?, 'channel', ?, NULL, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`,
       )
       .run(
         id,
@@ -244,9 +345,201 @@ export class Chat {
         args.parentId ?? null,
         args.bot ? 1 : 0,
         args.taskId ?? null,
+        args.quoteId ?? null,
+        args.forwarded ? 1 : 0,
       );
     this.bus.publish({ type: "chat-changed", channelId: args.channel });
     return id;
+  }
+
+  private changed(messageId: string): void {
+    const row = this.db.query("SELECT target_id FROM comments WHERE id = ?").get(messageId) as {
+      target_id: string;
+    } | null;
+    if (row) this.bus.publish({ type: "chat-changed", channelId: row.target_id });
+  }
+
+  /** My own message, written again; teammates get the new text with the next sync. */
+  edit(messageId: string, text: string): boolean {
+    const { changes } = this.db
+      .query(
+        `UPDATE comments SET text = ?, edited_at = ?, update_at = ?, update_sent = 0
+         WHERE id = ? AND author_id IS NULL AND deleted = 0 AND bot = 0`,
+      )
+      .run(text.slice(0, 8000), Date.now(), Date.now(), messageId);
+    if (changes) this.changed(messageId);
+    return changes > 0;
+  }
+
+  /** My own message, deleted for everyone: "This message was deleted" stays in its place. */
+  remove(messageId: string): boolean {
+    const { changes } = this.db
+      .query(
+        "UPDATE comments SET text = '', deleted = 1, pinned = 0, update_at = ?, update_sent = 0 WHERE id = ? AND author_id IS NULL",
+      )
+      .run(Date.now(), messageId);
+    if (changes) this.changed(messageId);
+    return changes > 0;
+  }
+
+  /** Pinned for the whole team (anyone may pin, like in a WhatsApp group). */
+  pin(messageId: string, on: boolean): void {
+    this.db
+      .query("UPDATE comments SET pinned = ?, update_at = ?, update_sent = 0 WHERE id = ? AND deleted = 0")
+      .run(on ? 1 : 0, Date.now(), messageId);
+    this.changed(messageId);
+  }
+
+  /** Starred for me only; it never leaves this computer. */
+  star(messageId: string, on: boolean): void {
+    this.db.query("UPDATE comments SET starred = ? WHERE id = ?").run(on ? 1 : 0, messageId);
+    this.changed(messageId);
+  }
+
+  pinned(channel: string): ChatMessage[] {
+    return this.decorate(
+      this.db
+        .query(`${SELECT_MESSAGE} WHERE c.target_id = ? AND c.pinned = 1 AND c.deleted = 0 ORDER BY c.at DESC`)
+        .all(channel) as MessageRow[],
+    );
+  }
+
+  /** Every starred message of the given projects, newest first. */
+  starred(projectIds: string[]): ChatMessage[] {
+    return this.decorate(
+      this.db
+        .query(
+          `${SELECT_MESSAGE} WHERE c.target_kind = 'channel' AND c.starred = 1 AND c.deleted = 0
+             AND c.project_id IN (SELECT value FROM json_each(?)) ORDER BY c.at DESC LIMIT 200`,
+        )
+        .all(JSON.stringify(projectIds)) as MessageRow[],
+    );
+  }
+
+  /** Messages of a channel (replies too) that contain every word searched for. */
+  search(channel: string, query: string): ChatMessage[] {
+    const words = query.toLowerCase().split(/\s+/).filter(Boolean).slice(0, 8);
+    if (!words.length) return [];
+    const like = words.map(() => "AND lower(c.text) LIKE ? ESCAPE '\\'").join(" ");
+    return this.decorate(
+      this.db
+        .query(
+          `${SELECT_MESSAGE} WHERE c.target_kind = 'channel' AND c.target_id = ? AND c.deleted = 0 AND c.bot = 0 ${like}
+           ORDER BY c.at DESC LIMIT 100`,
+        )
+        .all(channel, ...words.map((w) => `%${w.replace(/[\\%_]/g, "\\$&")}%`)) as MessageRow[],
+    );
+  }
+
+  setMuted(channel: string, on: boolean): void {
+    this.db
+      .query(on ? "INSERT OR IGNORE INTO chat_muted (channel) VALUES (?)" : "DELETE FROM chat_muted WHERE channel = ?")
+      .run(channel);
+    this.bus.publish({ type: "chat-changed", channelId: channel });
+  }
+
+  // ---- team sync of edits, deletions, pins and "seen" -------------------------------------------
+
+  unsentUpdates(projectId: string): {
+    id: string;
+    text: string;
+    deleted: boolean;
+    pinned: boolean;
+    editedAt?: number;
+    at: number;
+  }[] {
+    return (
+      this.db
+        .query(
+          `SELECT id, text, deleted, pinned, edited_at, update_at, author_id FROM comments
+           WHERE project_id = ? AND update_sent = 0 AND sent = 1 AND target_kind = 'channel'`,
+        )
+        .all(projectId) as {
+        id: string;
+        text: string;
+        deleted: number;
+        pinned: number;
+        edited_at: number | null;
+        update_at: number | null;
+        author_id: string | null;
+      }[]
+    ).map((r) => ({
+      id: r.id,
+      // Only the writer's own computer speaks for the text; a pin from anyone else carries none.
+      text: r.author_id === null ? r.text : "",
+      deleted: r.author_id === null && r.deleted === 1,
+      pinned: r.pinned === 1,
+      ...(r.edited_at && r.author_id === null ? { editedAt: r.edited_at } : {}),
+      at: r.update_at ?? 0,
+    }));
+  }
+
+  /** Sent, unless it changed again on its way. */
+  markUpdateSent(id: string, at: number): void {
+    this.db.query("UPDATE comments SET update_sent = 1 WHERE id = ? AND update_at = ?").run(id, at);
+  }
+
+  /**
+   * A teammate edited, deleted or pinned a message. The pin is anyone's and the newest one wins;
+   * text and deletion count only from the one who wrote it, so someone else's later pin cannot hold
+   * back the writer's own deletion or edit.
+   */
+  applyUpdate(value: Record<string, unknown>, author: { id: string }): void {
+    const id = String(value.id ?? "");
+    const at = Number(value.at ?? 0);
+    const row = this.db.query("SELECT author_id, update_at, edited_at FROM comments WHERE id = ?").get(id) as {
+      author_id: string | null;
+      update_at: number | null;
+      edited_at: number | null;
+    } | null;
+    if (!row) return;
+    this.db.transaction(() => {
+      if ((row.update_at ?? 0) <= at)
+        this.db
+          .query("UPDATE comments SET pinned = ?, update_at = ?, update_sent = 1 WHERE id = ?")
+          .run(value.pinned ? 1 : 0, at, id);
+      if (row.author_id !== author.id) return;
+      if (value.deleted) this.db.query("UPDATE comments SET text = '', deleted = 1, pinned = 0 WHERE id = ?").run(id);
+      else if (Number(value.editedAt ?? 0) > (row.edited_at ?? 0))
+        this.db
+          .query("UPDATE comments SET text = ?, edited_at = ? WHERE id = ? AND deleted = 0")
+          .run(String(value.text ?? "").slice(0, 8000), Number(value.editedAt), id);
+    })();
+    this.changed(id);
+  }
+
+  /** My "read up to here" marks of the project's channels (those its messages are in, or named after it). */
+  unsentSeen(projectId: string): { channelId: string; at: number }[] {
+    return (
+      this.db
+        .query(
+          `SELECT channel AS channel_id, at FROM chat_seen WHERE member = '' AND sent = 0 AND (
+             channel IN (SELECT DISTINCT target_id FROM comments WHERE project_id = ? AND target_kind = 'channel')
+             OR channel LIKE ? ESCAPE '\\')`,
+        )
+        .all(projectId, `${projectId.replace(/[\\%_]/g, "\\$&")}:%`) as { channel_id: string; at: number }[]
+    ).map((r) => ({ channelId: r.channel_id, at: r.at }));
+  }
+
+  markSeenSent(channel: string, at: number): void {
+    this.db.query("UPDATE chat_seen SET sent = 1 WHERE channel = ? AND member = '' AND at = ?").run(channel, at);
+  }
+
+  /** How far a teammate has read a channel; its id is rebuilt with our project id, like a channel's. */
+  applySeen(projectId: string, value: Record<string, unknown>, author: { id: string; name: string }): void {
+    const name = String(value.channelId ?? "")
+      .split(":")
+      .slice(1)
+      .join(":");
+    if (!author.id || !name) return;
+    const channel = channelId(projectId, name);
+    this.db
+      .query(
+        `INSERT INTO chat_seen (channel, member, member_name, at, sent) VALUES (?, ?, ?, ?, 1)
+         ON CONFLICT(channel, member) DO UPDATE SET member_name = excluded.member_name, at = MAX(chat_seen.at, excluded.at)`,
+      )
+      .run(channel, author.id, author.name, Number(value.at ?? 0));
+    this.bus.publish({ type: "chat-changed", channelId: channel });
   }
 
   /** Igrek is writing an answer in this channel: the page shows it, nothing is stored. */
@@ -259,11 +552,21 @@ export class Chat {
     this.db.query("UPDATE comments SET sent = 1 WHERE id = ?").run(id);
   }
 
-  /** Opened: its count goes, and the sidebar hears of it at once. */
+  /** Opened: its count goes, the sidebar hears of it at once, and teammates see that I read it. */
   markRead(channel: string): void {
-    const { changes } = this.db
-      .query("UPDATE comments SET read = 1 WHERE target_kind = 'channel' AND target_id = ? AND read = 0")
-      .run(channel);
+    const changes = this.db.transaction(() => {
+      const { changes } = this.db
+        .query("UPDATE comments SET read = 1 WHERE target_kind = 'channel' AND target_id = ? AND read = 0")
+        .run(channel);
+      if (changes > 0)
+        this.db
+          .query(
+            `INSERT INTO chat_seen (channel, member, at, sent) VALUES (?, '', ?, 0)
+             ON CONFLICT(channel, member) DO UPDATE SET at = excluded.at, sent = 0`,
+          )
+          .run(channel, Date.now());
+      return changes;
+    })();
     if (changes > 0) this.bus.publish({ type: "chat-changed", channelId: channel });
   }
 

@@ -13,6 +13,7 @@ import type { Flows } from "../flows";
 import { Lessons } from "../lessons";
 import { Library } from "../library";
 import { Store } from "../store";
+import { Chat } from "../team-chat";
 import { Sync } from "./client";
 
 const dir = mkdtempSync(join(tmpdir(), "igrek-sync-"));
@@ -25,7 +26,8 @@ afterAll(() => server.stop(true));
 function device(name: string) {
   const db = new Database(":memory:");
   migrate(db);
-  const sync = new Sync(db, new Bus(), join(dir, `${name}.json`), () => name);
+  const bus = new Bus();
+  const sync = new Sync(db, bus, join(dir, `${name}.json`), () => name);
   const board = new Board(db, new Bus(), {} as Flows);
   sync.board = board;
   const offline = {
@@ -45,7 +47,7 @@ function device(name: string) {
     async () => "",
   );
   sync.lessons = lessons;
-  return { db, sync, board, lessons };
+  return { db, sync, board, lessons, bus };
 }
 
 async function until(check: () => boolean, ms = 8000): Promise<void> {
@@ -317,6 +319,44 @@ describe("team sync", () => {
       read: 0,
     });
   });
+
+  test("a quoted reply, an edit, a pin, a deletion, 'seen' and 'typing' reach the teammate", async () => {
+    a.sync.chat = new Chat(a.db, a.bus);
+    b.sync.chat = new Chat(b.db, b.bus);
+    const typing: string[][] = [];
+    b.bus.subscribe((e) => {
+      if (e.type === "chat-changed" && e.typing) typing.push(e.typing);
+    });
+    // Kerim answers "Deploy at 5?" quoting it. (His copy of the project has its own id here.)
+    const reply = b.sync.chat.post({
+      projectId: "local-p",
+      channel: "p1:general",
+      text: "Yes",
+      author: "kerim",
+      mentions: [],
+      quoteId: "ch1",
+    });
+    await b.sync.flush();
+    await until(() => !!a.db.query("SELECT 1 FROM comments WHERE id = ?").get(reply));
+    expect(a.sync.chat.message(reply)?.quote).toMatchObject({ id: "ch1", text: "Deploy at 5?", mine: true });
+    // I correct my question and pin it; Kerim sees both. He opens the channel: I see he read it.
+    a.sync.chat.edit("ch1", "Deploy at 6?");
+    a.sync.chat.pin("ch1", true);
+    await a.sync.flush();
+    await until(() => b.sync.chat?.message("ch1")?.text === "Deploy at 6?");
+    expect(b.sync.chat.message("ch1")).toMatchObject({ pinned: true, editedAt: expect.any(Number) });
+    b.sync.chat.markRead("p1:general");
+    await b.sync.flush();
+    await until(() => (a.sync.chat?.message("ch1")?.seenBy ?? []).length > 0);
+    // Kerim cannot delete my message for me; I can.
+    b.sync.chat.applyUpdate({ id: "ch1", deleted: true, pinned: false, at: Date.now() + 1 }, { id: "someone" });
+    a.sync.chat.remove("ch1");
+    await a.sync.flush();
+    await until(() => !!b.sync.chat?.message("ch1")?.deleted);
+    await a.sync.sendTyping("p1", "p1:general");
+    await until(() => typing.length > 0);
+    expect(b.sync.typingIn("local-p:general")).toEqual(["mohamed"]);
+  }, 30_000);
 
   test("a teammate renamed on the hub is shown with the new name, on what they sent before too", async () => {
     const id = a.sync.identity().id ?? "";

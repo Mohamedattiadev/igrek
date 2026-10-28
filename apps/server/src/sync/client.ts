@@ -77,6 +77,25 @@ interface WireEvent {
 
 const SHARE_LEVELS: ShareLevel[] = ["off", "summary", "full"];
 const PRESENCE_TTL = 60_000;
+/** "Kerim is typing..." lasts this long after their last key, unless another one comes. */
+const TYPING_TTL = 6_000;
+
+/** A comment or chat message as it goes to teammates: only the parts it has. */
+function commentPayload(cm: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: cm.id,
+    targetKind: cm.target_kind,
+    targetId: cm.target_id,
+    text: cm.text,
+    mentions: JSON.parse(String(cm.mentions)),
+    at: cm.at,
+    ...(cm.parent_id ? { parentId: cm.parent_id } : {}),
+    ...(cm.bot ? { bot: true } : {}),
+    ...(cm.task_id ? { taskId: cm.task_id } : {}),
+    ...(cm.quote_of ? { quoteId: cm.quote_of } : {}),
+    ...(cm.forwarded ? { forwarded: true } : {}),
+  };
+}
 
 /** Each device links its events per project: n counts up, prev is the hash of the one before (plan.md 4.1). */
 function chainHash(prev: string, n: number, nonce: string, data: string): string {
@@ -1306,7 +1325,7 @@ export class Sync {
   private unsentComments(projectId: string): Record<string, unknown>[] {
     return this.db
       .query(
-        "SELECT id, target_kind, target_id, text, mentions, at, parent_id, bot, task_id FROM comments WHERE project_id = ? AND author_id IS NULL AND sent = 0 ORDER BY at LIMIT 50",
+        "SELECT id, target_kind, target_id, text, mentions, at, parent_id, bot, task_id, quote_of, forwarded FROM comments WHERE project_id = ? AND author_id IS NULL AND sent = 0 ORDER BY at LIMIT 50",
       )
       .all(projectId) as Record<string, unknown>[];
   }
@@ -1327,17 +1346,7 @@ export class Sync {
       if (ok) this.chat?.markChannelSent(ch.id);
     }
     for (const cm of this.unsentComments(projectId)) {
-      const ok = await this.publish(key, "comment", `c-${cm.id}-${cm.task_id ?? ""}`, {
-        id: cm.id,
-        targetKind: cm.target_kind,
-        targetId: cm.target_id,
-        text: cm.text,
-        mentions: JSON.parse(String(cm.mentions)),
-        at: cm.at,
-        ...(cm.parent_id ? { parentId: cm.parent_id } : {}),
-        ...(cm.bot ? { bot: true } : {}),
-        ...(cm.task_id ? { taskId: cm.task_id } : {}),
-      });
+      const ok = await this.publish(key, "comment", `c-${cm.id}-${cm.task_id ?? ""}`, commentPayload(cm));
       // Turned into a card while it was on its way: it stays unsent and goes again with the card.
       if (ok)
         this.db
@@ -1348,6 +1357,19 @@ export class Sync {
     for (const r of this.chat?.unsentReactions(projectId) ?? []) {
       const ok = await this.publish(key, "reaction", `r-${r.messageId}-${r.reaction}-${r.at}`, r);
       if (ok) this.chat?.markReactionSent(r.messageId, r.reaction, r.at);
+    }
+    await this.publishChatChanges(key, projectId);
+  }
+
+  /** Edits, deletions and pins of messages teammates already have, then how far I have read. */
+  private async publishChatChanges(key: string, projectId: string): Promise<void> {
+    for (const u of this.chat?.unsentUpdates(projectId) ?? []) {
+      const ok = await this.publish(key, "chat-update", `u-${u.id}-${u.at}`, u);
+      if (ok) this.chat?.markUpdateSent(u.id, u.at);
+    }
+    for (const seen of this.chat?.unsentSeen(projectId) ?? []) {
+      const ok = await this.publish(key, "seen", `seen-${seen.channelId}-${seen.at}`, seen);
+      if (ok) this.chat?.markSeenSent(seen.channelId, seen.at);
     }
   }
 
@@ -1383,27 +1405,73 @@ export class Sync {
     });
   }
 
+  /** The session I am working on in each project, if one moved in the last 15 minutes; one query for all. */
+  private activeSessions(projectIds: string[]): Map<string, Record<string, unknown>> {
+    // SQLite gives the other columns of the row that has the MAX.
+    const rows = this.db
+      .query(
+        `SELECT project_id, title, tool, files_touched, MAX(updated_at) AS updated_at FROM sessions
+         WHERE project_id IN (SELECT value FROM json_each(?)) AND author_id IS NULL AND private = 0 AND updated_at > ?
+         GROUP BY project_id`,
+      )
+      .all(JSON.stringify(projectIds), Date.now() - 15 * 60_000) as {
+      project_id: string;
+      title: string | null;
+      tool: string;
+      files_touched: string;
+      updated_at: number;
+    }[];
+    return new Map(
+      rows.map((r) => [
+        r.project_id,
+        {
+          title: r.title,
+          tool: r.tool,
+          files: (JSON.parse(r.files_touched) as string[]).slice(-8),
+          at: r.updated_at,
+        },
+      ]),
+    );
+  }
+
   /** "Mohamed is working on …": active own sessions in shared projects. */
   private async sendPresence(): Promise<void> {
     if (!this.connected || !this.idKey || !this.config) return;
-    for (const project of this.sharedProjects()) {
+    const projects = this.sharedProjects();
+    const active = this.activeSessions(projects.map((p) => p.id));
+    for (const project of projects) {
+      const session = active.get(project.id);
+      if (!session) continue;
       const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
-      const session = this.db
-        .query(
-          "SELECT title, tool, files_touched, updated_at FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0 ORDER BY updated_at DESC LIMIT 1",
-        )
-        .get(project.id) as
-        | { title: string | null; tool: string; files_touched: string; updated_at: number }
-        | undefined;
-      if (!session || Date.now() - session.updated_at > 15 * 60_000) continue;
-      const files = (JSON.parse(session.files_touched) as string[]).slice(-8);
-      const sealed = await encrypt(
-        this.currentKey(),
-        `${key}:presence`,
-        scrubDeep({ title: session.title, tool: session.tool, files, at: session.updated_at }),
-      );
+      const sealed = await encrypt(this.currentKey(), `${key}:presence`, scrubDeep(session));
       this.send({ op: "presence", project: key, epoch: this.epoch, ...sealed });
     }
+  }
+
+  /**
+   * "Mohamed is typing..." in a channel. It rides on presence, which the hub keeps one of per
+   * computer and project, so the session part goes along and is not wiped. Nothing is stored.
+   */
+  async sendTyping(projectId: string, channel: string): Promise<void> {
+    if (!this.connected || !this.idKey || !this.config) return;
+    const project = this.sharedProjects().find((p) => p.id === projectId);
+    if (!project) return;
+    const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
+    const name = channel.split(":").slice(1).join(":");
+    const sealed = await encrypt(
+      this.currentKey(),
+      `${key}:presence`,
+      scrubDeep({ ...this.activeSessions([projectId]).get(projectId), typing: { channel: name, at: Date.now() } }),
+    );
+    this.send({ op: "presence", project: key, epoch: this.epoch, ...sealed });
+  }
+
+  /** Who is typing where, for a few seconds after their last key. */
+  private typing = new Map<string, { channel: string; name: string; until: number }>();
+
+  typingIn(channel: string): string[] {
+    const now = Date.now();
+    return [...this.typing.values()].filter((t) => t.channel === channel && t.until > now).map((t) => t.name);
   }
 
   // ---- incoming ----------------------------------------------------------------------
@@ -1452,12 +1520,16 @@ export class Sync {
     const projectId = this.keyToProject.get(p.project);
     if (!projectId) return;
     try {
-      const value = await decrypt<{ title?: string; tool?: string; files?: string[]; at?: number }>(
-        key,
-        `${p.project}:presence`,
-        p.nonce,
-        p.data,
-      );
+      const value = await decrypt<{
+        title?: string;
+        tool?: string;
+        files?: string[];
+        at?: number;
+        typing?: { channel?: string; at?: number };
+      }>(key, `${p.project}:presence`, p.nonce, p.data);
+      this.applyTyping(p.author, projectId, value.typing);
+      // Only typing, no session going on: nothing to show as "working on".
+      if (!value.tool) return;
       this.presence.set(`${p.author}:${projectId}`, {
         userId: p.author,
         name: this.authorName(p.author),
@@ -1472,6 +1544,29 @@ export class Sync {
     } catch {
       // Not decryptable with our key: ignore.
     }
+  }
+
+  /** The team chat's events: messages, channels, reactions, edits and "seen". Other kinds are left alone. */
+  private applyChat(
+    kind: string,
+    projectId: string,
+    value: Record<string, unknown>,
+    author: { id: string; name: string },
+    at: number,
+  ): void {
+    if (kind === "comment") this.applyComment(projectId, value, author, at);
+    else if (kind === "channel") this.chat?.applyRemote(projectId, value, author.name);
+    else if (kind === "reaction") this.chat?.applyReaction(value, author);
+    else if (kind === "chat-update") this.chat?.applyUpdate(value, author);
+    else if (kind === "seen") this.chat?.applySeen(projectId, value, author);
+  }
+
+  /** A teammate typing; a stale one (the hub replays the last presence to newcomers) is ignored. */
+  private applyTyping(author: string, projectId: string, typing?: { channel?: string; at?: number }): void {
+    if (!typing?.channel || Date.now() - Number(typing.at ?? 0) > TYPING_TTL) return;
+    const channel = `${projectId}:${typing.channel}`;
+    this.typing.set(author, { channel, name: this.authorName(author), until: Date.now() + TYPING_TTL });
+    this.bus.publish({ type: "chat-changed", channelId: channel, typing: this.typingIn(channel) });
   }
 
   async applyEvents(projectKeyHex: string, events: WireEvent[], options: { repair?: boolean } = {}): Promise<void> {
@@ -1546,9 +1641,6 @@ export class Sync {
           this.db
             .query("DELETE FROM sessions WHERE id = ? AND author_id = ?")
             .run(String(value.id ?? ""), event.author);
-        else if (event.kind === "comment") this.applyComment(projectId, value, author, event.at);
-        else if (event.kind === "channel") this.chat?.applyRemote(projectId, value, author.name);
-        else if (event.kind === "reaction") this.chat?.applyReaction(value, author);
         else if (event.kind === "message") {
           // Only the person it's addressed to keeps it.
           if (value.to === this.config?.user.id)
@@ -1582,6 +1674,7 @@ export class Sync {
               author.name,
               Number(value.at ?? event.at),
             );
+        else this.applyChat(event.kind, projectId, value, author, event.at);
         changed.add(projectId);
       } catch {
         // A tampered or foreign event fails authentication and is skipped.
@@ -1716,8 +1809,10 @@ export class Sync {
   ): void {
     this.db
       .query(
-        `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, sent, parent_id, bot, task_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, (SELECT id FROM comments WHERE id = ?), ?, (SELECT id FROM board_tasks WHERE id = ?))
+        `INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, sent, parent_id, bot, task_id,
+           quote_of, forwarded)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, (SELECT id FROM comments WHERE id = ?), ?, (SELECT id FROM board_tasks WHERE id = ?),
+           ?, ?)
          ON CONFLICT(id) DO UPDATE SET task_id = COALESCE(excluded.task_id, comments.task_id)`,
       )
       .run(
@@ -1733,6 +1828,8 @@ export class Sync {
         String(value.parentId ?? ""),
         value.bot ? 1 : 0,
         String(value.taskId ?? ""),
+        value.quoteId ? String(value.quoteId).slice(0, 64) : null,
+        value.forwarded ? 1 : 0,
       );
     if (value.targetKind === "channel") this.bus.publish({ type: "chat-changed", channelId: String(value.targetId) });
   }
