@@ -1335,18 +1335,18 @@ god-eye/
 
 #### 19.9 Takım sohbeti WhatsApp gibi: kalanlar (28 Ekim 2026)
 - [ ] "emoji ekledin mi react her mesaj icin sohbetlerde? ... whatsapp gibi ne kaldiysa artik plana ekle" — *Tepkiler 0.1.11'de var (her mesajda beğen, sevdim, tamam, komik, gördüm, kutla; kural gereği emoji değil ikon). WhatsApp'ta olup bizde olmayanlar, sırayla:*
-  - [ ] Bir mesaja cevap verirken alıntılama (mesajın üstünde kimden ve ne olduğu küçük bir kutu); şimdilik sadece konu (thread) var
-  - [ ] Kendi mesajını düzenleme ve silme ("düzenlendi", "bu mesaj silindi"), takım arkadaşlarında da güncellenir
-  - [ ] Görüldü bilgisi: mesajı kimin gördüğü (iki tik gibi), üzerine gelince isimler
-  - [ ] "Kerim yazıyor..." göstergesi (Igrek'in "AI yazıyor" göstergesi gibi)
+  - [x] Bir mesaja cevap verirken alıntılama (mesajın üstünde kimden ve ne olduğu küçük bir kutu); şimdilik sadece konu (thread) var — *yapıldı (28 Ekim): mesajın üstündeki "Cevap ver" ile alıntılı cevap; kutuya tıklayınca o mesaja gider; alıntılanan mesaj henüz gelmediyse "henüz burada yok" der, gelince bağlanır.*
+  - [x] Kendi mesajını düzenleme ve silme ("düzenlendi", "bu mesaj silindi"), takım arkadaşlarında da güncellenir — *yapıldı (28 Ekim): "Diğer" menüsünde; metni sadece yazanın bilgisayarı değiştirebilir, hub'ın web sayfasında da güncellenir.*
+  - [x] Görüldü bilgisi: mesajı kimin gördüğü (iki tik gibi), üzerine gelince isimler — *yapıldı (28 Ekim): kanal açılınca "buraya kadar okudum" şifreli gider; kendi mesajlarında tek tik gönderildi, renkli çift tik görüldü, üzerine gelince isimler.*
+  - [x] "Kerim yazıyor..." göstergesi (Igrek'in "AI yazıyor" göstergesi gibi) — *yapıldı (28 Ekim): şifreli presence üzerinden, hiçbir yere kaydedilmez, 6 saniyede söner.*
   - [ ] Doğrudan mesaj: iki kişi arasında kanal dışı özel sohbet
   - [ ] Dosya, resim ve sesli mesaj gönderme (uçtan uca şifreli, hub üzerinden; 19.1'deki yerel Whisper ile yazıya çevrilir)
-  - [ ] Okunmamışların başladığı yerde "Okunmamış mesajlar" çizgisi ve oraya kaydırma
-  - [ ] Mesajı sabitleme ve yıldızlama; kanalda arama
-  - [ ] İleri gönderme (bir mesajı başka bir kanala)
+  - [x] Okunmamışların başladığı yerde "Okunmamış mesajlar" çizgisi ve oraya kaydırma — *yapıldı (28 Ekim): "2 okunmamış mesaj" çizgisi, kanal oradan açılır.*
+  - [x] Mesajı sabitleme ve yıldızlama; kanalda arama — *yapıldı (28 Ekim): sabitleme takımın (herkes görür), yıldız sadece senin; kanal başlığında arama, sabitlenenler ve yıldızlılar paneli.*
+  - [x] İleri gönderme (bir mesajı başka bir kanala) — *yapıldı (28 Ekim): "Diğer > İlet", varılan kanalda "İletildi" yazar.*
   - [ ] Bağlantı önizlemesi (başlık ve görsel; sadece kullanıcının istediği adresler, takip yok)
-  - [ ] Bildirim sesi ve masaüstü bildirimi (kanal başına sessize alma)
-  - [ ] Hub'ın web sayfasında (Kerim'in tarayıcıdan kullandığı) tepkileri göstermek ve vermek; şimdilik sadece masaüstü uygulamasında
+  - [x] Bildirim sesi ve masaüstü bildirimi (kanal başına sessize alma) — *yapıldı (28 Ekim): kısa bir ses (dosya yok, tarayıcıda üretilir) ve Igrek arkadayken bildirim; kanal başlığındaki zil ile sessize alınır.*
+  - [x] Hub'ın web sayfasında (Kerim'in tarayıcıdan kullandığı) tepkileri göstermek ve vermek; şimdilik sadece masaüstü uygulamasında — *yapıldı (28 Ekim): tarayıcıda tepki verilir ve geri alınır; alıntılar, düzenlenen ve silinen mesajlar da orada doğru görünür.*
 
 #### 19.10 Hız ve kaynak kullanımı (28 Ekim 2026)
 - [ ] "bazen lagliyor ... cok yavas oluyor ... rust ile yazildi ya ani bi hiz olmasi lazim bunu sagla ... elinden geldigini hizli olsun az cpu ram ve kullanim" — *Not: masaüstü uygulamasının sadece kabuğu Rust (Tauri); arayüz bir web sayfası (React), işi yapan sunucu Bun. Hız oradan gelir. Sırayla:*
