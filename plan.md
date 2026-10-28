@@ -1368,6 +1368,71 @@ god-eye/
 
 ---
 
+### Faz 20 — Şirket: genel müdür, takımlar, takımlar arası iletişim; hub'ın web sayfası masaüstüyle aynı (28 Ekim 2026)
+
+> Kullanıcı: "simdi sirketin genel mudure ozel bi sey sayfa olmasi lazim di mi, yani porjeleri takip edecek ozet istebilecyeck nerede oldugunu bilecek fln filen test edebilieck, comment yazabileck is atabileck panoya bi seyler yazabileck vs bi suru sey var. sirket-> genel mudur var -> altinda da calisan takim var -> o takima isim koyup iste QA muh. iste bilemem suncudlardan sorumlu fln filen -> takimlara mesaj atip pano ve is yapabileck -> team arasi da iletisim var -> olabileck butun scenariolari dusunmen lazim"
+> Kullanıcı (hub'ın web sayfası için): "baska ozelikler profisnola hale getirecektik hani ... evet hepsini yap"
+
+Bugün: hub'da tek bir "takım" var (herkes aynı yerde), roller şirket çapında yönetici / üye / izleyici, projelerin de kendi erişim listesi (sahip / yönetici / üye / izleyici). Takımın içinde takım, genel müdür ve takımlar arası iş yok. Genel müdür çoğu zaman masaüstü uygulamasını kurmaz; bu yüzden aşağıdakilerin hepsi hub'ın web sayfasında da çalışmalı (20.1).
+
+#### 20.1 Hub'ın web sayfası masaüstüyle aynı (önce bu)
+- [ ] Doğrudan mesajlar tarayıcıda (iki kişinin cihazları için şifreli, masaüstüyle aynı)
+- [ ] Mesajlarda eksikler: dosya, resim, sesli mesaj gönderip açmak; alıntılı cevap, kendi mesajını düzenleme ve silme, görüldü, "yazıyor..."
+- [ ] Takım akışı: kim ne üzerinde çalışıyor, gün gün
+- [ ] Bana atananlar, okunmamış sayıları, @bahsetmeler, gelen kutusu ve tarayıcı bildirimi
+- [ ] Proje sayfası: genel bakış, açık işler, ekran notları
+- [ ] Şirket sayfası (yöneticiye): kişiler, limitler, bütçe
+- [ ] Profil: ad, resim, dil
+- [ ] Tasarım: masaüstüyle aynı kenar çubuğu ve düzen, koyu tema, telefonda düzgün
+
+#### 20.2 Şirketin yapısı: genel müdür ve takımlar
+- [ ] Şirket içinde adlı takımlar: "QA", "Backend", "Sunucular"…; her takımın açıklaması, sorumluluk alanı (projeler, sunucular) ve bir lideri. Bir kişi birden çok takımda olabilir
+- [ ] Yeni rol: genel müdür (yöneticinin üstünde ya da yanında): her şeyi görür, takım kurar, lider atar. Yönetici teknik işleri (cihaz onayı, anahtarlar) yapmaya devam eder
+- [ ] Takım ↔ proje: bir takıma proje verilince üyeleri o projeye erişir (proje erişim listeleri takımdan dolar); takımdan çıkan erişimini kaybeder
+- [ ] Takım liderinin görebildikleri: kendi takımının işi, iş yükü, haftası; atama yapabilir
+
+#### 20.3 Genel müdürün sayfası (Yönetim)
+- [ ] Bütün projeler tek ekranda: aşaması (nerede), ilerleme, açık ve geciken kartlar, son çalışma, sağlık skoru, risk; takım takım
+- [ ] "Özet iste": şirket, takım ya da proje için kısa özet (kendi Claude'uyla), "dün ne oldu", "bu hafta ne bitti, ne kaldı"; haftalık rapor gelen kutusuna
+- [ ] Canlı: kim şu an hangi projede ne yapıyor
+- [ ] Test edebilmek: projenin önizlemesini açıp denemek, beğenmediği yere ekran notu bırakmak (not ilgili takıma kart olur), test kullanıcılarıyla test başlatmak
+- [ ] Yorum yazmak: oturumlara, kartlara, kararlara; yazana bildirim
+- [ ] İş atamak: kişiye, takıma ya da bota; öncelik ve son tarih; panoya kart yazmak
+- [ ] Onay bekleyenler tek yerde: birleştirmeler, bütçe aşımları, takımların istekleri
+- [ ] Duyuru: bütün şirkete ya da seçilen takımlara (sadece genel müdür ve liderler yazar)
+
+#### 20.4 Takımlar ve takımlar arası iletişim
+- [ ] Her takımın kanalı (#qa) ve projeler arası takım panosu; takıma atanan iş takımın kuyruğuna düşer, lider dağıtır ya da biri "ben alıyorum" der
+- [ ] @takım bahsetmesi (@qa): takımın herkesine bildirim
+- [ ] Takımlar arası istek: bir takım diğerine iş açar (QA → Backend "ödemede hata"), karşı takım kabul eder ya da geri çevirir, durum iki tarafta da görünür, bitince isteyene döner
+- [ ] Takımlar arası kanal ya da konu: iki takımın ortak konuşması
+- [ ] Şirket geneli kanal (#genel) ve duyurular
+
+#### 20.5 Senaryolar (her biri uçtan uca denenecek)
+- [ ] Genel müdür sabah açar: şirketin özeti (dün ne oldu, ne gecikti, ne riskli), tıklayıp ayrıntıya iner
+- [ ] "Ödeme modülü nerede?": proje aşaması, son işler, kim çalışıyor, ne kaldı
+- [ ] Yeni iş: "Ödeme sayfası Cuma'ya bitsin" → kart, Backend takımına, son tarihli; lider bir kişiye verir; ilerleme genel müdüre görünür
+- [ ] Genel müdür önizlemede dener, butonu beğenmez, not bırakır → Frontend takımına kart olur → düzelince genel müdüre haber
+- [ ] QA hata bulur → Backend'e istek → Backend lideri atar → düzeltilir → QA'ya geri döner → QA kapatır
+- [ ] Site çöker → Sunucular takımının kanalına uyarı, genel müdüre kısa özet
+- [ ] Genel müdür duyuru yazar → bütün takımlar görür, kimin okuduğu görünür
+- [ ] Yeni çalışan katılır → bir takıma eklenir, takımın projelerine erişir, ilk bakışta takımını ve işlerini görür
+- [ ] Çalışan takım değiştirir ya da ayrılır → erişimi güncellenir, açık kartları devredilir
+- [ ] Takım lideri haftalık özetini genel müdüre gönderir
+- [ ] Bir kişi iki takımda: iki kanalı, iki kuyruğu, işleri karışmadan
+- [ ] Gizli proje: sadece bir takım görür; genel müdür görür, diğer takımlar görmez
+- [ ] Genel müdür bütçe ve limitleri görür, aşanı fark eder
+- [ ] Hepsi tarayıcıdan da (genel müdür uygulamayı kurmadan) yapılabilir
+
+#### 20.6 Kurallar
+- [ ] Özel oturumlar özel kalır: genel müdür sadece paylaşılanı görür; kimin neyi gördüğü denetim kaydında
+- [ ] İzleyici rolü (ör. müşteri, danışman): okur, yorum yazabilir, iş atayamaz
+- [ ] Hepsi uçtan uca şifreli kalır; hub sadece kimin hangi takımda olduğunu bilir
+
+**Bitti sayılır:** Genel müdür tarayıcıdan girip bütün projeleri ve takımları tek ekranda görüyor, özet isteyip bir projeyi deneyebiliyor, not ve yorum bırakıp bir takıma iş atıyor; takımlar birbirine iş açıp konuşuyor; bütün senaryolar denenmiş.
+
+---
+
 ---
 
 ## 9. Açık Sorular ve Riskler
