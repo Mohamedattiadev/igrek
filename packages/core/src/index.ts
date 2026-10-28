@@ -10,6 +10,7 @@ export * from "./insight";
 export * from "./knowledge";
 export * from "./lessons";
 export * from "./library";
+export * from "./meetings";
 export * from "./ops";
 export * from "./org";
 export * from "./persona";
@@ -949,6 +950,18 @@ export type ServerMessage =
   | { type: "team-changed" }
   /** The company's cards, channels or teams changed (plan.md 20). */
   | { type: "org-changed" }
+  /** A meeting room's news from the hub (plan.md 20.8): who is there, who came or left, a signal. */
+  | {
+      type: "call";
+      op: "peers" | "joined" | "left" | "signal";
+      room: string;
+      peers?: { device: string; user: string }[];
+      device?: string;
+      user?: string;
+      name?: string;
+      from?: string;
+      data?: string;
+    }
   | { type: "insight-changed"; projectId: string }
   | { type: "import-progress"; projectId: string }
   | { type: "deploys-changed"; projectId: string }

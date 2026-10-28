@@ -150,6 +150,13 @@ const MIGRATIONS = [
      PRIMARY KEY (team_id, project)
    );
    CREATE INDEX team_projects_project ON team_projects(project);`,
+  // Meetings (plan.md 20.8): one-time links that let an outsider into one call's room for a day.
+  `CREATE TABLE guest_links (
+     token_hash TEXT PRIMARY KEY,
+     room TEXT NOT NULL,
+     expires INTEGER NOT NULL,
+     created_by TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+   );`,
 ];
 
 export interface Policies {

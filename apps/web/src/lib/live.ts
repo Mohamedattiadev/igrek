@@ -17,6 +17,16 @@ export function dispatchServerMessage(message: ServerMessage): void {
   events.dispatchEvent(new CustomEvent(message.type, { detail: message }));
 }
 
+/** The same as useServerEvent, outside React: for a call that lives as long as its page. */
+export function listenServer<T extends ServerMessage["type"]>(
+  type: T,
+  handler: (message: Extract<ServerMessage, { type: T }>) => void,
+): () => void {
+  const listener = (event: Event) => handler((event as CustomEvent).detail);
+  events.addEventListener(type, listener);
+  return () => events.removeEventListener(type, listener);
+}
+
 export function useServerEvent<T extends ServerMessage["type"]>(
   type: T,
   handler: (message: Extract<ServerMessage, { type: T }>) => void,

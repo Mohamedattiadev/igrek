@@ -1,6 +1,7 @@
 import { isManager } from "@igrek/core";
 import { Building2, CloudOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Meetings } from "../meet/Meetings";
 import { EmptyState, Segmented } from "../ui";
 import type { OrgApi } from "./api";
 import { OrgCards } from "./OrgCards";
@@ -9,14 +10,24 @@ import { OrgChannels } from "./OrgPosts";
 import { OrgSettings } from "./OrgSettings";
 import { OrgTeams } from "./OrgTeams";
 
-const TABS = ["home", "cards", "channels", "teams", "settings"] as const;
+const TABS = ["home", "cards", "channels", "meetings", "teams", "settings"] as const;
 export type OrgTab = (typeof TABS)[number];
 
 /**
  * The company (plan.md 20.2-20.7), the same in Igrek and in the hub's web page: the general
  * manager's overview, the cards, the channels and announcements, the teams, the bot.
  */
-export function OrgPage({ api, tab, onTab }: { api: OrgApi; tab?: string; onTab: (tab: OrgTab) => void }) {
+export function OrgPage({
+  api,
+  tab,
+  onTab,
+  meeting,
+}: {
+  api: OrgApi;
+  tab?: string;
+  onTab: (tab: OrgTab) => void;
+  meeting?: string;
+}) {
   const { t } = useTranslation();
   const view = api.view;
   if (!view) return <EmptyState icon={Building2} title={t("org.title")} body={t("org.notInTeam")} />;
@@ -44,6 +55,9 @@ export function OrgPage({ api, tab, onTab }: { api: OrgApi; tab?: string; onTab:
       {current === "home" && <OrgHome api={api} view={view} />}
       {current === "cards" && <OrgCards api={api} view={view} />}
       {current === "channels" && <OrgChannels api={api} view={view} />}
+      {current === "meetings" && (
+        <Meetings api={api} view={view} open={meeting} dark={document.documentElement.dataset.theme === "dark"} />
+      )}
       {current === "teams" && <OrgTeams api={api} view={view} />}
       {current === "settings" && <OrgSettings api={api} view={view} />}
     </div>

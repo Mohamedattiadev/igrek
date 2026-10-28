@@ -1,3 +1,5 @@
+import { cleanMeeting, mergeMeeting, type OrgMeeting } from "./meetings";
+
 /**
  * The company (plan.md 20.2-20.7): its teams (kept on the hub, plain: who is in which team) and
  * everything said and planned between them (kept as end-to-end encrypted events on one company
@@ -119,12 +121,36 @@ export interface OrgState {
   reads: Record<string, Record<string, number>>;
   availability: Record<string, OrgAvailability>;
   bot: OrgBotConfig;
+  /** Meetings and the calendar (plan.md 20.8, meetings.ts). */
+  meetings: Record<string, OrgMeeting>;
+  /** How calls find each other across networks: STUN and TURN servers, and a router for big calls. */
+  meet: OrgMeetConfig;
 }
+
+export interface OrgMeetConfig {
+  iceServers: { urls: string; username?: string; credential?: string }[];
+  /** A LiveKit (or other) router for calls of more than five people; none = direct calls only. */
+  sfu?: string;
+}
+
+/**
+ * A free public STUN server only tells each browser its own public address (no audio or video
+ * passes through it). Teams that want nothing outside replace it, or add their own coturn.
+ */
+export const DEFAULT_MEET: OrgMeetConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
 export const DEFAULT_BOT: OrgBotConfig = { name: "Asistan", handle: "asistan", reportHour: 9, enabled: false };
 
 export function emptyOrg(): OrgState {
-  return { cards: {}, posts: {}, reads: {}, availability: {}, bot: { ...DEFAULT_BOT } };
+  return {
+    cards: {},
+    posts: {},
+    reads: {},
+    availability: {},
+    bot: { ...DEFAULT_BOT },
+    meetings: {},
+    meet: DEFAULT_MEET,
+  };
 }
 
 /** The company stream's name, turned into an opaque id with the team key like a project's. */
@@ -261,11 +287,31 @@ export function foldOrg(
     return { post };
   }
   if (kind === "org-post-edit") return { post: editPost(state, v, e.author) };
+  if (kind.startsWith("org-meeting")) foldMeeting(state, kind, v, e);
   if (kind === "org-read") {
     const id = str(v.id, 40) ?? "";
     state.reads[id] = { ...state.reads[id], [e.author]: num(v.at) ?? e.at };
   } else if (kind === "org-avail") {
     state.availability[e.author] = cleanAvailability(v);
+  } else foldSettings(state, kind, v);
+  return {};
+}
+
+/** The company's settings: how calls connect, and the coordinator bot. */
+function foldSettings(state: OrgState, kind: string, v: Record<string, unknown>): void {
+  if (kind === "org-meet-config") {
+    const servers = Array.isArray(v.iceServers) ? (v.iceServers as Record<string, unknown>[]) : [];
+    state.meet = {
+      iceServers: servers
+        .filter((x) => typeof x.urls === "string" && /^(stun|turns?):/.test(x.urls))
+        .slice(0, 6)
+        .map((x) => ({
+          urls: String(x.urls).slice(0, 200),
+          ...(str(x.username, 100) ? { username: str(x.username, 100) } : {}),
+          ...(str(x.credential, 200) ? { credential: str(x.credential, 200) } : {}),
+        })),
+      ...(str(v.sfu, 200)?.startsWith("wss://") ? { sfu: str(v.sfu, 200) } : {}),
+    };
   } else if (kind === "org-bot") {
     state.bot = {
       name: str(v.name, 40)?.trim() || DEFAULT_BOT.name,
@@ -275,7 +321,29 @@ export function foldOrg(
       enabled: !!v.enabled,
     };
   }
-  return {};
+}
+
+/** A meeting, one line of its transcript, or its whiteboard when it ended. */
+function foldMeeting(
+  state: OrgState,
+  kind: string,
+  v: Record<string, unknown>,
+  e: { author: string; at: number },
+): void {
+  if (kind === "org-meeting") {
+    const m = cleanMeeting(v, e.author, e.at);
+    if (m) state.meetings[m.id] = mergeMeeting(state.meetings[m.id], m);
+    return;
+  }
+  const m = state.meetings[str(v.meeting, 40) ?? ""];
+  if (!m) return;
+  if (kind === "org-meeting-line" && typeof v.text === "string" && v.text.trim()) {
+    const line = { who: str(v.who, 80) ?? e.author, at: num(v.at) ?? e.at, text: v.text.slice(0, 2000) };
+    if (!m.transcript.some((l) => l.who === line.who && l.at === line.at)) {
+      m.transcript.push(line);
+      m.transcript.sort((a, b) => a.at - b.at);
+    }
+  } else if (kind === "org-meeting-board" && typeof v.board === "string" && v.board.length < 400_000) m.board = v.board;
 }
 
 /** The writer's own edit or deletion; the earlier text is kept for whoever may see changes. */

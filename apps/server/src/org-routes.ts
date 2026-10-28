@@ -82,6 +82,7 @@ export function registerOrgRoutes(
     projects: () => Promise<{ projectId: string; key: string }[]>;
     hub: <T>(path: string, init?: RequestInit) => Promise<T>;
     summarize: (question: string) => Promise<string>;
+    call: (msg: { op: string; room: string; to?: string; data?: string; name?: string }) => boolean;
   },
 ): void {
   const { org } = deps;
@@ -131,6 +132,34 @@ export function registerOrgRoutes(
       const out = await deps.hub(`/api/org/${rest}`, { method: c.req.method, ...(body ? { body } : {}) });
       await org.loadStructure();
       return c.json(out);
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+  // Meetings (plan.md 20.8): the page's call goes to the hub through this computer's connection.
+  app.post("/api/org/call", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      op?: string;
+      room?: string;
+      to?: string;
+      data?: string;
+      name?: string;
+    };
+    if (!["join", "leave", "signal"].includes(String(body.op)) || !/^[0-9a-f]{64}$/.test(String(body.room)))
+      return c.json({ error: "Unknown call message" }, 400);
+    return deps.call({ op: String(body.op), room: String(body.room), to: body.to, data: body.data, name: body.name })
+      ? c.json({ ok: true })
+      : c.json({ error: "Not connected to the team hub" }, 503);
+  });
+  app.post("/api/org/guest-link", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { room?: string };
+    try {
+      return c.json(
+        await deps.hub<{ token: string }>("/api/guest-links", {
+          method: "POST",
+          body: JSON.stringify({ room: body.room }),
+        }),
+      );
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Logo } from "../components/Logo";
 import { Button } from "../components/ui";
 import type { MemberClient } from "./client";
+import { GuestCall } from "./GuestCall";
 import { useClient } from "./hooks";
 import { field } from "./MemberBoard";
 import { MemberShell } from "./MemberShell";
@@ -119,6 +120,10 @@ function Waiting({ client, fingerprint }: { client: MemberClient; fingerprint: s
 /** The web member's page (plan.md 4.3, 20.1): the team's work in the browser, as in Igrek. */
 export function MemberApp({ client }: { client: MemberClient }) {
   useClient(client);
+  // A guest's one-time link to a call: no sign-in, no team, just that call (plan.md 20.8).
+  const guest = location.hash.match(/^#\/guest\/([^/]+)\/([^/]+)\/?(.*)$/);
+  if (guest)
+    return <GuestCall token={guest[1] ?? ""} meetingKey={guest[2] ?? ""} title={decodeURIComponent(guest[3] ?? "")} />;
   const s = client.state;
   if (s.phase === "signedOut") return <SignIn client={client} />;
   if (s.phase === "changePassword") return <ChangePassword client={client} />;

@@ -769,6 +769,7 @@ const app = createApp({
       projects: () => sync.projectKeys(),
       hub: (path, init) => sync.hub(path, init),
       summarize: async (question) => (await assist.quickAsk({ question })).answer,
+      call: (msg) => sync.call(msg),
     });
     registerLaunchRoutes(hono, launcher);
     registerSuggestionRoutes(hono, sqlite, (id) => store.projectRow(id)?.path);

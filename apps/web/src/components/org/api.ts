@@ -1,4 +1,5 @@
 import type { OrgState, OrgStructure, ProjectGlance, TeamMember } from "@igrek/core";
+import type { CallTransport } from "../meet/call";
 
 /**
  * What the company pages (plan.md 20.2-20.7) read: the same shape from Igrek's server (GET
@@ -34,6 +35,16 @@ export interface OrgApi {
   summarize?: (facts: string, ask: string) => Promise<string>;
   /** Where a project opens: its page in Igrek or in the browser. */
   openProject?: (key: string) => void;
+  /** Meetings (plan.md 20.8): how a call reaches the hub. */
+  call?: CallTransport;
+  /** A one-time link for someone outside the team. */
+  guestLink?: (room: string) => Promise<string>;
+  /** The hub's web page, where a guest's link opens. */
+  hubUrl?: string;
+  /** Speech to text on this computer (Whisper); only in Igrek. */
+  transcribe?: (audio: Blob) => Promise<string>;
+  /** A meeting's decision into the project's memory; only in Igrek. */
+  addDecision?: (projectKey: string, text: string) => Promise<unknown>;
 }
 
 export const nameOf = (view: OrgView, id?: string): string => {

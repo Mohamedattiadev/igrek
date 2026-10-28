@@ -10,6 +10,7 @@ import {
   generateDeviceKey,
   importTeamKey,
   keyCheck,
+  meetingNotices,
   namedIn,
   type OrgPost,
   type OrgState,
@@ -19,6 +20,7 @@ import {
   type TeamKey,
   unwrapTeamKey,
 } from "@igrek/core";
+import type { CallEvent } from "../components/meet/call";
 import { type DirectDevice, type DirectMessage, deviceIdOf, MemberDirect } from "./direct";
 import { FileParts, prepareFile } from "./files";
 import {
@@ -218,6 +220,7 @@ export class MemberClient {
   }
 
   async signOut(): Promise<void> {
+    clearInterval(this.reminders);
     await this.request("/api/logout", { method: "POST" }).catch(() => undefined);
     await this.store.delete(TOKEN);
     this.ws?.close();
@@ -240,6 +243,8 @@ export class MemberClient {
     this.rooms = await this.direct.roomsFor(user.id, [...this.members.keys()]);
     this.setState({ phase: "ready", user, connected: false });
     this.connect();
+    clearInterval(this.reminders);
+    this.reminders = setInterval(() => this.meetingReminders(), 30_000);
   }
 
   /** This browser's key pair, made once; the private half can't be read back out of the browser. */
@@ -365,6 +370,8 @@ export class MemberClient {
     } else if (msg.op === "org") {
       await this.loadStructure();
       await this.membersChanged();
+    } else if (["peers", "joined", "left", "signal"].includes(msg.op)) {
+      for (const fn of this.callListeners) fn(msg as unknown as CallEvent);
     }
   }
 
@@ -447,6 +454,41 @@ export class MemberClient {
     const out = await this.request(`/api/org/${path}`, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
     await this.loadStructure();
     return out;
+  }
+
+  // ---- meetings (plan.md 20.8): the call's messages go through this connection ---------------
+
+  private callListeners = new Set<(e: CallEvent) => void>();
+
+  callSend(msg: { op: string; room: string; to?: string; data?: string; name?: string }): void {
+    this.send(msg);
+  }
+
+  onCall(fn: (e: CallEvent) => void): () => void {
+    this.callListeners.add(fn);
+    return () => this.callListeners.delete(fn);
+  }
+
+  /** A one-time link for someone outside the team, to one call, for a day. */
+  async guestLink(room: string): Promise<string> {
+    return (
+      await this.request<{ token: string }>("/api/guest-links", { method: "POST", body: JSON.stringify({ room }) })
+    ).token;
+  }
+
+  private reminders?: ReturnType<typeof setInterval>;
+  private toldMeetings = new Set<string>();
+
+  /** Ten minutes before my meetings and when they start; the page words it ("meet:soon"). */
+  private meetingReminders(): void {
+    const me = this.myId();
+    if (!me) return;
+    const teams = this.structure.teams.filter((t) => t.members.includes(me)).map((t) => t.id);
+    for (const n of meetingNotices(Object.values(this.org.meetings), me, teams)) {
+      if (this.toldMeetings.has(n.id)) continue;
+      this.toldMeetings.add(n.id);
+      this.onNotice({ title: n.meeting.title, body: `meet:${n.kind}`, open: `org:meet:${n.meeting.id}` });
+    }
   }
 
   /** How many of my changes still wait for the hub. */

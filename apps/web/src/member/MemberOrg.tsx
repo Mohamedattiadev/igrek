@@ -48,13 +48,26 @@ function orgView(client: MemberClient): OrgView | undefined {
 }
 
 /** The company in the browser (plan.md 20.1): the general manager does not need Igrek installed. */
-export function MemberOrg({ client, tab, go }: { client: MemberClient; tab?: string; go: (to: string) => void }) {
+export function MemberOrg({
+  client,
+  tab,
+  meeting,
+  go,
+}: {
+  client: MemberClient;
+  tab?: string;
+  meeting?: string;
+  go: (to: string) => void;
+}) {
   const api: OrgApi = {
     view: orgView(client),
     act: (kind, value) => client.orgAct(kind, value),
     post: (input) => client.orgPost(input),
     teams: (method, path, body) => client.teams(method, path, body),
     openProject: (key) => go(`project/${key}`),
+    call: { send: (msg) => client.callSend(msg), subscribe: (fn) => client.onCall(fn) },
+    guestLink: (room) => client.guestLink(room),
+    hubUrl: location.origin,
   };
-  return <OrgPage api={api} tab={tab} onTab={(next: OrgTab) => go(`org/${next}`)} />;
+  return <OrgPage api={api} tab={tab} meeting={meeting} onTab={(next: OrgTab) => go(`org/${next}`)} />;
 }

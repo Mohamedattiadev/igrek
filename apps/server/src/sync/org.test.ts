@@ -39,7 +39,7 @@ async function until(check: () => boolean, ms = 10_000): Promise<void> {
 }
 
 /** An Igrek on a computer with the company attached, as index.ts wires it. */
-function igrek(name: string): { sync: Sync; org: Org; db: Database } {
+function igrek(name: string): { sync: Sync; org: Org; db: Database; bus: Bus } {
   const db = new Database(":memory:");
   migrate(db);
   const bus = new Bus();
@@ -53,7 +53,7 @@ function igrek(name: string): { sync: Sync; org: Org; db: Database } {
     publish: (kind, id, value) => sync.publishOrg(kind, id, value),
   });
   sync.org = org;
-  return { sync, org, db };
+  return { sync, org, db, bus };
 }
 
 describe("the company across a hub", () => {
@@ -233,4 +233,19 @@ describe("the company across a hub", () => {
     await until(() => Object.values(browser.org.posts).some((p) => p.text === "written offline"));
     expect(kerim.org.waiting()).toBe(0);
   }, 30_000);
+
+  test("a call's messages go from Igrek's page through its hub connection and back as events", async () => {
+    const room = "c".repeat(64);
+    const heard: { op: string; device?: string; data?: string }[] = [];
+    kerim.bus.subscribe((m) => {
+      if (m.type === "call") heard.push(m);
+    });
+    expect(gm.sync.call({ op: "join", room, name: "Hoca" })).toBe(true);
+    expect(kerim.sync.call({ op: "join", room, name: "Kerim" })).toBe(true);
+    await until(() => heard.some((m) => m.op === "peers"));
+    gm.sync.call({ op: "signal", room, data: "sealed offer" });
+    await until(() => heard.some((m) => m.op === "signal" && m.data === "sealed offer"));
+    gm.sync.call({ op: "leave", room });
+    await until(() => heard.some((m) => m.op === "left"));
+  }, 20_000);
 });

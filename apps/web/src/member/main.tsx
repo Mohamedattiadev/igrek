@@ -24,5 +24,6 @@ void loadBundled(language)
         <MemberApp client={client} />
       </StrictMode>,
     );
-    return client.resume();
+    // A guest's link has no sign-in to resume.
+    return location.hash.startsWith("#/guest/") ? undefined : client.resume();
   });

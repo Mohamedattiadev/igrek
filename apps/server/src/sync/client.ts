@@ -7,6 +7,7 @@ import type {
   InboxNotice,
   KeyRequest,
   Presence,
+  ServerMessage,
   ShareLevel,
   SharePreview,
   TeamActivity,
@@ -774,6 +775,11 @@ export class Sync {
     this.db.query("UPDATE projects SET share = ? WHERE id = ?").run(level, projectId);
     if (level !== "off") void this.subscribeAll();
     this.bus.publish({ type: "team-changed" });
+  }
+
+  /** A meeting room message from the page to the hub: join, leave, signal (plan.md 20.8). */
+  call(msg: { op: string; room: string; to?: string; data?: string; name?: string }): boolean {
+    return this.send(msg);
   }
 
   /** Who is connected to the hub right now. */
@@ -1619,6 +1625,9 @@ export class Sync {
       this.bus.publish({ type: "team-changed" });
     } else if (msg.op === "org") {
       await this.org?.loadStructure();
+    } else if (["peers", "joined", "left", "signal"].includes(msg.op)) {
+      // A meeting room (plan.md 20.8): passed on to the page, which holds the call.
+      this.bus.publish({ ...(msg as unknown as Extract<ServerMessage, { type: "call" }>), type: "call" });
     } else if (msg.op === "events") {
       if (msg.project === this.companyKey) await this.applyOrg(String(msg.project), msg.events as WireEvent[]);
       else if (this.direct.isRoom(String(msg.project)))

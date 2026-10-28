@@ -171,22 +171,25 @@ function TopBar({ client, onMenu }: { client: MemberClient; onMenu?: () => void 
   );
 }
 
+/** Where a notice leads: a card's board, a meeting, the company's cards or channels, or a chat. */
+function routeOf(open: string): string {
+  if (open.startsWith("project:")) return `project/${open.slice(8)}/board`;
+  if (open.startsWith("org:meet:")) return `org/meetings/${open.slice(9)}`;
+  if (open.startsWith("org:")) return `org/${open === "org:cards" ? "cards" : "channels"}`;
+  return `chat/${open}`;
+}
+
 /** A browser notice for a message to me while I look elsewhere; a click opens it. */
 function useNotices(client: MemberClient, route: string, go: (to: string) => void): void {
   useEffect(() => {
     client.onNotice = (n: MemberNotice) => {
       const here = route === `chat/${n.open}` && document.visibilityState === "visible";
       if (here || typeof Notification === "undefined" || Notification.permission !== "granted") return;
-      const notice = new Notification(n.title, { body: n.body, tag: n.open });
+      const body = n.body.startsWith("meet:") ? i18n.t(`meet.notice_${n.body.slice(5)}`) : n.body;
+      const notice = new Notification(n.title, { body, tag: n.open });
       notice.onclick = () => {
         window.focus();
-        go(
-          n.open.startsWith("project:")
-            ? `project/${n.open.slice(8)}/board`
-            : n.open.startsWith("org:")
-              ? `org/${n.open === "org:cards" ? "cards" : "channels"}`
-              : `chat/${n.open}`,
-        );
+        go(routeOf(n.open));
       };
     };
     return () => {
@@ -230,7 +233,7 @@ function Page({
       />
     );
   }
-  if (page === "org") return <MemberOrg client={client} tab={rest[0]} go={go} />;
+  if (page === "org") return <MemberOrg client={client} tab={rest[0]} meeting={rest[1]} go={go} />;
   if (page === "company" && client.me()?.role === "admin") return <MemberCompany client={client} />;
   if (page === "profile") return <MemberProfile client={client} />;
   return <MemberHome client={client} go={go} />;

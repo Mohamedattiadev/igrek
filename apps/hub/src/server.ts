@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join, normalize, resolve, sep } from "node:path";
 import type { ServerWebSocket } from "bun";
 import { type Context, Hono } from "hono";
+import { Calls } from "./calls";
 import { type Hub, type HubUser, type ProjectRole, ROLES, type Role } from "./hub";
 import { mailText, type SendMail } from "./mail";
 import { Teams } from "./teams";
@@ -17,6 +18,10 @@ interface SocketData {
   user: HubUser;
   device: string;
   projects: Set<string>;
+  /** Meeting rooms it is in (calls.ts). */
+  rooms?: Set<string>;
+  /** A guest's socket: only this call's room. */
+  guestRoom?: string;
 }
 
 /** Simple fixed-window limiter for login attempts per IP. */
@@ -249,6 +254,20 @@ export function createHubServer(
     const from = Math.max(1, Number(c.req.query("from")) || 1);
     const to = Math.min(from + 499, Number(c.req.query("to")) || from);
     return c.json(hub.chain(project, String(c.req.query("device") ?? ""), from, to));
+  });
+
+  // ---- meetings: one-time links for guests (plan.md 20.8) ---------------------------------
+  const calls = new Calls(hub.db);
+  app.post("/api/guest-links", async (c) => {
+    if (c.get("auth").user.role === "viewer") return c.json({ error: "Viewers can't invite" }, 403);
+    const body = (await c.req.json().catch(() => ({}))) as { room?: string; hours?: number };
+    try {
+      const token = calls.guestLink(String(body.room ?? ""), c.get("auth").user.id, Number(body.hours ?? 24));
+      hub.audit(c.get("auth").user.id, "guest-link");
+      return c.json({ token });
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
   });
 
   // ---- the company: teams and the general manager (plan.md 20.2) -------------------------
@@ -551,7 +570,10 @@ export function createHubServer(
       "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
     app.get("*", (c) => {
       const path = normalize(join(root, decodeURIComponent(c.req.path)));
-      const asset = path.startsWith(join(root, "assets") + sep) && existsSync(path);
+      // Its own files, and the whiteboard's fonts (meetings, plan.md 20.8).
+      const asset =
+        (path.startsWith(join(root, "assets") + sep) || path.startsWith(join(root, "excalidraw") + sep)) &&
+        existsSync(path);
       const file = asset ? path : join(root, "member.html");
       if (!existsSync(file)) return c.text("The web member page is not built into this hub.", 404);
       return new Response(Bun.file(file), {
@@ -570,7 +592,7 @@ export function createHubServer(
     const text = JSON.stringify(message);
     for (const ws of sockets) if (ws !== except && ws.data.projects.has(project)) ws.send(text);
   };
-  const onlineList = () => [...new Set([...sockets].map((ws) => ws.data.user.id))];
+  const onlineList = () => [...new Set([...sockets].filter((ws) => !ws.data.guestRoom).map((ws) => ws.data.user.id))];
   function notifyAdmins(message: unknown): void {
     const text = JSON.stringify(message);
     for (const ws of sockets) if (ws.data.user.role === "admin") ws.send(text);
@@ -586,6 +608,24 @@ export function createHubServer(
       },
     ) {
       const url = new URL(req.url);
+      if (url.pathname === "/ws" && url.searchParams.has("guest")) {
+        // A guest's link: a socket for that one call, with a made-up name and nothing else.
+        const room = calls.guestRoom(url.searchParams.get("guest"));
+        if (!room) return new Response("This link has expired", { status: 401 });
+        const id = `guest:${crypto.randomUUID().slice(0, 8)}`;
+        const user = {
+          id,
+          username: id,
+          displayName: "guest",
+          role: "viewer",
+          disabled: false,
+          createdAt: Date.now(),
+          mustChangePassword: false,
+          twoFactor: false,
+        } as HubUser;
+        const ok = server.upgrade(req, { data: { user, device: id, projects: new Set(), guestRoom: room } });
+        return ok ? undefined : new Response("Upgrade failed", { status: 400 });
+      }
       if (url.pathname === "/ws") {
         const auth = hub.authenticate(url.searchParams.get("token") ?? undefined, server.requestIP?.(req)?.address);
         if (!auth) return new Response("Not signed in", { status: 401 });
@@ -610,6 +650,9 @@ export function createHubServer(
         } catch {
           return;
         }
+        if (calls.handle(ws, msg)) return;
+        // A guest may do nothing but take part in their call.
+        if (ws.data.guestRoom) return;
         if (msg.op === "sub" && Array.isArray(msg.projects)) {
           const since = (msg.since ?? {}) as Record<string, number>;
           for (const project of msg.projects
@@ -687,6 +730,7 @@ export function createHubServer(
       },
       close(ws: ServerWebSocket<SocketData>) {
         sockets.delete(ws);
+        calls.gone(ws);
         for (const key of [...presence.keys()]) if (key.startsWith(`${ws.data.device}:`)) presence.delete(key);
         const text = JSON.stringify({ op: "online", users: onlineList() });
         for (const other of sockets) other.send(text);

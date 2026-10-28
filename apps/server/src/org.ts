@@ -8,6 +8,7 @@ import {
   emptyOrg,
   foldOrg,
   followUps,
+  meetingNotices,
   morningReport,
   namedIn,
   newCard,
@@ -365,9 +366,36 @@ export class Org {
       await this.say(`bot:${gm}`, { key: "siteDown", vars: { site: title } });
   }
 
-  /** Starts the bot's minute; the returned function stops it. */
+  private toldMeetings = new Set<string>();
+
+  /** My meetings: ten minutes before and at the start, on the desktop and the phone (plan.md 20.8). */
+  meetingTick(now = Date.now()): void {
+    const me = this.deps.me()?.id;
+    if (!me || !this.live) return;
+    const teams = this.structure.teams.filter((t) => t.members.includes(me)).map((t) => t.id);
+    for (const n of meetingNotices(Object.values(this.state.meetings), me, teams, now)) {
+      if (this.toldMeetings.has(n.id)) continue;
+      this.toldMeetings.add(n.id);
+      const text = botText(
+        { key: n.kind === "soon" ? "meetSoon" : "meetStarted", vars: { title: n.meeting.title } },
+        this.language(),
+      );
+      this.deps.bus.publish({
+        type: "alert",
+        kind: "org",
+        title: text,
+        link: `/org?tab=meetings&meet=${n.meeting.id}`,
+      });
+      this.onTell?.(text);
+    }
+  }
+
+  /** Starts the bot's minute (and the meeting reminders); the returned function stops it. */
   start(): () => void {
-    const timer = setInterval(() => void this.tick().catch(() => undefined), MINUTE);
+    const timer = setInterval(() => {
+      this.meetingTick();
+      void this.tick().catch(() => undefined);
+    }, MINUTE / 2);
     return () => clearInterval(timer);
   }
 }
