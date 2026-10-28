@@ -1921,6 +1921,7 @@ export class Sync {
         cleanAttachment(value.attachment)?.hash ?? null,
       );
     if (value.targetKind === "channel") this.bus.publish({ type: "chat-changed", channelId: String(value.targetId) });
+    else if (value.targetKind === "ui") this.bus.publish({ type: "ui-notes-changed", projectId });
   }
 
   private applyMemory(projectId: string, item: Record<string, unknown>, author: { id: string; name: string }): void {

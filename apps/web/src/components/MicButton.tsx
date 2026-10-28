@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
 import { cn } from "../lib/cn";
+import { transcribe as recognise, recordingProblem } from "../lib/speech";
 
 type Model = {
   state: "missing" | "downloading" | "ready" | "failed";
@@ -12,19 +13,8 @@ type Model = {
 };
 type Phase = "idle" | "downloading" | "recording" | "working";
 
-/** Whisper hears at most 30 seconds at a time; a recording stops by itself there. */
-const MAX_MS = 30_000;
-
-/** A recording (any format the browser made) as 16 kHz mono samples, the way Whisper wants them. */
-async function toSamples(blob: Blob): Promise<Float32Array> {
-  const decoded = await new AudioContext().decodeAudioData(await blob.arrayBuffer());
-  const offline = new OfflineAudioContext(1, Math.max(1, Math.ceil(decoded.duration * 16_000)), 16_000);
-  const source = offline.createBufferSource();
-  source.buffer = decoded;
-  source.connect(offline.destination);
-  source.start();
-  return (await offline.startRendering()).getChannelData(0);
-}
+/** A long message is fine: it is recognised in 30-second parts; past five minutes it stops by itself. */
+const MAX_MS = 5 * 60_000;
 
 /**
  * Speak instead of typing (plan.md 11), recognised by Igrek on this computer (apps/server/src/speech.ts):
@@ -45,7 +35,6 @@ export function MicButton({ onText, className }: { onText: (text: string) => voi
     },
     [],
   );
-  if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) return null;
 
   /** The model is there, or downloaded now (after asking); false when the user said no or it failed. */
   const ensureModel = async (): Promise<boolean> => {
@@ -67,16 +56,8 @@ export function MicButton({ onText, className }: { onText: (text: string) => voi
   const transcribe = async (blob: Blob) => {
     setPhase("working");
     try {
-      const samples = await toSamples(blob);
-      const res = await fetch(`/api/speech?lang=${encodeURIComponent(i18n.language.split("-")[0] ?? "en")}`, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "content-type": "application/octet-stream" },
-        body: samples.slice(0, MAX_MS * 16).buffer,
-      });
-      const body = (await res.json()) as { text?: string; error?: string };
-      if (!res.ok) throw new Error(body.error ?? t("voice.failed"));
-      if (body.text) onText(body.text);
+      const text = await recognise(blob, i18n.language.split("-")[0] ?? "en", (done, of) => setProgress(done / of));
+      if (text) onText(text);
       else setError(t("voice.nothing"));
     } catch (err) {
       setError((err as Error).message || t("voice.failed"));
@@ -86,6 +67,9 @@ export function MicButton({ onText, className }: { onText: (text: string) => voi
   };
 
   const start = async () => {
+    // This window cannot record at all (no MediaRecorder or microphone access): say so, do not hide.
+    const problem = recordingProblem();
+    if (problem) return setError(t(problem));
     setError(undefined);
     if (!(await ensureModel().catch(() => false))) return;
     let stream: MediaStream;

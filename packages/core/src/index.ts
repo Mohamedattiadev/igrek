@@ -954,6 +954,8 @@ export type ServerMessage =
   /** A message, reply or channel in the team chat (team-chat.ts); also while Igrek is writing an answer. */
   | { type: "chat-changed"; channelId: string; writing?: boolean; typing?: string[] }
   | { type: "bots-changed" }
+  | { type: "launch-changed"; projectId: string }
+  | { type: "ui-notes-changed"; projectId: string }
   /** The browser extension asks to pair; Igrek shows its code for the user to allow. */
   | { type: "extension-pair" }
   | { type: "board-changed"; projectId: string }

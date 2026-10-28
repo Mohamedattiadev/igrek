@@ -404,6 +404,45 @@ export function AccountsSection({ accounts, reload }: { accounts: Account[]; rel
   );
 }
 
+/**
+ * Igrek's own AI jobs this week (plan.md 19.3): summaries, titles, @ai answers, reviews. What each
+ * kind used on Claude, and what the local model and repeated questions saved.
+ */
+function JobsCard() {
+  const { t } = useTranslation();
+  const [week, setWeek] = useState<Awaited<ReturnType<typeof api.limitsJobs>>>();
+  useEffect(() => {
+    api
+      .limitsJobs()
+      .then(setWeek)
+      .catch(() => undefined);
+  }, []);
+  if (!week?.kinds.length) return null;
+  return (
+    <Card className="space-y-3 p-pad">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.jobsTitle")}</h3>
+        <span className="text-xs text-fg-muted">
+          {t("limits.jobsTotal", { tokens: compactNumber(week.tokens), saved: compactNumber(week.saved) })}
+        </span>
+      </div>
+      <ul className="divide-y divide-border text-[12.5px]">
+        {week.kinds.slice(0, 8).map((k) => (
+          <li key={k.kind} className="flex items-center gap-3 py-1.5">
+            <span className="min-w-0 flex-1 truncate font-mono text-[12px]">{k.kind}</span>
+            <span className="text-fg-subtle">{t("limits.jobsCount", { count: k.jobs })}</span>
+            {k.local + k.cached > 0 && (
+              <span className="text-success">{t("limits.jobsSaved", { count: k.local + k.cached })}</span>
+            )}
+            <span className="w-16 text-end tabular-nums">{compactNumber(k.tokens)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[11.5px] text-fg-subtle">{t("limits.jobsHint")}</p>
+    </Card>
+  );
+}
+
 /** Limits page (plan.md 3.2): what is used, where and when, with a pace forecast. */
 /** Month by month (plan.md 3.2): totals, top model and top projects, downloadable as CSV. */
 function MonthlyCard() {
@@ -536,6 +575,7 @@ export function LimitsPage() {
               <AccountLimits key={account.id} account={account} />
             ))}
         </div>
+        <JobsCard />
         {data && data.total === 0 && (
           <EmptyState icon={Gauge} title={t("limits.emptyTitle")} body={t("limits.emptyBody")} />
         )}

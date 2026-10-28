@@ -23,11 +23,12 @@ import { ForwardDialog, QuoteBox } from "../components/chat/MessageExtras";
 import { MessageItem } from "../components/chat/MessageItem";
 import { TaskDialog } from "../components/chat/TaskDialog";
 import { TeamTimeline } from "../components/chat/Timeline";
+import { GapsLine } from "../components/GapsLine";
 import { Markdown } from "../components/Markdown";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { Button, EmptyState } from "../components/ui";
 import { api } from "../lib/api";
-import { useServerEvent } from "../lib/live";
+import { useCoalesced, useServerEvent } from "../lib/live";
 
 /**
  * A list that stays at its newest message while new ones come in. Opened with unread messages, it
@@ -387,6 +388,9 @@ function ChannelView({
     <section className={`min-w-0 flex-1 flex-col ${thread ? "hidden lg:flex" : "flex"}`}>
       <ChannelSelect channels={channels} value={channel.id} onPick={onOpen} onTimeline={() => onOpen("timeline")} />
       <ChannelHeader key={channel.id} channel={channel} onPanel={onPanel} onChanged={onReloadChannels} />
+      <div className="border-b border-border py-1.5">
+        <GapsLine projectId={channel.projectId} />
+      </div>
       <div ref={list} className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
         {messages.length === 0 && (
           <p className="px-4 py-8 text-center text-[13px] text-fg-subtle">{t("teamChat.firstMessage")}</p>
@@ -470,14 +474,18 @@ export function TeamChatPage() {
         .catch(() => undefined);
   }, [channel]);
   useEffect(loadMessages, [loadMessages]);
+  // Messages follow fast; the channel list and direct messages can wait a moment (plan.md 19.10).
+  const messagesSoon = useCoalesced(loadMessages, 120);
+  const channelsSoon = useCoalesced(loadChannels, 400);
+  const directsSoon = useCoalesced(loadDirects, 400);
   useServerEvent("chat-changed", (m) => {
     if (m.typing) return m.channelId === channel?.id && setTyping(m.typing);
-    if (m.channelId.startsWith("dm:")) return loadDirects();
+    if (m.channelId.startsWith("dm:")) return directsSoon();
     if (m.channelId === channel?.id) {
       if (m.writing !== undefined) setWriting(m.writing);
-      else loadMessages();
+      else messagesSoon();
     }
-    if (m.writing === undefined) loadChannels();
+    if (m.writing === undefined) channelsSoon();
   });
   const thread = messages.find((m) => m.id === params.get("thread"));
   const open = (id: string, threadId?: string) => {

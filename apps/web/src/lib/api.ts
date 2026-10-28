@@ -1011,6 +1011,12 @@ export const api = {
   sharePreview: (projectId: string) => request<SharePreview>(`/api/projects/${projectId}/share-preview`),
   inboxNotices: () => request<InboxNotice[]>("/api/inbox/notices"),
   limitsMonthly: () => request<MonthlyReport[]>("/api/limits/monthly"),
+  limitsJobs: () =>
+    request<{
+      kinds: { kind: string; jobs: number; tokens: number; local: number; cached: number }[];
+      tokens: number;
+      saved: number;
+    }>("/api/limits/jobs"),
   environments: (projectId: string) => request<EnvironmentInfo[]>(`/api/projects/${projectId}/environments`),
   addEnvironment: (
     projectId: string,

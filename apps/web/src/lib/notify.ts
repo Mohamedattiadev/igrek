@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "./api";
 import { desktop, inDesktopApp } from "./desktop";
-import { useAccounts, useApprovals, useChats, useServerEvent, useTerminals } from "./live";
+import { useAccounts, useApprovals, useChats, useCoalesced, useServerEvent, useTerminals } from "./live";
 import { useSettings } from "./settings";
 
 /** Asks the browser for permission (from a click in Settings). The desktop app needs none. */
@@ -154,8 +154,9 @@ export function useDesktopNotifications(): void {
       .catch(() => undefined);
   // biome-ignore lint/correctness/useExhaustiveDependencies: counted once, at start
   useEffect(() => countChannels(false), []);
+  const countSoon = useCoalesced(() => countChannels(counted.current));
   useServerEvent("chat-changed", (m) => {
-    if (m.writing === undefined && !m.typing) countChannels(counted.current);
+    if (m.writing === undefined && !m.typing) countSoon();
   });
   useServerEvent("insight-changed", (m) => {
     void api

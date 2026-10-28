@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import type { AiTool } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
+import { AiJobs } from "./ai-jobs";
 import { limitAlerts, limitsOverview, monthlyReport } from "./limits";
 import type { Terminals } from "./terminals";
 
@@ -85,4 +86,6 @@ export function registerAccountRoutes(
   app.get("/api/limits", (c) => c.json(limitsOverview(db, accounts)));
   app.get("/api/limits/alerts", (c) => c.json(limitAlerts(accounts)));
   app.get("/api/limits/monthly", (c) => c.json(monthlyReport(db)));
+  // Igrek's own AI jobs this week: what each kind used, and what the local model and repeats saved.
+  app.get("/api/limits/jobs", (c) => c.json(new AiJobs(db).since(Date.now() - 7 * 86_400_000)));
 }

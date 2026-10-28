@@ -383,6 +383,19 @@ describe("team sync", () => {
     expect(b.sync.chat.message(id)?.attachment).toMatchObject({ name: "keys-doc.txt", size: bytes.length });
   }, 30_000);
 
+  test("a note on a part of the screen reaches the teammate's list of notes", async () => {
+    const { UiNotes } = await import("../ui-notes");
+    const element = { url: "/cart", selector: "button.pay", tag: "button", text: "Pay", source: "src/Cart.tsx:12:7" };
+    new UiNotes(a.db).add("p1", element, "Make this button bigger", "mohamed");
+    await a.sync.flush();
+    await until(() => new UiNotes(b.db).list("local-p").length > 0);
+    expect(new UiNotes(b.db).list("local-p")[0]).toMatchObject({
+      element,
+      text: "Make this button bigger",
+      mine: false,
+    });
+  });
+
   test("a direct message reaches only the teammate it is for; the hub keeps nothing it can read", async () => {
     const kerimId = b.sync.identity().id ?? "";
     const meId = a.sync.identity().id ?? "";

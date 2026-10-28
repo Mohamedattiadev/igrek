@@ -86,6 +86,17 @@ export class Services {
     };
   }
 
+  /** One service up (`up -d <name>`), or stopped (`stop <name>`: the container stays, nothing is removed). */
+  async one(root: string, name: string, action: "start" | "stop"): Promise<void> {
+    const file = composeFiles(root)[0];
+    if (!file) throw new Error("This project has no Docker Compose file");
+    if (!/^[\w.-]+$/.test(name)) throw new Error("Unknown service");
+    const args = action === "start" ? ["compose", "-f", file, "up", "-d", name] : ["compose", "-f", file, "stop", name];
+    const done = await this.run(args, root);
+    if (done.code !== 0)
+      throw new Error(done.err.split("\n").slice(-3).join("\n") || `docker compose ${action} failed`);
+  }
+
   /** Starts what is not running yet (`up -d`); containers that run already are left as they are. */
   async start(root: string): Promise<ComposeFile | undefined> {
     const file = composeFiles(root)[0];

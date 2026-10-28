@@ -23,6 +23,7 @@ import { opencodeAdapter } from "./adapters/opencode";
 import { piAdapter } from "./adapters/pi";
 import { registerAgentFileRoutes } from "./agent-files";
 import { AgentRequests, registerAgentRequestRoutes } from "./agent-requests";
+import { AiJobs } from "./ai-jobs";
 import { AiComments } from "./aicomments";
 import { Analytics } from "./analytics";
 import { createApp } from "./app";
@@ -44,6 +45,7 @@ import { Calendar } from "./calendar";
 import { ChatFiles } from "./chat-files";
 import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { ChatStream } from "./chat-stream";
+import { registerChatUploadRoutes } from "./chat-uploads";
 import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { Chief, registerChiefRoutes, threadOf } from "./chief";
@@ -92,6 +94,8 @@ import { Jobs } from "./jobs";
 import { Knowledge } from "./knowledge";
 import { registerKnowledgeRoutes } from "./knowledge-routes";
 import { LanguagePacks } from "./langpacks";
+import { registerLaunchRoutes } from "./launch-routes";
+import { Launcher } from "./launcher";
 import { Learn } from "./learn";
 import { registerLearnRoutes } from "./learn-routes";
 import { registerLessonRoutes } from "./lesson-routes";
@@ -159,7 +163,8 @@ import { readSettings } from "./settings";
 import { registerSkillRoutes, Skills } from "./skills";
 import { registerSpeechRoutes, Speech } from "./speech";
 import { Store } from "./store";
-import { claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
+import { registerSuggestionRoutes } from "./suggestions";
+import { aiJobLog, claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
 import { Sync } from "./sync/client";
 import { Seats } from "./sync/seats";
 import { Chat } from "./team-chat";
@@ -172,6 +177,7 @@ import { registerTesterRoutes } from "./tester-routes";
 import { Testers } from "./testers";
 import { Translator } from "./translator";
 import { TurnGate } from "./turn-gate";
+import { registerUiNoteRoutes, UiNotes } from "./ui-notes";
 import { Updater } from "./update";
 import { Vault } from "./vault";
 import { registerWatcherRoutes } from "./watcher-routes";
@@ -577,10 +583,17 @@ sync.board = board;
 const seats = new Seats(sqlite, () => accounts.list(), APP_VERSION);
 sync.seats = seats;
 sync.shareUsage = () => readSettings(db).shareUsage;
+// Igrek's own AI jobs are written down with what they used (ai-jobs.ts).
+aiJobLog.jobs = new AiJobs(sqlite);
 const chatFiles = new ChatFiles(join(config.dataDir, "chat-files"));
 const chat = new Chat(sqlite, bus, (hash) => chatFiles.has(hash));
 sync.chat = chat;
 sync.files = chatFiles;
+const services = new Services();
+const launcher = new Launcher(sqlite, bus, stops, services, (id) => {
+  const row = store.projectRow(id);
+  return row && !row.path.startsWith("team:") ? row.path : undefined;
+});
 const bots = new Bots(sqlite, bus, flows, chat, (id) => !!personas.get(id));
 // A card given to a persona that is a team bot is that bot's job; a bot may be a schedule's worker.
 board.startByBot = (task) => {
@@ -724,6 +737,13 @@ const app = createApp({
     registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
     registerReportRoutes(hono, gatewayValues);
     registerBotRoutes(hono, bots);
+    registerLaunchRoutes(hono, launcher);
+    registerSuggestionRoutes(hono, sqlite, (id) => store.projectRow(id)?.path);
+    registerUiNoteRoutes(hono, new UiNotes(sqlite), {
+      author: () => sync.identity().name,
+      flush: () => void sync.flush(),
+      changed: (projectId) => bus.publish({ type: "ui-notes-changed", projectId }),
+    });
     registerTeamChatRoutes(hono, {
       db: sqlite,
       chat,
@@ -798,6 +818,7 @@ const app = createApp({
         return readSettings(db).consultExperts ? expertsHint(experts.roster()) : undefined;
       },
     };
+    registerChatUploadRoutes(hono, join(config.dataDir, "chat-uploads"));
     registerChatRoutes(hono, {
       chats,
       bus,
@@ -949,7 +970,7 @@ const app = createApp({
       stops,
       uiAudits: new UiAudits(sqlite),
       rescan: (projectId) => void insight.scan(projectId).catch(() => undefined),
-      services: new Services(),
+      services,
       rootOf: (projectId) => {
         const row = store.projectRow(projectId);
         return row && !row.path.startsWith("team:") && existsSync(row.path) ? row.path : undefined;
@@ -1257,6 +1278,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     terminals.stopAll();
     chats.stopAll();
     devServers.stopAll();
+    launcher.stopEverything();
     await stops.stopAll();
     server.stop();
     process.exit(0);

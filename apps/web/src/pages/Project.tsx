@@ -39,7 +39,7 @@ import { NewSession } from "../components/NewSession";
 import { TeamPresence } from "../components/TeamPresence";
 import { Badge, Button, Card, EmptyState, Section, Segmented } from "../components/ui";
 import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
-import { api } from "../lib/api";
+import { api, request } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useAccounts, useLiveData } from "../lib/live";
@@ -606,6 +606,16 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
   );
 }
 
+/** The project's parts marked "on open" start once per visit of Igrek (launcher.ts, plan.md 19.4). */
+const opened = new Set<string>();
+function useStartOnOpen(projectId: string) {
+  useEffect(() => {
+    if (!projectId || opened.has(projectId)) return;
+    opened.add(projectId);
+    void request(`/api/projects/${projectId}/launch/opened`, { method: "POST", body: "{}" }).catch(() => undefined);
+  }, [projectId]);
+}
+
 export function ProjectPage() {
   const { t } = useTranslation();
   const { projectId = "" } = useParams();
@@ -613,6 +623,7 @@ export function ProjectPage() {
   const tab = (TABS.find((name) => name === params.get("tab")) ?? "overview") as Tab;
   const simple = useSettings().settings.mode === "simple";
   const navigate = useNavigate();
+  useStartOnOpen(projectId);
   usePageActions([
     {
       id: "project-chat",

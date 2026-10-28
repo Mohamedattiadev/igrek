@@ -43,6 +43,7 @@ import {
   MessageSquare,
   MessageSquarePlus,
   Minimize2,
+  Paperclip,
   Pencil,
   PenLine,
   RotateCcw,
@@ -62,6 +63,7 @@ import { type ClipboardEvent, createContext, useContext, useEffect, useMemo, use
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
+import { useChatAttachments } from "../components/ChatAttachments";
 import { ChatChanges } from "../components/ChatChanges";
 import { ChatCopy } from "../components/ChatCopy";
 import { ChatOutline, messageId } from "../components/ChatOutline";
@@ -74,6 +76,7 @@ import { ComposerMenu } from "../components/ComposerMenu";
 import { ContinueInCodex } from "../components/ContinueInCodex";
 import { EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
 import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../components/Experts";
+import { GapsLine } from "../components/GapsLine";
 import { GateCard } from "../components/GateCard";
 import { MadeFiles } from "../components/MadeFiles";
 import { Markdown } from "../components/Markdown";
@@ -929,6 +932,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   /** The text the enhancer was opened with; undefined while closed. */
   const [enhancing, setEnhancing] = useState<string>();
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
+  const attachments = useChatAttachments(chatId);
   /** Which window the "+" menu opened. */
   const [picker, setPicker] = useState<"prompts" | "experts">();
   const list = useRef<HTMLDivElement>(null);
@@ -998,12 +1002,13 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
     }
     setEnhancing(undefined);
     chat.send(
-      value,
+      value + attachments.note(),
       images.map(({ mediaType, data }) => ({ mediaType, data })),
       how,
     );
     setText("");
     setImages([]);
+    attachments.clear();
     setComments([]);
     // The box stays where the keyboard is: a screen reader user lost focus after every message.
     input.current?.focus();
@@ -1085,6 +1090,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   const composer = (
     <div className="mx-auto w-full max-w-3xl space-y-2">
       {chat.error && <p className="text-xs text-danger">{chat.error}</p>}
+      {attachments.view}
       {images.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {images.map((image, i) => (
@@ -1344,6 +1350,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
           <ComposerMenu
             actions={[
               { key: "image", label: t("chat.addImage"), icon: ImagePlus, onClick: () => fileInput.current?.click() },
+              { key: "file", label: t("chat.addFile"), icon: Paperclip, onClick: attachments.pick },
               { key: "prompts", label: t("nav.prompts"), icon: BookMarked, onClick: () => setPicker("prompts") },
               ...(settings.consultExperts && !info?.persona
                 ? [{ key: "experts", label: t("chat.experts"), icon: UsersRound, onClick: () => setPicker("experts") }]
@@ -1565,6 +1572,17 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                   </p>
                 </div>
                 {composer}
+                {info?.projectId && info.focus !== "chief" && info.status !== "exited" && (
+                  <div className="mt-3">
+                    <GapsLine
+                      projectId={info.projectId}
+                      onWrite={(value) => {
+                        setText(value);
+                        input.current?.focus();
+                      }}
+                    />
+                  </div>
+                )}
                 {info?.status !== "exited" && (
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {(info?.focus === "chief" ? CHIEF_STARTERS : STARTERS)

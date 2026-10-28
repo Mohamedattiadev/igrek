@@ -11,6 +11,7 @@ import type {
 } from "@igrek/core";
 import { WRITING_STYLE } from "@igrek/core";
 import { languages } from "@igrek/i18n";
+import { type AiJobs, AnswerCache, callerKind, estimateTokens, type JobSource, type JobUsage } from "./ai-jobs";
 import type { Bus, StopRegistry } from "./bus";
 import { aiEnv, cleanEnv } from "./env";
 import { LIMIT_REACHED, type LocalModelConfig, ollamaChat } from "./localmodel";
@@ -153,6 +154,21 @@ export const localModel: {
 
 const SMALL_MODELS = new Set(["haiku", "claude-haiku-4-5"]);
 
+/** How full the five-hour window was at the last answer: background jobs slow down past 80% (plan.md 19.3). */
+const usageNow = { fiveHour: 0, at: 0 };
+const limitBusy = (now = Date.now()) => usageNow.fiveHour >= 0.8 && now - usageNow.at < 60 * 60_000;
+
+/** Where Igrek's own AI jobs are written down (ai-jobs.ts), set by the server at startup. */
+export const aiJobLog: { jobs?: AiJobs } = {};
+const answers = new AnswerCache();
+const NO_USAGE = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+/** What a job that did not reach Claude would have cost there, roughly. */
+const savedBy = (prompt: string, answer: string) => ({
+  ...NO_USAGE,
+  input: estimateTokens(prompt),
+  output: estimateTokens(answer),
+});
+
 /** The writing rules added to a job's own system prompt, or as its system prompt when it has none. */
 export function withWriting(args: string[]): string[] {
   const at = args.indexOf("--append-system-prompt");
@@ -172,23 +188,42 @@ export async function runClaude(
 ): Promise<string> {
   // Every small job writes for people the same way the chats do (WRITING_STYLE).
   extraArgs = withWriting(extraArgs);
+  const kind = callerKind();
+  const log = (source: JobSource, usage: JobUsage) => aiJobLog.jobs?.record(kind, model, source, usage);
   // Small text-only jobs can go to the local model (always, or while the limit is full).
   const small =
     SMALL_MODELS.has(model) && !images.length && !extraArgs.includes("--resume") && !extraArgs.includes("--tools");
+  // The same small question within a day: the same answer, without asking anyone.
+  const key = small ? answers.key(model, prompt, extraArgs) : "";
+  const known = key ? answers.get(key) : undefined;
+  if (known !== undefined) {
+    log("cache", savedBy(prompt, known));
+    return known;
+  }
+  const remember = (text: string) => {
+    if (key) answers.set(key, text);
+    return text;
+  };
   const local = small ? localModel.pick(Date.now() < localModel.limitedUntil) : undefined;
   if (local) {
     const system = extraArgs[extraArgs.indexOf("--append-system-prompt") + 1];
-    return ollamaChat(local, prompt, extraArgs.includes("--append-system-prompt") ? system : undefined);
+    const text = await ollamaChat(local, prompt, extraArgs.includes("--append-system-prompt") ? system : undefined);
+    log("local", savedBy(prompt, text));
+    return remember(text);
   }
   try {
-    return await runClaudeNow(prompt, cwd, register, model, extraArgs, accountId, images);
+    const { text, usage } = await runClaudeNow(prompt, cwd, register, model, extraArgs, accountId, images);
+    log("claude", usage);
+    return remember(text);
   } catch (err) {
     if (!LIMIT_REACHED.test((err as Error).message)) throw err;
     // Claude's limit is full: remember it for an hour, and finish this small job locally if allowed.
     localModel.limitedUntil = Date.now() + 60 * 60_000;
     const fallback = small ? localModel.pick(true) : undefined;
     if (!fallback) throw err;
-    return ollamaChat(fallback, prompt);
+    const text = await ollamaChat(fallback, prompt);
+    log("local", savedBy(prompt, text));
+    return remember(text);
   }
 }
 
@@ -200,7 +235,7 @@ async function runClaudeNow(
   extraArgs: string[],
   accountId: string | undefined,
   images: { mediaType: string; data: string }[],
-): Promise<string> {
+): Promise<{ text: string; usage: JobUsage }> {
   const account = claudeAccount.env(accountId);
   // Our own small jobs run in an empty folder. Stop git from finding a repo above it (a dev
   // checkout, a dotfiles home), or Claude would add that repo's status to the prompt.
@@ -257,7 +292,18 @@ async function runClaudeNow(
       new Response(proc.stderr).text(),
       proc.exited,
     ]);
-    let result: { result?: string; is_error?: boolean } | undefined;
+    let result:
+      | {
+          result?: string;
+          is_error?: boolean;
+          usage?: {
+            input_tokens?: number;
+            output_tokens?: number;
+            cache_read_input_tokens?: number;
+            cache_creation_input_tokens?: number;
+          };
+        }
+      | undefined;
     for (const line of stdout.split("\n")) {
       if (!line.trim()) continue;
       try {
@@ -265,6 +311,7 @@ async function runClaudeNow(
         if (message.type === "rate_limit_event") {
           const info = parseRateLimit(message);
           if (info) claudeAccount.onRateLimit(account.accountId, info);
+          if (info?.fiveHour !== undefined) Object.assign(usageNow, { fiveHour: info.fiveHour, at: info.at });
           // A full five-hour window: small jobs may go local until it resets.
           if (info?.fiveHour !== undefined && info.fiveHour >= 0.99)
             localModel.limitedUntil = info.fiveHourResetsAt ?? Date.now() + 60 * 60_000;
@@ -276,7 +323,16 @@ async function runClaudeNow(
     if (code !== 0 && !result) throw new Error(stderr.trim() || `claude exited with ${code}`);
     if (!result || result.is_error || typeof result.result !== "string")
       throw new Error(result?.result ?? "Empty reply");
-    return result.result;
+    const u = result.usage ?? {};
+    return {
+      text: result.result,
+      usage: {
+        input: u.input_tokens ?? 0,
+        output: u.output_tokens ?? 0,
+        cacheRead: u.cache_read_input_tokens ?? 0,
+        cacheWrite: u.cache_creation_input_tokens ?? 0,
+      },
+    };
   } finally {
     clearTimeout(timer);
     unregister();
@@ -314,7 +370,11 @@ export class Summarizer {
     if (this.busy || !this.settings().autoSummarize) return;
     const now = Date.now();
     // Skip sessions that failed in the last hour so one bad transcript can't loop.
-    const next = this.store.sessionsNeedingSummary().find((id) => now - (this.failed.get(id) ?? 0) > 60 * 60_000);
+    // Past 80% of the five-hour window, only chats Claude compacted are summarized (their memory
+    // would be lost); the rest waits until the window has room again.
+    const next = this.store
+      .sessionsNeedingSummary(now, limitBusy(now))
+      .find((id) => now - (this.failed.get(id) ?? 0) > 60 * 60_000);
     if (next) await this.summarize(next).catch(() => undefined);
   }
 

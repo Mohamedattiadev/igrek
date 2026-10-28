@@ -606,20 +606,25 @@ export class Store {
 
   saveSummary(id: string, summary: SessionSummaryData, atMessages: number): void {
     this.db
-      .query("UPDATE sessions SET summary = ?, summary_at = ?, summary_messages = ? WHERE id = ?")
+      .query(
+        "UPDATE sessions SET summary = ?, summary_at = ?, summary_messages = ?, summary_compactions = compactions WHERE id = ?",
+      )
       .run(JSON.stringify(summary), summary.generatedAt, atMessages, id);
   }
 
   /** Sessions idle for a while whose summary is missing or stale. */
-  sessionsNeedingSummary(now = Date.now()): string[] {
+  /** Sessions to summarize; with `onlyCompacted` (the usage limit is nearly full) just those Claude compacted. */
+  sessionsNeedingSummary(now = Date.now(), onlyCompacted = false): string[] {
     const rows = this.db
       .query(
-        `SELECT id FROM sessions WHERE project_id IS NOT NULL AND user_messages >= 2
-           AND updated_at < ? AND updated_at > ?
-           AND (summary IS NULL OR user_messages - summary_messages >= 5)
-         ORDER BY updated_at DESC LIMIT 20`,
+        `SELECT id FROM sessions WHERE project_id IS NOT NULL AND user_messages >= 2 AND updated_at > ?
+           AND (
+             (? = 0 AND updated_at < ? AND (summary IS NULL OR user_messages - summary_messages >= 5))
+             OR compactions > summary_compactions
+           )
+         ORDER BY compactions > summary_compactions DESC, updated_at DESC LIMIT 20`,
       )
-      .all(now - 5 * 60_000, now - 7 * 24 * 60 * 60_000) as { id: string }[];
+      .all(now - 7 * 24 * 60 * 60_000, onlyCompacted ? 1 : 0, now - 5 * 60_000) as { id: string }[];
     return rows.map((r) => r.id);
   }
 

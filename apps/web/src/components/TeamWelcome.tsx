@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
+import { useCoalesced, useServerEvent } from "../lib/live";
 
 /**
  * The team on the Projects page in a few lines (plan.md 18.3, 19.7): the latest messages from
@@ -23,7 +23,8 @@ export function TeamWelcome({ team }: { team: boolean }) {
       .catch(() => undefined);
   }, [team]);
   useEffect(load, [load]);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && load());
+  const soon = useCoalesced(load);
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && soon());
   if (!team) return null;
   const places = [
     { to: "/chat", icon: MessagesSquare, key: "messages" },

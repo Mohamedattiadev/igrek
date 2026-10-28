@@ -31,6 +31,45 @@ export function useServerEvent<T extends ServerMessage["type"]>(
 }
 
 /**
+ * A reload that coalesces (plan.md 19.10): calls within `wait` ms become one, and while one runs,
+ * the calls that arrive make exactly one more run after it, never a pile of them. Events come in
+ * bursts while a chat writes; each used to reload the whole list again.
+ */
+export function coalesce(run: () => Promise<unknown>, wait = 250): () => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let running = false;
+  let again = false;
+  const go = () => {
+    timer = undefined;
+    if (running) {
+      again = true;
+      return;
+    }
+    running = true;
+    void run()
+      .catch(() => undefined)
+      .finally(() => {
+        running = false;
+        if (again) {
+          again = false;
+          go();
+        }
+      });
+  };
+  return () => {
+    if (!timer) timer = setTimeout(go, wait);
+  };
+}
+
+/** `coalesce` for a component: the latest `run` is used, the trigger stays the same. */
+export function useCoalesced(run: () => unknown, wait = 250): () => void {
+  const latest = useRef(run);
+  latest.current = run;
+  const [trigger] = useState(() => coalesce(async () => latest.current(), wait));
+  return trigger;
+}
+
+/**
  * Loads data and reloads it whenever the server says sessions changed,
  * optionally only when one of `projectIds` is affected.
  */
@@ -57,8 +96,20 @@ export function useLiveData<T>(
   // biome-ignore lint/correctness/useExhaustiveDependencies: callers pass their own deps
   useEffect(reload, deps);
 
+  // A burst of changes (a chat writing) is one reload, not one per change.
+  const soon = useCoalesced(
+    () =>
+      loader
+        .current()
+        .then((value) => {
+          setData(value);
+          setError(undefined);
+        })
+        .catch((err: Error) => setError(err.message)),
+    300,
+  );
   useServerEvent("sessions-changed", (message) => {
-    if (!match || match(message.projectIds, message.sessionIds)) reload();
+    if (!match || match(message.projectIds, message.sessionIds)) soon();
   });
 
   return { data, error, reload };

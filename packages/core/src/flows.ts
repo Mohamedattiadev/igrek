@@ -128,6 +128,49 @@ export interface Bot {
   createdAt: number;
 }
 
+/** Something a project lacks (suggestions.ts, plan.md 19.8), offered as a line in its chats. */
+export interface ProjectGap {
+  kind: "tests" | "readme" | "cards" | "errors";
+  /** Cards waiting for review, open errors, or commits since the README last changed. */
+  count?: number;
+  /** The README is not there at all. */
+  missing?: boolean;
+}
+
+/** What a note on a part of the screen is about (ui-notes.ts, plan.md 19.5). */
+export interface UiElement {
+  /** The page it was on: a preview address, or "igrek:/route" for Igrek's own screens. */
+  url: string;
+  selector: string;
+  tag: string;
+  text?: string;
+  /** "src/components/Cart.tsx:12:7" when the dev server tells. */
+  source?: string;
+}
+
+export interface UiNote {
+  id: string;
+  element: UiElement;
+  text: string;
+  author?: string;
+  mine: boolean;
+  at: number;
+}
+
+/** A runnable part of a project (launcher.ts, plan.md 19.4): an app's dev script, a Compose service… */
+export interface LaunchPart {
+  /** "script:apps/web:dev", "compose:db", "procfile:worker", "make:dev". */
+  id: string;
+  name: string;
+  kind: "script" | "compose" | "procfile" | "make";
+  command: string;
+  /** Relative to the project. */
+  cwd: string;
+  status: "stopped" | "starting" | "running" | "failed";
+  url?: string;
+  port?: number;
+}
+
 /** A bot's job, for its activity list and the chat card. */
 export interface BotJob {
   runId: string;

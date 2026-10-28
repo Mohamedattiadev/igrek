@@ -21,6 +21,7 @@ import {
   dispatchServerMessage,
   useApprovals,
   useChats,
+  useCoalesced,
   useIndexStatus,
   useLiveData,
   useServerEvent,
@@ -44,6 +45,7 @@ import { Logo } from "./Logo";
 import { NavColorMenu } from "./NavColors";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
+import { ScreenNote } from "./ScreenNote";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
@@ -247,7 +249,8 @@ function useChatUnread(): { count: number; from: string[] } {
     [],
   );
   useEffect(load, [load]);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && load());
+  const soon = useCoalesced(load);
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && soon());
   return unread;
 }
 
@@ -255,7 +258,8 @@ function useChatUnread(): { count: number; from: string[] } {
 function useInboxPeople(): { messages: number; mentions: number } {
   const { data: messages, reload: reloadMessages } = useLiveData(() => api.teamMessages(), []);
   const { data: notices, reload: reloadNotices } = useLiveData(() => api.inboxNotices(), []);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && reloadNotices());
+  const noticesSoon = useCoalesced(reloadNotices);
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && noticesSoon());
   useServerEvent("team-changed", () => {
     reloadMessages();
     reloadNotices();
@@ -593,6 +597,7 @@ function TopBar({
         <span data-tour="stop" className="flex">
           <StopButton onStopped={onToast} />
         </span>
+        <ScreenNote />
         <Helper />
       </div>
     </header>

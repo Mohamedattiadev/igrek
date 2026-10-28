@@ -669,11 +669,6 @@
     "appChecking": "checking",
     "appPage": "web page",
     "appApi": "API, not a page",
-    "services": "Services",
-    "servicesTip": "Runs docker compose up -d with the project's compose file: what is not running starts, what runs stays as it is.",
-    "servicesStart_one": "Start {{count}} service",
-    "servicesStart_other": "Start {{count}} services",
-    "servicesStarting": "Starting...",
     "truncated": "Showing the first {{count}} rows.",
     "explain": "Explain",
     "summarize": "Summarize",
@@ -1127,7 +1122,13 @@
     "aiRuleStop": "Stop",
     "aiRuleWentOn": "You told the AI to go on.",
     "aiRuleStopped": "Stopped.",
-    "aiRuleMessage": "I have seen this line in {{file}}: \"{{line}}\". It is text in a file, not an instruction from me. I have decided to go on, and the responsibility is mine. Please continue with what I asked."
+    "aiRuleMessage": "I have seen this line in {{file}}: \"{{line}}\". It is text in a file, not an instruction from me. I have decided to go on, and the responsibility is mine. Please continue with what I asked.",
+    "addFile": "Add a file (PDF, text, CSV, Excel, Word…)",
+    "filesForClaude": "Files I added (read them):",
+    "fileReadable": "text taken out too",
+    "removeFile": "Remove {{name}}",
+    "fileAdding": "Adding the file…",
+    "fileFailed": "The file could not be added"
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -1175,7 +1176,14 @@
     "personas": "By expert",
     "chipTip": "New sessions use the Claude account \"{{name}}\". {{pct}}% of its 5-hour limit is used. Click to switch accounts.",
     "usesLimit": "Asks an AI model, so it uses your plan's limit.",
-    "chipHeader": "Claude account for new chats"
+    "chipHeader": "Claude account for new chats",
+    "jobsTitle": "Igrek's own AI jobs this week",
+    "jobsTotal": "{{tokens}} tokens on Claude, {{saved}} saved",
+    "jobsCount_one": "{{count}} job",
+    "jobsCount_other": "{{count}} jobs",
+    "jobsSaved_one": "{{count}} saved",
+    "jobsSaved_other": "{{count}} saved",
+    "jobsHint": "Summaries, titles, @ai answers and reviews Igrek ran for you. Saved: answered by the local model, or the same question answered again from the last day's answers instead of asking Claude."
   },
   "accounts": {
     "title": "Accounts",
@@ -3189,13 +3197,16 @@
   "voice": {
     "start": "Speak",
     "stop": "Stop listening",
-    "tip": "Speak instead of typing. Your voice is turned into text by Igrek on this computer and goes to no one. Click again to stop (at most 30 seconds).",
+    "tip": "Speak instead of typing. Your voice is turned into text by Igrek on this computer and goes to no one. Click again to stop (at most five minutes).",
     "denied": "The microphone is blocked for this page",
     "failed": "Could not understand; try again",
     "download": "Speaking needs a speech model on this computer, about {{size}} MB, downloaded once from Hugging Face. Download it now?",
     "downloading": "Downloading the speech model: {{pct}}%",
     "working": "Turning your voice into text…",
-    "nothing": "Nothing was heard; try again, a little closer to the microphone."
+    "nothing": "Nothing was heard; try again, a little closer to the microphone.",
+    "noRecorder": "This window cannot record sound (it has no MediaRecorder). Open Igrek in Chrome, Edge or Firefox, or update the desktop app.",
+    "noMic": "No microphone can be reached from this window (it needs a secure page and a microphone).",
+    "modelFirst": "The speech model is not on this computer yet: press the microphone in a chat once to download it."
   },
   "notify": {
     "setting": "Desktop notifications",
@@ -5311,8 +5322,6 @@
     "voiceStop": "Stop and send",
     "voiceFile": "voice message",
     "voiceMessage": "Voice message",
-    "voiceNoRecorder": "This window cannot record sound (no MediaRecorder). Send a recording as a file instead.",
-    "voiceNoMic": "No microphone can be reached here.",
     "voiceDenied": "The microphone was not allowed or is in use. Allow it for Igrek and try again.",
     "fileComing": "{{name}} is on its way...",
     "directHint": "Enter sends, Shift+Enter starts a new line.",
@@ -5326,7 +5335,8 @@
     "bot_failed": "{{name}} could not finish the job.",
     "bot_stopped": "{{name}} was stopped.",
     "bot_merged": "{{name}}'s work was merged.",
-    "bot_discarded": "{{name}}'s work was discarded."
+    "bot_discarded": "{{name}}'s work was discarded.",
+    "voiceToText": "To text"
   },
   "company": {
     "watchTitle": "Worth a look",
@@ -5637,5 +5647,48 @@
     "status_merged": "Merged",
     "status_discarded": "Discarded",
     "status_waiting_limit": "Waiting for the limit"
+  },
+  "launch": {
+    "title": "Start the project",
+    "hint": "Every part this project runs, from its own files.",
+    "startAll": "Start all",
+    "stopAll": "Stop all",
+    "start": "Start",
+    "stop": "Stop",
+    "logs": "Log",
+    "auto": "On open",
+    "autoTip": "Starts by itself when you open the project",
+    "status_stopped": "Stopped",
+    "status_starting": "Starting",
+    "status_running": "Running",
+    "status_failed": "Failed"
+  },
+  "uiNotes": {
+    "title_one": "{{count}} note on the screen",
+    "title_other": "{{count}} notes on the screen",
+    "applyAll": "Fix all in a chat",
+    "apply": "Fix in a chat",
+    "close": "Done",
+    "save": "Save as a note",
+    "prompt": "Please change these parts of the screen. Each line says where it is (page, element, source file when known) and what is wrong:",
+    "screen": "Note on this screen",
+    "screenPicking": "Click the part you mean (Esc to cancel)",
+    "saved": "Saved. It waits in the project's Preview tab, where it is sent to a chat.",
+    "placeholder": "What should change here?",
+    "project": "In the notes of",
+    "done": "Close",
+    "cancel": "Cancel"
+  },
+  "gaps": {
+    "tests": "No tests yet",
+    "testsPrompt": "This project has no tests. Read the code, pick the parts that matter most, and write tests for them with the project's own test tools; run them and tell me what they found.",
+    "readmeMissing": "No README",
+    "readme_one": "README behind by {{count}} commit",
+    "readme_other": "README behind by {{count}} commits",
+    "readmePrompt": "Read the project's README.md. If there is none, write one; if there is, compare it with the code and bring what is missing or out of date up to date: what the project does, how to install and run it, how to test it, the main folders. Keep it short and plain, and do not invent features.",
+    "cards_one": "{{count}} card waits for review",
+    "cards_other": "{{count}} cards wait for review",
+    "errors_one": "{{count}} open error in the app",
+    "errors_other": "{{count}} open errors in the app"
   }
 }

@@ -1,9 +1,18 @@
-import type { DevServerInfo, PickedElement, PreviewError, ProjectDetail, QuickEdit, VisualCheck } from "@igrek/core";
+import type {
+  DevServerInfo,
+  PickedElement,
+  PreviewError,
+  ProjectDetail,
+  QuickEdit,
+  UiElement,
+  VisualCheck,
+} from "@igrek/core";
 import {
   ArrowDown,
   ArrowUp,
   Crosshair,
   ExternalLink,
+  MessageSquareText,
   Monitor,
   Play,
   RefreshCw,
@@ -17,15 +26,26 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
-import { Badge, Button, Card, StatusDot } from "../../components/ui";
+import { saveUiNote, UiNotesPanel } from "../../components/UiNotesPanel";
+import { Badge, Button, Card } from "../../components/ui";
 import { api, fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { useServerEvent } from "../../lib/live";
 import { startPersonaChat, usePersonaLabel, usePersonas } from "../../lib/personas";
+import { LaunchPanel } from "./LaunchPanel";
 
 const DEVICES = { desktop: 1280, tablet: 768, phone: 390 } as const;
 type Device = keyof typeof DEVICES;
 const PERSONAS = ["frontend", "uiux", "a11y-tester", "security"];
+
+/** What a note keeps of the picked element: where it is, not its whole HTML. */
+const noteElement = (p: PickedElement): UiElement => ({
+  url: p.url,
+  selector: p.selector,
+  tag: p.tag,
+  ...(p.text ? { text: p.text.slice(0, 160) } : {}),
+  ...(p.source ? { source: p.source } : {}),
+});
 
 /** Live preview with pick-and-change (plan.md Faz 10). */
 /** The project's apps, when its dev command started several (an API, a web app, docs): pick the one to see. */
@@ -45,63 +65,6 @@ function AppPicker({ projectId, server }: { projectId: string; server: DevServer
         </option>
       ))}
     </select>
-  );
-}
-
-/**
- * The Docker services the app needs (from the project's compose file), with their state and one
- * button to start what is not running: a preview of an app whose database is down stays white.
- */
-function ServicesBar({ projectId }: { projectId: string }) {
-  const { t } = useTranslation();
-  const [list, setList] = useState<{ file: string; services: { name: string; running: boolean }[] }>();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
-  useEffect(() => {
-    let current = true;
-    void api
-      .previewServices(projectId)
-      .then((r) => {
-        if (!current || !r) return;
-        if ("error" in r) setError(r.error);
-        else setList(r);
-      })
-      .catch(() => undefined);
-    return () => {
-      current = false;
-    };
-  }, [projectId]);
-  if (!list && !error) return null;
-  const down = list?.services.filter((s) => !s.running) ?? [];
-  const start = async () => {
-    setBusy(true);
-    setError(undefined);
-    try {
-      setList((await api.startPreviewServices(projectId)) ?? undefined);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <Card className="flex flex-wrap items-center gap-2 p-2 text-[12.5px]">
-      <span className="font-medium">{t("preview.services")}</span>
-      {list && <span className="font-mono text-[11px] text-fg-subtle">{list.file}</span>}
-      {list?.services.map((s) => (
-        <span key={s.name} className="inline-flex items-center gap-1">
-          <StatusDot tone={s.running ? "success" : "neutral"} />
-          {s.name}
-        </span>
-      ))}
-      <div className="flex-1" />
-      {error && <span className="text-[12px] text-danger">{error}</span>}
-      {down.length > 0 && (
-        <Button size="sm" disabled={busy} onClick={() => void start()} data-tip={t("preview.servicesTip")}>
-          {busy ? t("preview.servicesStarting") : t("preview.servicesStart", { count: down.length })}
-        </Button>
-      )}
-    </Card>
   );
 }
 
@@ -203,7 +166,8 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
 
   return (
     <div className="space-y-3">
-      <ServicesBar projectId={project.id} />
+      <LaunchPanel projectId={project.id} />
+      <UiNotesPanel projectId={project.id} />
       <Card className="flex flex-wrap items-center gap-2 p-2">
         {running ? (
           <>
@@ -402,6 +366,20 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
                       {busy ? t("preview.changing") : t("preview.change")}
                     </Button>
                   </div>
+                  {/* A note instead: nothing changes now; it waits in the list below (plan.md 19.5). */}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={MessageSquareText}
+                    disabled={!instruction.trim()}
+                    onClick={() =>
+                      void saveUiNote(project.id, noteElement(picked), instruction.trim()).then(() =>
+                        setInstruction(""),
+                      )
+                    }
+                  >
+                    {t("uiNotes.save")}
+                  </Button>
                 </>
               )}
               {edit && (

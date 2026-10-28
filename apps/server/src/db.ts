@@ -1071,6 +1071,29 @@ export const migrations: string[] = [
      created_at INTEGER NOT NULL
    );
    CREATE INDEX bot_jobs_bot ON bot_jobs(bot_id, created_at);`,
+  // Igrek's own AI jobs (ai-jobs.ts, plan.md 19.3): what each kind used, and where it ran
+  // ("claude", "local", or "cache" when the same question was answered a moment ago).
+  `CREATE TABLE ai_jobs (
+     id INTEGER PRIMARY KEY,
+     at INTEGER NOT NULL,
+     kind TEXT NOT NULL,
+     model TEXT NOT NULL,
+     source TEXT NOT NULL,
+     input INTEGER NOT NULL,
+     output INTEGER NOT NULL,
+     cache_read INTEGER NOT NULL,
+     cache_write INTEGER NOT NULL
+   );
+   CREATE INDEX ai_jobs_at ON ai_jobs(at, kind);
+   -- Claude compacted the chat since its last summary: summarize it now (plan.md 19.3), so what
+   -- left Claude's context is in the project's memory before more of it goes.
+   ALTER TABLE sessions ADD COLUMN summary_compactions INTEGER NOT NULL DEFAULT 0;`,
+  // The parts of a project that start by themselves when it is opened (launcher.ts, plan.md 19.4).
+  `CREATE TABLE launch_auto (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     part TEXT NOT NULL,
+     PRIMARY KEY (project_id, part)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

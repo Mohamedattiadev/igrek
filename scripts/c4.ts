@@ -42,7 +42,7 @@ const AREAS: [string, string, RegExp][] = [
   [
     "sessions",
     "Session reading",
-    /\/(adapters\/|indexer|store|summarizer|extract|embedder|embed-worker|imports|retention|timetrack|limits|accounts|health)/,
+    /\/(adapters\/|indexer|store|summarizer|ai-jobs|extract|embedder|embed-worker|imports|retention|timetrack|limits|accounts|health)/,
   ],
   [
     "chat",

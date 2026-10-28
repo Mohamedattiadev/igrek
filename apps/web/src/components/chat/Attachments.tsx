@@ -3,6 +3,7 @@ import { Download, FileText, Loader2, Mic, Paperclip, Square } from "lucide-reac
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
+import { recordingProblem as problemHere, transcribe } from "../../lib/speech";
 
 const fileUrl = (hash: string) => `/api/chat/files/${hash}`;
 
@@ -32,16 +33,7 @@ export function AttachmentView({ file }: { file: NonNullable<ChatMessage["attach
         />
       </a>
     );
-  if (file.type.startsWith("audio/"))
-    return (
-      // biome-ignore lint/a11y/useMediaCaption: a voice message has no captions; its text comes with Whisper (19.1)
-      <audio
-        controls
-        src={fileUrl(file.hash)}
-        className="mt-1.5 h-9 max-w-xs"
-        aria-label={t("teamChat.voiceMessage")}
-      />
-    );
+  if (file.type.startsWith("audio/")) return <VoiceMessage file={file} />;
   return (
     <a
       href={fileUrl(file.hash)}
@@ -58,11 +50,43 @@ export function AttachmentView({ file }: { file: NonNullable<ChatMessage["attach
   );
 }
 
-/** Why the voice button cannot record here, if it cannot; the button stays and says so. */
-function recordProblem(): string | undefined {
-  if (typeof MediaRecorder === "undefined") return "teamChat.voiceNoRecorder";
-  if (!navigator.mediaDevices?.getUserMedia) return "teamChat.voiceNoMic";
-  return undefined;
+/** A voice message: played here, and turned into text on this computer (Whisper) on request. */
+function VoiceMessage({ file }: { file: NonNullable<ChatMessage["attachment"]> }) {
+  const { t, i18n } = useTranslation();
+  const [text, setText] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const toText = async () => {
+    setBusy(true);
+    try {
+      const model = (await (await fetch("/api/speech", { credentials: "same-origin" })).json()) as { state: string };
+      if (model.state !== "ready") throw new Error(t("voice.modelFirst"));
+      const blob = await (await fetch(fileUrl(file.hash), { credentials: "same-origin" })).blob();
+      setText((await transcribe(blob, i18n.language.split("-")[0] ?? "en")) || t("voice.nothing"));
+    } catch (err) {
+      setText((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="mt-1.5 space-y-1">
+      <div className="flex items-center gap-2">
+        {/* biome-ignore lint/a11y/useMediaCaption: its words come as text below, with "To text" */}
+        <audio controls src={fileUrl(file.hash)} className="h-9 max-w-xs" aria-label={t("teamChat.voiceMessage")} />
+        {text === undefined && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void toText()}
+            className="text-[12px] font-medium text-accent hover:underline disabled:opacity-60"
+          >
+            {busy ? t("voice.working") : t("teamChat.voiceToText")}
+          </button>
+        )}
+      </div>
+      {text !== undefined && <p className="max-w-md text-[13px] text-fg-muted italic">{text}</p>}
+    </div>
+  );
 }
 
 /**
@@ -93,7 +117,7 @@ export function AttachButtons({
   }, [seconds]);
   const send = (file: File) => void onFile(file).catch((err: Error) => setError(err.message));
   const record = async () => {
-    const problem = recordProblem();
+    const problem = problemHere();
     if (problem) return setError(t(problem));
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

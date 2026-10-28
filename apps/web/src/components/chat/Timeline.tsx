@@ -13,7 +13,7 @@ import { Link } from "react-router";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
-import { useServerEvent } from "../../lib/live";
+import { useCoalesced, useServerEvent } from "../../lib/live";
 import { Badge, EmptyState } from "../ui";
 
 const KIND: Record<TeamTimelineItem["kind"], LucideIcon> = {
@@ -84,7 +84,8 @@ export function TeamTimeline() {
     [],
   );
   useEffect(load, [load]);
-  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && load());
+  const soon = useCoalesced(load);
+  useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && soon());
   const people = [...new Set((items ?? []).filter((i) => !i.mine && i.who).map((i) => i.who))];
   const shown = (items ?? []).filter((i) => !who || (who === "me" ? i.mine : i.who === who));
   const days = [...new Set(shown.map((i) => dayOf(i.at, i18n.language)))];
