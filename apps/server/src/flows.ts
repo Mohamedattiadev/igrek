@@ -354,6 +354,8 @@ export class Flows {
     raise?: Pick<RaiseState, "category" | "before">;
     /** Started by the chief, which hears the result. */
     by?: FlowRun["by"];
+    /** Done by this team bot (bots.ts). */
+    bot?: string;
   }): FlowRun {
     const project = this.store.projectRow(args.projectId);
     if (!project || !existsSync(project.path)) throw new Error("Project folder not found");
@@ -395,6 +397,7 @@ export class Flows {
       ...(args.persona ? { persona: args.persona } : {}),
       ...(args.raise ? { raise: { ...args.raise, rounds: [] } } : {}),
       ...(args.by ? { by: args.by } : {}),
+      ...(args.bot ? { bot: args.bot } : {}),
       createdAt: now,
       updatedAt: now,
     };

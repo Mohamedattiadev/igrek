@@ -344,6 +344,17 @@ nodes:
     checks: true
     on_fail: { back_to: [update], max: 1 }
 `,
+  plan: `name: plan
+description: "Plan only: one AI step reads the project and writes how it would do the job, which files and why, the risks and how to check it; nothing is changed."
+nodes:
+  - id: plan
+    title: Plan
+    review: false
+    prompt: |
+      $REQUEST
+      Read the project and write a step-by-step plan for this job: the files to change and how, the risks, and how to check it is done. Do not change any files.
+      $FEEDBACK
+`,
   report: `name: report
 description: "A short report on the project, read only: what changed, what is open, what needs attention."
 nodes:

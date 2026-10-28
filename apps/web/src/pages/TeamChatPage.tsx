@@ -211,8 +211,8 @@ function ChannelHeader({
   const [busy, setBusy] = useState(false);
   return (
     <>
-      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border px-4">
-        <h1 className="flex min-w-0 items-center gap-1 text-[14px] font-semibold">
+      <header className="flex h-12 shrink-0 items-center gap-3 overflow-hidden border-b border-border px-4">
+        <h1 className="flex shrink-0 items-center gap-1 text-[14px] font-semibold">
           <Hash size={15} className="text-fg-subtle" aria-hidden="true" />
           <span className="truncate">{channel.name}</span>
         </h1>
@@ -328,6 +328,26 @@ function useUnreadStart(channelId: string | undefined, messages: ChatMessage[]) 
   return start && start.channel === channelId && start.id ? start : undefined;
 }
 
+/** The project's team bots, offered after "@" like teammates (bots.ts). */
+function useBotMembers(projectId: string): TeamMember[] {
+  const [bots, setBots] = useState<TeamMember[]>([]);
+  useEffect(
+    () =>
+      void api
+        .bots()
+        .then((list) =>
+          setBots(
+            list
+              .filter((b) => !b.projectId || b.projectId === projectId)
+              .map((b) => ({ id: `bot:${b.id}`, username: b.handle, displayName: b.name, role: "member" as const })),
+          ),
+        )
+        .catch(() => undefined),
+    [projectId],
+  );
+  return bots;
+}
+
 /** One channel: its header, the messages with the unread line and who is typing, and the box to write in. */
 function ChannelView({
   channel,
@@ -362,7 +382,7 @@ function ChannelView({
   const unread = useUnreadStart(channel.id, messages);
   const list = useStickToBottom(messages.length, unread ? `${channel.id}:${unread.id}` : undefined);
   const draft = useDraft(channel.id, undefined, onReload, onForward);
-  const others = people.members.filter((m) => m.id !== people.meId);
+  const others = [...people.members.filter((m) => m.id !== people.meId), ...useBotMembers(channel.projectId)];
   return (
     <section className={`min-w-0 flex-1 flex-col ${thread ? "hidden lg:flex" : "flex"}`}>
       <ChannelSelect channels={channels} value={channel.id} onPick={onOpen} onTimeline={() => onOpen("timeline")} />

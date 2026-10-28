@@ -1,5 +1,6 @@
 import type { ChatMessage, TaskStatus, TeamMember } from "@igrek/core";
 import {
+  Bot,
   CircleAlert,
   Forward,
   KanbanSquare,
@@ -28,6 +29,29 @@ const STATUS_TONE: Record<TaskStatus, "neutral" | "accent" | "warning" | "succes
   done: "success",
 };
 
+/**
+ * A team bot's line (bots.ts): "igrek:bot:<status>:<run>:<files changed>". The run is on the asker's
+ * computer, so the link to review and merge it is theirs; teammates read the sentence.
+ */
+function BotNote({ message }: { message: ChatMessage }) {
+  const { t } = useTranslation();
+  const [, status = "", run = "", files = "0"] = message.text.match(/^igrek:bot:(\w+):([\w-]+):(\d+)$/) ?? [];
+  const tone =
+    status === "failed" ? "text-danger" : status === "ready" || status === "merged" ? "text-success" : "text-accent";
+  return (
+    <div className="flex items-center gap-2 py-1 ps-11 text-[12.5px] text-fg-muted">
+      <Bot size={14} className={tone} aria-hidden="true" />
+      <span>{t(`teamChat.bot_${status}`, { name: message.author ?? "", count: Number(files) })}</span>
+      {message.mine && (
+        <Link to={`/runs/${run}`} className="font-medium text-accent hover:underline">
+          {t(status === "ready" || status === "needs_you" ? "teamChat.botReview" : "teamChat.botOpen")}
+        </Link>
+      )}
+      <span className="text-fg-subtle">· {relativeTime(message.at)}</span>
+    </div>
+  );
+}
+
 /** "igrek:task:doing" and "igrek:error:..." are notes from Igrek, worded here in the reader's language. */
 function SystemNote({ message }: { message: ChatMessage }) {
   const { t } = useTranslation();
@@ -52,6 +76,7 @@ function highlight(text: string): string {
 }
 
 const isNote = (m: ChatMessage) => m.bot && /^igrek:(task|error):/.test(m.text);
+const isBotNote = (m: ChatMessage) => m.bot && m.text.startsWith("igrek:bot:");
 
 function Face({ message, member, name }: { message: ChatMessage; member?: TeamMember; name: string }) {
   if (message.bot)
@@ -245,6 +270,7 @@ export function MessageItem({
   const member = members.find((m) => m.id === (message.mine ? meId : message.authorId));
   const name = useAuthorName(message, member);
   if (isNote(message)) return <SystemNote message={message} />;
+  if (isBotNote(message)) return <BotNote message={message} />;
   return (
     <article
       id={`msg-${message.id}`}

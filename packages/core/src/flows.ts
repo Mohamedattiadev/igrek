@@ -92,7 +92,51 @@ export interface FlowRun {
   raise?: RaiseState;
   /** Started by the chief (chief.ts): its result is reported back in the chief's chat. */
   by?: "chief";
+  /** Done by a team bot (bots.ts), which reports in the chat it was asked in. */
+  bot?: string;
   error?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * A bot on the team (plan.md 19.2, after OpenBot and Open Duet): a named coworker with a role, built
+ * on an expert persona, that takes long jobs from the chat (@john) or the board, does them in its
+ * own copy of the repository and reports back. It runs with the user's own Claude and Igrek's
+ * approval rules; its work reaches the branch only when the user merges it.
+ */
+export interface Bot {
+  id: string;
+  name: string;
+  /** "john": called with @john in a channel. */
+  handle: string;
+  /** The expert persona it works as (its model, tools and way of working). */
+  persona: string;
+  /** What it is for, in the user's words: "Payments and the checkout". */
+  role: string;
+  /**
+   * "plan": it only writes how it would do the job; "ask": it plans and waits for the user's OK
+   * before changing code; "edits": it does the job and the checks, then waits for the merge.
+   */
+  approval: "plan" | "ask" | "edits";
+  /** A team flow instead (a lead and specialists, e.g. "feature"); the approval mode then is the flow's. */
+  flow?: string;
+  /** What it keeps from earlier jobs; the user can read and change it. */
+  memory: string;
+  /** Only in this project; every shared project when missing. */
+  projectId?: string;
+  createdAt: number;
+}
+
+/** A bot's job, for its activity list and the chat card. */
+export interface BotJob {
+  runId: string;
+  botId: string;
+  projectId: string;
+  request: string;
+  status: FlowRun["status"];
+  channel?: string;
+  changes?: FlowRun["changes"];
   createdAt: number;
   updatedAt: number;
 }

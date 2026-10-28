@@ -127,7 +127,9 @@ export class Schedules {
     now = Date.now(),
   ): Schedule {
     if (!this.store.projectRow(input.projectId)) throw new Error("Project not found");
-    if (!this.flows.flowsFor(input.projectId).some((f) => f.name === input.flow)) throw new Error("Unknown flow");
+    const isBot = input.flow.startsWith("bot:") && !!this.bot?.(input.flow.slice(4));
+    if (!isBot && !this.flows.flowsFor(input.projectId).some((f) => f.name === input.flow))
+      throw new Error("Unknown flow");
     const when = cleanWhen(input.when, now);
     if (!when) throw new Error("The time could not be understood");
     const s: Schedule = {
@@ -245,17 +247,24 @@ Reply with JSON only:
     return this.save(s);
   }
 
+  /** Team bots (bots.ts), set by the server at startup: a schedule's flow may be "bot:<id>". */
+  bot?: (id: string) => unknown;
+  startBot?: (
+    id: string,
+    job: { projectId: string; request: string; scheduleId: string; limits: { maxMinutes: number; maxTurns: number } },
+  ) => FlowRun;
+
   /** Starts it now, in its own copy, with its budget; `happened` says what started a routine. */
   runNow(id: string, now = Date.now(), happened?: string): FlowRun {
     const s = this.get(id);
     if (!s) throw new Error("Schedule not found");
-    const run = this.flows.start({
-      projectId: s.projectId,
-      flow: s.flow,
-      request: happened ? `${s.request}\n\nWhat happened: ${scrub(happened).slice(0, 800)}` : s.request,
-      scheduleId: s.id,
-      limits: { maxMinutes: s.maxMinutes, maxTurns: s.maxTurns },
-    });
+    const request = happened ? `${s.request}\n\nWhat happened: ${scrub(happened).slice(0, 800)}` : s.request;
+    const limits = { maxMinutes: s.maxMinutes, maxTurns: s.maxTurns };
+    // "bot:<id>": a team bot's routine; it waits for the user's OK like any job (it never approves itself).
+    const run =
+      s.flow.startsWith("bot:") && this.startBot
+        ? this.startBot(s.flow.slice(4), { projectId: s.projectId, request, scheduleId: s.id, limits })
+        : this.flows.start({ projectId: s.projectId, flow: s.flow, request, scheduleId: s.id, limits });
     s.lastRunAt = now;
     s.lastRunId = run.id;
     s.missedAt = undefined;

@@ -169,6 +169,9 @@ export class Board {
     return this.get(id);
   }
 
+  /** A card given to a persona that is a team bot goes to that bot (bots.ts); set at startup. */
+  startByBot?: (task: BoardTask) => string | undefined;
+
   /** Moving to Doing starts the team (unless a run is already going); back to To do stops it. */
   move(id: string, status: TaskStatus, order?: number, flow = "feature"): BoardTask {
     const task = this.get(id);
@@ -177,14 +180,16 @@ export class Board {
     let runId = task.runId;
     const run = runId ? this.flows.get(runId) : undefined;
     if (status === "doing" && (!run || ["failed", "stopped", "discarded", "merged"].includes(run.status))) {
-      runId = this.flows.start({
-        projectId: task.projectId,
-        flow,
-        request: `${task.title}${task.description ? `\n\n${task.description}` : ""}`,
-        taskId: task.id,
-        // A card given to a persona is worked on as that persona.
-        ...(task.assignee?.kind === "persona" ? { persona: task.assignee.id } : {}),
-      }).id;
+      runId =
+        this.startByBot?.(task) ??
+        this.flows.start({
+          projectId: task.projectId,
+          flow,
+          request: `${task.title}${task.description ? `\n\n${task.description}` : ""}`,
+          taskId: task.id,
+          // A card given to a persona is worked on as that persona.
+          ...(task.assignee?.kind === "persona" ? { persona: task.assignee.id } : {}),
+        }).id;
     }
     if (status === "todo" && run && ["running", "needs_you"].includes(run.status)) this.flows.stop(run.id);
     this.db

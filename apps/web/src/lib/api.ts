@@ -4,6 +4,8 @@ import type {
   Approval,
   AskAnswer,
   BoardTask,
+  Bot,
+  BotJob,
   Briefing,
   CatalogEntry,
   Category,
@@ -365,6 +367,15 @@ export const api = {
   terminalInput: (id: string, text: string, paste = false) =>
     request<{ ok: boolean }>(`/api/terminals/${id}/input`, { method: "POST", body: JSON.stringify({ text, paste }) }),
   personas: () => request<Persona[]>("/api/personas"),
+  // ---- team bots (bot-routes.ts) ----
+  bots: () => request<Bot[]>("/api/bots"),
+  createBot: (bot: Partial<Bot>) => request<Bot>("/api/bots", { method: "POST", body: JSON.stringify(bot) }),
+  updateBot: (id: string, patch: Partial<Bot>) =>
+    request<Bot>(`/api/bots/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
+  deleteBot: (id: string) => request<{ ok: boolean }>(`/api/bots/${id}`, { method: "DELETE" }),
+  botJobs: (id: string) => request<BotJob[]>(`/api/bots/${id}/jobs`),
+  giveBotJob: (id: string, projectId: string, job: string) =>
+    request<FlowRun>(`/api/bots/${id}/jobs`, { method: "POST", body: JSON.stringify({ projectId, request: job }) }),
   personaScores: () => request<PersonaScore[]>("/api/personas/scores"),
   createPersona: (persona: Partial<Persona>) =>
     request<Persona>("/api/personas", { method: "POST", body: JSON.stringify(persona) }),

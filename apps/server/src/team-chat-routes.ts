@@ -4,6 +4,7 @@ import { languages } from "@igrek/i18n";
 import type { Hono } from "hono";
 import type { Board } from "./board";
 import { taskMark } from "./board-auto";
+import type { Bots } from "./bots";
 import type { StopRegistry } from "./bus";
 import { ChatFiles, MAX_FILE } from "./chat-files";
 import { cleanPreview, linkPreview } from "./link-preview";
@@ -14,6 +15,8 @@ import { asksIgrek, type Chat, channelId, taskEvent } from "./team-chat";
 interface Deps {
   db: Database;
   chat: Chat;
+  /** Team bots (bots.ts): "@john rewrite the payment module" is a job for John. */
+  bots?: Bots;
   files: ChatFiles;
   board: Board;
   sync: Sync;
@@ -73,6 +76,30 @@ function cardsFrom(deps: Deps, projectId: string, answer: string): { text: strin
     taskId ??= card.id;
   }
   return { text: answer.replace(TASK_LINE, "").trim(), ...(taskId ? { taskId } : {}) };
+}
+
+/**
+ * Each bot a message calls gets it as a job, answered in that message's thread. One that cannot
+ * start (no git in the project, a bot of another project) says why there, to the asker only.
+ */
+function giveToBots(deps: Deps, projectId: string, channel: string, message: ChatMessage): void {
+  for (const bot of deps.bots?.mentioned(projectId, message.text) ?? []) {
+    const request = message.text.replace(new RegExp(`(^|\\s)@${bot.handle}\\b`, "gi"), " ").trim();
+    try {
+      deps.bots?.start(bot.id, { projectId, request, channel, thread: message.parentId ?? message.id });
+    } catch (err) {
+      deps.chat.keepHere(
+        deps.chat.post({
+          projectId,
+          channel,
+          parentId: message.parentId ?? message.id,
+          text: `igrek:error:${bot.name}: ${(err as Error).message.slice(0, 300)}`,
+          mentions: [],
+          bot: true,
+        }),
+      );
+    }
+  }
 }
 
 /** Igrek answers in the thread of the message that asked it, with the asker's own Claude. */
@@ -374,6 +401,7 @@ export function registerTeamChatRoutes(app: Hono, deps: Deps): void {
     void sync.flush();
     const posted = chat.message(id);
     if (posted && asksIgrek(text)) void answer(deps, project.id, channel, posted);
+    if (posted) giveToBots(deps, project.id, channel, posted);
     return c.json(posted);
   });
 

@@ -1045,6 +1045,32 @@ export const migrations: string[] = [
   `ALTER TABLE comments ADD COLUMN attachment TEXT;
    ALTER TABLE comments ADD COLUMN attachment_hash TEXT;
    CREATE INDEX comments_attachment ON comments(attachment_hash);`,
+  // Bots on the team (bots.ts, plan.md 19.2): a named coworker on an expert persona, and its jobs.
+  // A job's "thread" is the chat message it was asked in (a soft link: that message may be
+  // deleted, then the bot answers in the channel); "told" is the last status it wrote there.
+  `CREATE TABLE bots (
+     id TEXT PRIMARY KEY NOT NULL,
+     name TEXT NOT NULL,
+     handle TEXT NOT NULL UNIQUE,
+     persona TEXT NOT NULL,
+     role TEXT NOT NULL DEFAULT '',
+     approval TEXT NOT NULL DEFAULT 'edits',
+     flow TEXT,
+     memory TEXT NOT NULL DEFAULT '',
+     project_id TEXT REFERENCES projects(id) ON DELETE CASCADE,
+     created_at INTEGER NOT NULL
+   );
+   CREATE INDEX bots_project ON bots(project_id, name);
+   CREATE TABLE bot_jobs (
+     run_id TEXT PRIMARY KEY NOT NULL REFERENCES flow_runs(id) ON DELETE CASCADE,
+     bot_id TEXT NOT NULL REFERENCES bots(id) ON DELETE CASCADE,
+     request TEXT NOT NULL,
+     channel TEXT,
+     thread TEXT,
+     told TEXT NOT NULL DEFAULT '',
+     created_at INTEGER NOT NULL
+   );
+   CREATE INDEX bot_jobs_bot ON bot_jobs(bot_id, created_at);`,
 ];
 
 export function migrate(sqlite: Database): number {

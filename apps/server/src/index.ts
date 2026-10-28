@@ -35,6 +35,8 @@ import { BackupJobs } from "./backup-jobs";
 import { applyMovedIn, exportDataFolder, movedInWaiting, stageDataFolder } from "./backup-move";
 import { Board } from "./board";
 import { BoardAuto } from "./board-auto";
+import { registerBotRoutes } from "./bot-routes";
+import { Bots } from "./bots";
 import { Bridges } from "./bridges";
 import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
@@ -579,6 +581,15 @@ const chatFiles = new ChatFiles(join(config.dataDir, "chat-files"));
 const chat = new Chat(sqlite, bus, (hash) => chatFiles.has(hash));
 sync.chat = chat;
 sync.files = chatFiles;
+const bots = new Bots(sqlite, bus, flows, chat, (id) => !!personas.get(id));
+// A card given to a persona that is a team bot is that bot's job; a bot may be a schedule's worker.
+board.startByBot = (task) => {
+  const bot = task.assignee?.kind === "persona" ? bots.forPersona(task.projectId, task.assignee.id) : undefined;
+  const request = `${task.title}${task.description ? `\n\n${task.description}` : ""}`;
+  return bot ? bots.start(bot.id, { projectId: task.projectId, request, taskId: task.id }).id : undefined;
+};
+schedules.bot = (id) => bots.get(id);
+schedules.startBot = (id, job) => bots.start(id, job);
 // The board follows the work: a minute at most behind, sooner when a session or commit comes in.
 const boardAuto = new BoardAuto(sqlite, board, (taskId, status) => chat.noteTask(taskId, status));
 let boardAutoAt = 0;
@@ -712,9 +723,11 @@ const app = createApp({
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerAgentFileRoutes(hono, (id) => store.projectRow(id)?.path);
     registerReportRoutes(hono, gatewayValues);
+    registerBotRoutes(hono, bots);
     registerTeamChatRoutes(hono, {
       db: sqlite,
       chat,
+      bots,
       files: chatFiles,
       board,
       sync,
@@ -828,6 +841,7 @@ const app = createApp({
     flows.onChange = (run) => {
       board.followRun(run);
       chief.onRun(run);
+      bots.onRun(run);
     };
     // The chief from a phone (telegram.ts); it starts only once the user connected a bot.
     const telegram = new Telegram(config.dataDir, sealer, chief, gatewayValues);

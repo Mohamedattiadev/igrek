@@ -3,6 +3,7 @@ import { Download, FlaskConical, MessageSquare, MessagesSquare, Plus, Search, Us
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { BotsTab } from "../components/BotsTab";
 import { PacksTab } from "../components/PacksTab";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { api } from "../lib/api";
@@ -14,7 +15,7 @@ import { ArenaTab } from "./Arena";
 import { TestersTab } from "./Testers";
 
 const GROUPS: PersonaGroup[] = ["engineering", "leadership", "research", "testing"];
-type Tab = "team" | "meetings" | "testers" | "scores" | "arena" | "packs";
+type Tab = "team" | "bots" | "meetings" | "testers" | "scores" | "arena" | "packs";
 
 function PersonaCard({ persona }: { persona: Persona }) {
   const { t } = useTranslation();
@@ -435,7 +436,7 @@ export function PersonasPage() {
       />
       <div className="mx-auto w-full max-w-5xl space-y-4 p-6">
         <div className="flex flex-wrap gap-1">
-          {(["team", "meetings", "testers", "scores", "arena", "packs"] as Tab[]).map((value) => (
+          {(["team", "bots", "meetings", "testers", "scores", "arena", "packs"] as Tab[]).map((value) => (
             <button
               key={value}
               type="button"
@@ -450,6 +451,7 @@ export function PersonasPage() {
           ))}
         </div>
         {tab !== "team" && <p className="text-[13px] text-fg-muted">{t(`persona.tabHint_${tab}`)}</p>}
+        {tab === "bots" && <BotsTab />}
         {tab === "team" &&
           (personas.length === 0 ? (
             <EmptyState icon={Users} title={t("persona.title")} body={t("persona.loading")} />
