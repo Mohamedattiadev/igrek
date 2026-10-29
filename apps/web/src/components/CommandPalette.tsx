@@ -1,6 +1,6 @@
 import type { AskAnswer, ProjectListItem, SearchHit } from "@igrek/core";
 import type { LearnHit } from "@igrek/learn";
-import { Command } from "cmdk";
+import { Command, defaultFilter } from "cmdk";
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
@@ -73,6 +73,16 @@ function Item({
   );
 }
 
+/**
+ * Pages and projects whose names match come before "ask AI about it": typing "Bana atanan" and Enter
+ * opened the AI question, not the page (found by a keyboard-only, screen reader-style run, where the
+ * list is not seen before Enter).
+ */
+function rank(value: string, search: string, keywords?: string[]): number {
+  const score = defaultFilter(value, search, keywords);
+  return value.startsWith("ask ") ? Math.min(score, 0.01) : score;
+}
+
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -140,6 +150,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       open={open}
       onOpenChange={onOpenChange}
       shouldFilter={!actionMode}
+      filter={rank}
       label={t("palette.placeholder")}
       overlayClassName="fixed inset-0 bg-black/25"
       contentClassName="fixed left-1/2 top-[15vh] w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-bg text-fg shadow-ui"
@@ -182,17 +193,6 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       <Command.List className="max-h-[360px] overflow-y-auto p-1.5">
         <Command.Empty className="py-8 text-center text-[13px] text-fg-subtle">{t("palette.empty")}</Command.Empty>
         <PageActionGroup shown={shown} run={run} />
-        {!actionMode && query.trim().length >= 4 && (
-          <Command.Group heading={t("ask.action")} className={GROUP}>
-            <Item
-              icon={MessageSquare}
-              label={`${t("ask.action")}: “${query.trim()}”`}
-              value={`ask ${query}`}
-              keywords={[query]}
-              onSelect={() => ask(query.trim())}
-            />
-          </Command.Group>
-        )}
         {!actionMode && (
           <Command.Group heading={t("palette.goTo")} className={GROUP}>
             {NAV_ITEMS.map((item) => (
@@ -219,6 +219,17 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                   onSelect={() => run(() => navigate(`/p/${project.id}`))}
                 />
               ))}
+          </Command.Group>
+        )}
+        {/* After the pages and projects, so a name and Enter opens it (see rank). */}
+        {!actionMode && query.trim().length >= 4 && (
+          <Command.Group heading={t("ask.action")} className={GROUP}>
+            <Item
+              icon={MessageSquare}
+              label={`${t("ask.action")}: “${query.trim()}”`}
+              value={`ask ${query}`}
+              onSelect={() => ask(query.trim())}
+            />
           </Command.Group>
         )}
         {!actionMode && hits.length > 0 && (

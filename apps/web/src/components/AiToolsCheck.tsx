@@ -43,6 +43,7 @@ export function AiToolsCheck({ onTerminal }: { onTerminal?: (id: string) => void
   useEffect(() => load(false), [load]);
   if (!status) return null;
   const found = (id: string) => status.tools.some((tool) => tool.id === id && tool.found);
+  const any = TOOLS.some((tool) => found(tool.id));
   return (
     <div className="space-y-2 rounded-ui border border-border p-3 text-[13px]">
       <p className="font-medium">{t("onboarding.toolsTitle")}</p>
@@ -54,41 +55,62 @@ export function AiToolsCheck({ onTerminal }: { onTerminal?: (id: string) => void
               <CheckCircle2 size={14} aria-hidden="true" />
               {t("onboarding.toolsFound", { tool: tool.name })}
             </li>
+          ) : any ? (
+            // One is enough: the other is an option, folded, not a red mark with an install command
+            // (a first-run test as someone who does not write code found it alarming).
+            <li key={tool.id}>
+              <details className="text-[12.5px]">
+                <summary className="cursor-pointer text-fg-muted">
+                  {t("onboarding.toolsAlso", { tool: tool.name })}
+                </summary>
+                <Missing tool={tool} onTerminal={onTerminal} />
+              </details>
+            </li>
           ) : (
             <li key={tool.id} className="space-y-1">
               <p className="flex items-center gap-1.5">
                 <XCircle size={14} className="text-fg-subtle" aria-hidden="true" />
                 {t("onboarding.toolsMissing", { tool: tool.name })}
               </p>
-              <div className="flex items-center gap-2">
-                <code className="min-w-0 flex-1 truncate rounded-ui bg-bg-subtle px-2 py-1 font-mono text-[12px]">
-                  {tool.command}
-                </code>
-                <CopyButton text={tool.command} />
-              </div>
-              <FixButton
-                fix={tool.id === "claude" ? "install-claude" : "install-codex"}
-                label={t("fix.installTool", { tool: tool.name })}
-                onTerminal={onTerminal}
-              />
-              <a
-                href={tool.docs}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-accent-hover underline"
-              >
-                <ExternalLink size={12} aria-hidden="true" />
-                {t("onboarding.toolsMore", { tool: tool.name })}
-              </a>
+              <Missing tool={tool} onTerminal={onTerminal} />
             </li>
           ),
         )}
       </ul>
-      {!(found("claude") && found("codex")) && (
+      {!any && (
         <Button size="sm" variant="ghost" icon={RefreshCw} disabled={checking} onClick={() => load(true)}>
           {t("onboarding.toolsRecheck")}
         </Button>
       )}
+    </div>
+  );
+}
+
+/** How to install a missing tool: its own command to copy, a button that runs it, its page. */
+function Missing({ tool, onTerminal }: { tool: (typeof TOOLS)[number]; onTerminal?: (id: string) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <code className="min-w-0 flex-1 truncate rounded-ui bg-bg-subtle px-2 py-1 font-mono text-[12px]">
+          {tool.command}
+        </code>
+        <CopyButton text={tool.command} />
+      </div>
+      <FixButton
+        fix={tool.id === "claude" ? "install-claude" : "install-codex"}
+        label={t("fix.installTool", { tool: tool.name })}
+        onTerminal={onTerminal}
+      />
+      <a
+        href={tool.docs}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1 text-xs text-accent-hover underline"
+      >
+        <ExternalLink size={12} aria-hidden="true" />
+        {t("onboarding.toolsMore", { tool: tool.name })}
+      </a>
     </div>
   );
 }

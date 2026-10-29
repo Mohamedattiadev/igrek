@@ -571,7 +571,7 @@ export function ProjectsPage() {
               <HandoffsPanel />
               <NewProject />
               <AddProject />
-              <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2">
+              <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2 focus-within:border-accent">
                 <Search size={13} className="text-fg-subtle" />
                 <input
                   value={filter}

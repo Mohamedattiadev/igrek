@@ -178,6 +178,7 @@ function AddServer({ onDone }: { onDone: () => void }) {
           <input
             className={field}
             placeholder={t("servers.name")}
+            aria-label={t("servers.name")}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
@@ -185,6 +186,7 @@ function AddServer({ onDone }: { onDone: () => void }) {
             <input
               className={cn(field, "font-mono")}
               placeholder="deploy@195.2.10.4"
+              aria-label="deploy@195.2.10.4"
               value={form.target}
               onChange={(e) => setForm({ ...form, target: e.target.value })}
             />
@@ -194,6 +196,7 @@ function AddServer({ onDone }: { onDone: () => void }) {
             <input
               className={cn(field, "w-24")}
               placeholder={t("servers.port")}
+              aria-label={t("servers.port")}
               value={form.port}
               onChange={(e) => setForm({ ...form, port: e.target.value.replace(/\D/g, "") })}
             />
@@ -283,6 +286,7 @@ function RunBox({ server, onRan }: { server: ServerInfo; onRan: (run: RemoteRun)
           onChange={(e) => setCommand(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && command.trim() && start()}
           placeholder={t("servers.runPlaceholder")}
+          aria-label={t("servers.runPlaceholder")}
           className={cn(field, "min-w-0 flex-1 font-mono")}
         />
         <Button variant="primary" disabled={!command.trim() || busy} onClick={start}>
@@ -314,6 +318,7 @@ function RunBox({ server, onRan }: { server: ServerInfo; onRan: (run: RemoteRun)
               value={typedName}
               onChange={(e) => setTypedName(e.target.value)}
               placeholder={t("servers.confirmDanger")}
+              aria-label={t("servers.confirmDanger")}
               className="h-9 w-full rounded-ui border border-danger bg-bg px-3 text-[13px] outline-none"
             />
           )}

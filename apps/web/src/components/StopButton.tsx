@@ -1,4 +1,4 @@
-import { OctagonX } from "lucide-react";
+import { CircleStop, OctagonX } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
@@ -6,8 +6,9 @@ import { useStoppable } from "../lib/live";
 import { Button, Count, Dialog } from "./ui";
 
 /**
- * Emergency stop (plan.md Faz 0): always visible, halts everything that runs on its own. Red only
- * while something runs: red on an idle screen told newcomers something was wrong.
+ * Emergency stop (plan.md Faz 0): always visible, halts everything that runs on its own. A stop sign
+ * with how many things run, not red: a red cross with "1" read as "one error" to a first-time user
+ * (and to the owner's eye on a screenshot). Red comes on hover and in the dialog that asks first.
  */
 export function StopButton({ onStopped }: { onStopped: (message: string) => void }) {
   const { t } = useTranslation();
@@ -33,13 +34,15 @@ export function StopButton({ onStopped }: { onStopped: (message: string) => void
         onClick={() => setOpen(true)}
         // Only the icon and how many things run: the tip says what it does, the dialog asks before anything stops.
         data-tip={running ? t("stop.running", { count: running }) : t("stop.idle")}
-        aria-label={t("stop.title")}
+        aria-label={running ? t("stop.running", { count: running }) : t("stop.title")}
         className={`flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-ui px-2 text-xs font-medium ${
-          running ? "text-danger hover:bg-danger-soft" : "text-fg-subtle hover:bg-bg-hover hover:text-danger"
+          running
+            ? "text-fg-muted hover:bg-bg-hover hover:text-danger"
+            : "text-fg-subtle hover:bg-bg-hover hover:text-danger"
         }`}
       >
-        <OctagonX size={14} strokeWidth={2} />
-        {running > 0 && <Count n={running} tone="danger" />}
+        <CircleStop size={14} strokeWidth={2} />
+        {running > 0 && <Count n={running} />}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("stop.title")}>
         <div className="p-5">

@@ -74,6 +74,7 @@ function Prompt({
         <h2 className="text-[15px] font-semibold">{title}</h2>
         <input
           value={value}
+          aria-label={title}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           className={cn(field, "w-full")}

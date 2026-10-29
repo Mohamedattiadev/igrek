@@ -631,6 +631,7 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
             );
           }}
           placeholder={t("insight.askPlaceholder", { section: t(`insight.cat.${category}`) })}
+          aria-label={t("insight.askPlaceholder", { section: t(`insight.cat.${category}`) })}
           className="h-8 flex-1 bg-transparent text-[13px] outline-none"
         />
       </Card>

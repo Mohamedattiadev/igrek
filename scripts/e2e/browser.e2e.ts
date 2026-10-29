@@ -116,6 +116,8 @@ describe.skipIf(!ready)("the app in a browser", () => {
     // install button shows: it once needed a router the wizard did not have, and the window went white.
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("heading", { name: "You're all set" }).waitFor();
+    // With Claude Code there, Codex is an option, folded; opened, its install button shows.
+    await page.getByText("To use Codex as well").click();
     await page.getByRole("button", { name: /Install Codex/ }).waitFor();
     expect(errors).toEqual([]);
     await ctx.close();

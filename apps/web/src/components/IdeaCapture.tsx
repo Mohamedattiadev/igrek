@@ -50,6 +50,7 @@ export function IdeaCapture({ onSaved }: { onSaved: (message: string) => void })
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && save()}
             placeholder={t("ideas.capturePlaceholder")}
+            aria-label={t("ideas.capturePlaceholder")}
             className="h-10 min-w-0 flex-1 rounded-ui border border-border bg-bg px-3 text-[14px] outline-none focus:border-accent"
           />
           <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />

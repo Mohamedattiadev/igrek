@@ -153,6 +153,7 @@ function ChangesPanel({ project, onOpenDiff }: { project: ProjectDetail; onOpenD
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder={t("code.commitPlaceholder")}
+          aria-label={t("code.commitPlaceholder")}
           rows={2}
           className={cn(field, "h-auto w-full resize-none p-1.5 py-1.5")}
         />

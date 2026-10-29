@@ -203,6 +203,7 @@ function Jobs({ bot, projects }: { bot: Bot; projects: ProjectListItem[] }) {
           value={request}
           onChange={(e) => setRequest(e.target.value)}
           placeholder={t("bots.jobHint", { name: bot.name })}
+          aria-label={t("bots.jobHint", { name: bot.name })}
           className={cn(field, "min-w-0 flex-1")}
         />
         <Button

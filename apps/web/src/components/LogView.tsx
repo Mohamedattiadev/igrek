@@ -60,6 +60,7 @@ export function LogView({ path }: { path: string }) {
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder={t("preview.logFilter")}
+          aria-label={t("preview.logFilter")}
           className="h-6 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 text-[12px] outline-none"
         />
         <label className="flex items-center gap-1 text-[11px] text-fg-muted">

@@ -1343,6 +1343,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
           }}
           rows={Math.min(10, Math.max(empty ? 2 : 1, text.split("\n").length))}
           placeholder={t("chat.placeholder")}
+          aria-label={t("chat.placeholder")}
           disabled={info?.status === "exited"}
           className="w-full resize-none bg-transparent px-2 py-1 text-[14.5px] leading-relaxed outline-none placeholder:text-fg-subtle"
         />

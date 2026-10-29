@@ -318,6 +318,7 @@ export function QuickAsk({ start }: { start: QuickAskRequest }) {
             }}
             rows={2}
             placeholder={t("quick.placeholder")}
+            aria-label={t("quick.placeholder")}
             className="min-w-0 flex-1 resize-none bg-transparent px-1.5 text-[13px] outline-none placeholder:text-fg-subtle"
           />
           <MicButton onText={(text) => setInput((v) => (v ? `${v} ${text}` : text))} />

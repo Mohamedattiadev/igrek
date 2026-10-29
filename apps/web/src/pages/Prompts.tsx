@@ -25,6 +25,7 @@ function Editor({ prompt, onClose }: { prompt?: Partial<SavedPrompt>; onClose: (
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder={t("prompts.titleLabel")}
+        aria-label={t("prompts.titleLabel")}
         className={cn(field, "w-full")}
       />
       <textarea
@@ -32,6 +33,7 @@ function Editor({ prompt, onClose }: { prompt?: Partial<SavedPrompt>; onClose: (
         onChange={(e) => setBody(e.target.value)}
         rows={8}
         placeholder={t("prompts.bodyLabel")}
+        aria-label={t("prompts.bodyLabel")}
         className={cn(field, "h-auto w-full resize-y p-3 font-mono py-1.5")}
       />
       <p className="text-[11px] text-fg-subtle">{t("prompts.bodyHint")}</p>
@@ -39,6 +41,7 @@ function Editor({ prompt, onClose }: { prompt?: Partial<SavedPrompt>; onClose: (
         value={tags}
         onChange={(e) => setTags(e.target.value)}
         placeholder={t("prompts.tags")}
+        aria-label={t("prompts.tags")}
         className={cn(field, "w-full")}
       />
       <div className="flex justify-end gap-2">

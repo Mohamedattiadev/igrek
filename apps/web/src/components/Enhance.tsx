@@ -462,6 +462,7 @@ export function EnhanceDialog({
               }}
               rows={3}
               placeholder={t("enhance.dialogPlaceholder")}
+              aria-label={t("enhance.dialogPlaceholder")}
               className={cn(field, "h-auto w-full resize-none p-2 py-1.5")}
             />
             <div className="flex justify-end">

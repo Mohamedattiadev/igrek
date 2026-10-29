@@ -322,7 +322,8 @@
     "projectsPick": "Click the projects you want Igrek to follow. These are the folders Claude has worked in; you can add more later on the Projects page.",
     "projectsOther": "Add another folder",
     "continueWith_one": "Continue with {{count}} project",
-    "continueWith_other": "Continue with {{count}} projects"
+    "continueWith_other": "Continue with {{count}} projects",
+    "toolsAlso": "To use {{tool}} as well"
   },
   "help": {
     "t_projects": "Projects",

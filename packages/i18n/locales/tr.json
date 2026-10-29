@@ -322,7 +322,8 @@
     "projectsPick": "Igrek'in takip etmesini istediğin projelere tıkla. Bunlar Claude'un çalıştığı klasörler; daha sonra Projeler sayfasından başkalarını da ekleyebilirsin.",
     "projectsOther": "Başka bir klasör ekle",
     "continueWith_one": "{{count}} projeyle devam et",
-    "continueWith_other": "{{count}} projeyle devam et"
+    "continueWith_other": "{{count}} projeyle devam et",
+    "toolsAlso": "{{tool}}'i de kullanmak istersen"
   },
   "help": {
     "t_projects": "Projeler",

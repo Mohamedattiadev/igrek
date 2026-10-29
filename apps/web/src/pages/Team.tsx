@@ -171,6 +171,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
             <textarea
               className={cn(field, "h-24 py-2 font-mono text-[11px]")}
               placeholder="igrek-invite:…"
+              aria-label="igrek-invite:…"
               value={form.invite}
               onChange={(e) => setForm({ ...form, invite: e.target.value })}
             />
@@ -179,6 +180,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               type="password"
               autoComplete="new-password"
               placeholder={t("team.newPassword")}
+              aria-label={t("team.newPassword")}
               value={form.newPassword}
               onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
             />
@@ -189,6 +191,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
             <input
               className={cn(field, "font-mono")}
               placeholder="https://hub.example.com"
+              aria-label="https://hub.example.com"
               value={form.hub}
               onChange={(e) => setForm({ ...form, hub: e.target.value })}
             />
@@ -196,6 +199,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               className={box}
               autoComplete="username"
               placeholder={t("team.username")}
+              aria-label={t("team.username")}
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
@@ -204,6 +208,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               type="password"
               autoComplete="current-password"
               placeholder={t("team.password")}
+              aria-label={t("team.password")}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
@@ -329,6 +334,7 @@ function ForgotPassword({
                 type="password"
                 autoComplete="new-password"
                 placeholder={t("team.newPassword")}
+                aria-label={t("team.newPassword")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -611,12 +617,14 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             <input
               className={cn(field, "font-mono")}
               placeholder={t("team.username")}
+              aria-label={t("team.username")}
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
             <input
               className={box}
               placeholder={t("team.displayName")}
+              aria-label={t("team.displayName")}
               value={form.displayName}
               onChange={(e) => setForm({ ...form, displayName: e.target.value })}
             />
@@ -625,6 +633,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
               type="email"
               autoComplete="off"
               placeholder={t("team.emailOptional")}
+              aria-label={t("team.emailOptional")}
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />

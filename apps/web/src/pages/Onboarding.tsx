@@ -154,10 +154,28 @@ function FirstTask() {
  * First-run wizard: the language (plan.md 7.4), then the project folders, then a word on privacy
  * with what to install if Claude Code or Codex is missing (Igrek does not bring them).
  */
+const STEP_KEY = "igrek.onboarding.step";
+
 export function Onboarding() {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
-  const [step, setStep] = useState(0);
+  // The step survives a reload or a look elsewhere: a newcomer who refreshed started again at the
+  // language list (found by a first-run test that followed only what the screen said).
+  const [step, setStepState] = useState(() => {
+    try {
+      return Number(sessionStorage.getItem(STEP_KEY)) || 0;
+    } catch {
+      return 0;
+    }
+  });
+  const setStep = (next: number) => {
+    setStepState(next);
+    try {
+      sessionStorage.setItem(STEP_KEY, String(next));
+    } catch {
+      // Only a convenience.
+    }
+  };
   // Start in the browser's language when Igrek ships it (Turkish): a Turkish newcomer should not have
   // to find "Türkçe" in an English list first. Other languages are a choice: their texts are made
   // by a model, which is not asked unasked.

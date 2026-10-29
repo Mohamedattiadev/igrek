@@ -77,6 +77,7 @@ function MemoryRow({ item, projectId, onChange }: { item: MemoryItem; projectId:
       <li className="flex items-start gap-2 px-pad py-2">
         <textarea
           value={draft}
+          aria-label={t("memory.edit")}
           onChange={(e) => setDraft(e.target.value)}
           rows={2}
           // biome-ignore lint/a11y/noAutofocus: editing starts where the user clicked
@@ -182,6 +183,7 @@ function AddFact({ projectId, onChange }: { projectId: string; onChange: () => v
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && add()}
         placeholder={t("memory.addPlaceholder")}
+        aria-label={t("memory.addPlaceholder")}
         className="h-8 min-w-48 flex-1 bg-transparent px-1 text-[13px] outline-none placeholder:text-fg-subtle"
       />
       <Button size="sm" icon={Plus} onClick={add} disabled={!text.trim()}>

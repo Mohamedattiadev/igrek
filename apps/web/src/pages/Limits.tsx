@@ -329,6 +329,7 @@ function AddAccount({ onAdded }: { onAdded: (account: Account) => void }) {
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder={t("accounts.labelPlaceholder")}
+            aria-label={t("accounts.labelPlaceholder")}
             className={cn(field, "w-full")}
           />
           <p className="text-xs text-fg-muted">{t("accounts.loginHint")}</p>
