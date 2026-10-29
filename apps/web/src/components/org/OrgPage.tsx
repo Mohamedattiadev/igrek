@@ -2,7 +2,7 @@ import { isManager } from "@igrek/core";
 import { Building2, CloudOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Meetings } from "../meet/Meetings";
-import { EmptyState, Segmented } from "../ui";
+import { EmptyState, PageHeader, Segmented, TabBar } from "../ui";
 import type { OrgApi } from "./api";
 import { OrgCards } from "./OrgCards";
 import { OrgHistory } from "./OrgHistory";
@@ -31,37 +31,49 @@ export function OrgPage({
 }) {
   const { t } = useTranslation();
   const view = api.view;
-  if (!view) return <EmptyState icon={Building2} title={t("org.title")} body={t("org.notInTeam")} />;
+  if (!view)
+    return (
+      <>
+        <PageHeader title={t("org.title")} />
+        <EmptyState icon={Building2} title={t("org.title")} body={t("org.notInTeam")} />
+      </>
+    );
   const manages =
     isManager(view.structure, view.me) ||
     view.me.role === "admin" ||
     view.structure.teams.some((x) => x.leadId === view.me.id);
   const current = TABS.find((x) => x === tab) ?? (manages ? "home" : "cards");
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-4 p-4 md:p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-[20px] font-semibold tracking-tight">{t("org.title")}</h1>
-        {view.waiting > 0 && (
-          <span className="inline-flex items-center gap-1.5 text-[12px] text-warning">
-            <CloudOff size={13} aria-hidden="true" /> {t("org.waitingSync", { count: view.waiting })}
-          </span>
-        )}
+    <>
+      <PageHeader
+        title={t("org.title")}
+        actions={
+          view.waiting > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-warning">
+              <CloudOff size={13} aria-hidden="true" /> {t("org.waitingSync", { count: view.waiting })}
+            </span>
+          )
+        }
+      />
+      <TabBar>
         <Segmented
           label={t("org.title")}
           value={current}
           onChange={onTab}
           options={TABS.filter((x) => x !== "home" || manages).map((x) => ({ value: x, label: t(`org.tab_${x}`) }))}
         />
-      </header>
-      {current === "home" && <OrgHome api={api} view={view} />}
-      {current === "cards" && <OrgCards api={api} view={view} />}
-      {current === "channels" && <OrgChannels api={api} view={view} />}
-      {current === "meetings" && (
-        <Meetings api={api} view={view} open={meeting} dark={document.documentElement.dataset.theme === "dark"} />
-      )}
-      {current === "history" && <OrgHistory api={api} view={view} />}
-      {current === "teams" && <OrgTeams api={api} view={view} />}
-      {current === "settings" && <OrgSettings api={api} view={view} />}
-    </div>
+      </TabBar>
+      <div className="mx-auto w-full max-w-6xl space-y-4 p-4 md:p-6">
+        {current === "home" && <OrgHome api={api} view={view} />}
+        {current === "cards" && <OrgCards api={api} view={view} />}
+        {current === "channels" && <OrgChannels api={api} view={view} />}
+        {current === "meetings" && (
+          <Meetings api={api} view={view} open={meeting} dark={document.documentElement.dataset.theme === "dark"} />
+        )}
+        {current === "history" && <OrgHistory api={api} view={view} />}
+        {current === "teams" && <OrgTeams api={api} view={view} />}
+        {current === "settings" && <OrgSettings api={api} view={view} />}
+      </div>
+    </>
   );
 }

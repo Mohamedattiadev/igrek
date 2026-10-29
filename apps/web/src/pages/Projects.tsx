@@ -21,7 +21,7 @@ import { LoadError } from "../components/LoadError";
 import { StartBox } from "../components/StartBox";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { TeamWelcome } from "../components/TeamWelcome";
-import { Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
+import { Button, Card, Dialog, EmptyState, field, PageHeader, Segmented } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
 import { DayEndButton } from "../components/Writeups";
 import { ActiveDot, useSummaryText } from "../components/work";
@@ -223,11 +223,7 @@ function ArchitectureQuestions({ needs, onChange }: { needs: ProjectNeeds; onCha
   const choice = <K extends "team" | "scale" | "releases">(key: K, options: ProjectNeeds[K][]) => (
     <label className="flex items-center justify-between gap-2 text-[12.5px]">
       <span>{t(`arch.ask_${key}`)}</span>
-      <select
-        value={needs[key]}
-        onChange={(e) => onChange({ ...needs, [key]: e.target.value })}
-        className="h-8 rounded-ui border border-border bg-bg px-2 text-[12.5px]"
-      >
+      <select value={needs[key]} onChange={(e) => onChange({ ...needs, [key]: e.target.value })} className={field}>
         {options.map((o) => (
           <option key={o} value={o}>
             {t(`arch.${key}_${o}`)}
@@ -356,7 +352,7 @@ function NewProject() {
             rows={2}
             placeholder={t("templates.details")}
             aria-label={t("templates.details")}
-            className="w-full rounded-ui border border-border bg-bg px-3 py-2 text-[13px] outline-none focus:border-accent"
+            className={cn(field, "h-auto w-full py-1.5")}
           />
           <ArchitectureQuestions needs={needs} onChange={setNeeds} />
           {practices && (

@@ -3,8 +3,9 @@ import { BookMarked, Copy, CornerDownLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { fill, PROMPT_LIBRARY, variables } from "../lib/prompt-library";
-import { Button, Dialog } from "./ui";
+import { Button, Dialog, field } from "./ui";
 
 /**
  * Pick a saved prompt, fill its blanks, then type it into a terminal or copy it (plan.md 2.7).
@@ -96,7 +97,7 @@ export function PromptPicker({
                   <input
                     value={values[name] ?? ""}
                     onChange={(e) => setValues((v) => ({ ...v, [name]: e.target.value }))}
-                    className="h-8 w-full rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+                    className={cn(field, "w-full")}
                   />
                 </label>
               ))}

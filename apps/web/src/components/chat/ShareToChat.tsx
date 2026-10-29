@@ -98,7 +98,7 @@ export function ShareToChat({ session }: { session: SessionDetail }) {
                   rows={6}
                   placeholder={t("teamChat.sharePlaceholder")}
                   aria-label={t("teamChat.sharePlaceholder")}
-                  className="w-full resize-y rounded-ui border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+                  className={cn(field, "h-auto w-full resize-y p-2 py-1.5")}
                 />
                 <Button size="sm" variant="ghost" icon={Sparkles} usesModel disabled={busy} onClick={draft}>
                   {busy ? t("briefing.writing") : t("teamChat.draft")}

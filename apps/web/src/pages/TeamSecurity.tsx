@@ -2,13 +2,14 @@ import type { HubAlertInfo, KeyRequest, TeamUser } from "@igrek/core";
 import { BellRing, KeyRound, LaptopMinimal, LogOut, RefreshCcw, ShieldCheck, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Section, Segmented } from "../components/ui";
+import { Badge, Button, field, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { useSettings } from "../lib/settings";
 
-const field = "h-8 rounded-ui border border-border bg-bg px-2 text-[13px] outline-none focus:border-accent";
+const box = field;
 
 /** Admin: devices waiting for the team key (plan.md 4.2). Approving wraps the key for that device only. */
 export function KeyRequestsSection() {
@@ -158,7 +159,7 @@ export function PoliciesSection({ onSaved }: { onSaved?: (policies: Policies) =>
             max={64}
             value={p.minPassword}
             onChange={(e) => save({ ...p, minPassword: Number(e.target.value) })}
-            className={`${field} w-24`}
+            className={`${box} w-24`}
           />
         </label>
         <div className="space-y-1">
@@ -180,7 +181,7 @@ export function PoliciesSection({ onSaved }: { onSaved?: (policies: Policies) =>
             max={365}
             value={p.sessionDays}
             onChange={(e) => save({ ...p, sessionDays: Number(e.target.value) })}
-            className={`${field} w-24`}
+            className={`${box} w-24`}
           />
         </label>
         <label className="space-y-1">
@@ -191,7 +192,7 @@ export function PoliciesSection({ onSaved }: { onSaved?: (policies: Policies) =>
             max={3650}
             value={p.retentionDays}
             onChange={(e) => save({ ...p, retentionDays: Number(e.target.value) })}
-            className={`${field} w-24`}
+            className={`${box} w-24`}
           />
         </label>
         <label className="space-y-1 sm:col-span-2">
@@ -201,7 +202,7 @@ export function PoliciesSection({ onSaved }: { onSaved?: (policies: Policies) =>
             onChange={(e) => setP({ ...p, ipAllow: e.target.value })}
             onBlur={() => save(p)}
             placeholder="10.0.0.0/8, 203.0.113.7"
-            className={`${field} w-full font-mono`}
+            className={`${box} w-full font-mono`}
           />
         </label>
       </div>
@@ -255,7 +256,7 @@ export function AccessSection({ users }: { users: TeamUser[] }) {
                           value={role}
                           onChange={(e) => void api.teamSetAccess(p.key, u.id, e.target.value || null).then(load)}
                           aria-label={t("access.roleFor", { user: u.displayName, project: p.name })}
-                          className="h-7 rounded-md border border-border bg-bg px-1 text-[11.5px]"
+                          className={cn(field, "h-7 px-1.5 text-[12px]")}
                         >
                           <option value="">{rows.length ? t("access.none") : t("access.default")}</option>
                           {ROLES.map((r) => (
@@ -311,7 +312,7 @@ export function MyAccountSection() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-label={t("team.displayName")}
-            className={`${field} w-56`}
+            className={`${box} w-56`}
           />
           <input
             type="color"
@@ -359,7 +360,7 @@ export function MyAccountSection() {
                   placeholder="123456"
                   inputMode="numeric"
                   aria-label={t("account.code")}
-                  className={`${field} w-28 font-mono`}
+                  className={`${box} w-28 font-mono`}
                 />
                 <Button
                   size="sm"
@@ -390,7 +391,7 @@ export function MyAccountSection() {
                 placeholder="123456"
                 inputMode="numeric"
                 aria-label={t("account.code")}
-                className={`${field} w-28 font-mono`}
+                className={`${box} w-28 font-mono`}
               />
               <Button
                 size="sm"

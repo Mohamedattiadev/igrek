@@ -9,10 +9,16 @@ import { compactNumber } from "../../lib/format";
 
 /**
  * Monthly prices that are certain (public list prices, before tax). Claude Max is $100 (5x) or
- * $200 (20x), and Igrek cannot tell which one an account has: it is shown as not known rather
- * than guessed (earlier talks: "never show a wrong price").
+ * $200 (20x); Igrek reads which from the account's login file (accounts.ts). Where it cannot, the
+ * plan is plain "max" and shown as not known rather than guessed ("never show a wrong price").
  */
-const PRICES: Record<string, number> = { "claude:pro": 20, "codex:plus": 20, "codex:pro": 200 };
+const PRICES: Record<string, number> = {
+  "claude:pro": 20,
+  "claude:max 5x": 100,
+  "claude:max 20x": 200,
+  "codex:plus": 20,
+  "codex:pro": 200,
+};
 
 export function planPrice(provider: string, plan?: string): number | undefined {
   return plan ? PRICES[`${provider}:${plan.toLowerCase()}`] : undefined;

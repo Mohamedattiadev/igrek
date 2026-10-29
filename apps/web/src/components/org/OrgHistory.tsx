@@ -2,11 +2,12 @@ import { aboutFuture, factsFor, isManager, orgItems, search, type TimelineItem, 
 import { History, MessageCircleQuestion } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "../../lib/cn";
 import { dateTime } from "../../lib/format";
-import { Badge, Button, Card } from "../ui";
+import { Badge, Button, Card, field } from "../ui";
 import { nameOf, type OrgApi, type OrgView, teamName } from "./api";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 
 function Item({ view, item, showChanges }: { view: OrgView; item: TimelineItem; showChanges: boolean }) {
   const { t } = useTranslation();
@@ -72,7 +73,7 @@ function Ask({ api, view, items }: { api: OrgApi; view: OrgView; items: Timeline
         }}
       >
         <input
-          className={field}
+          className={box}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder={t("history.askHint")}
@@ -134,7 +135,7 @@ export function OrgHistory({ api, view }: { api: OrgApi; view: OrgView }) {
           <History size={15} className="text-accent" aria-hidden="true" /> {t("history.timeline")}
         </h2>
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
-          <select className={field} value={who} onChange={(e) => setWho(e.target.value)} aria-label={t("org.person")}>
+          <select className={box} value={who} onChange={(e) => setWho(e.target.value)} aria-label={t("org.person")}>
             <option value="">{t("history.everyone")}</option>
             {view.people.map((p) => (
               <option key={p.id} value={p.id}>
@@ -142,7 +143,7 @@ export function OrgHistory({ api, view }: { api: OrgApi; view: OrgView }) {
               </option>
             ))}
           </select>
-          <select className={field} value={team} onChange={(e) => setTeam(e.target.value)} aria-label={t("org.teams")}>
+          <select className={box} value={team} onChange={(e) => setTeam(e.target.value)} aria-label={t("org.teams")}>
             <option value="">{t("history.allTeams")}</option>
             {view.structure.teams.map((x) => (
               <option key={x.id} value={x.id}>
@@ -151,7 +152,7 @@ export function OrgHistory({ api, view }: { api: OrgApi; view: OrgView }) {
             ))}
           </select>
           <select
-            className={field}
+            className={box}
             value={project}
             onChange={(e) => setProject(e.target.value)}
             aria-label={t("org.project")}
@@ -165,14 +166,14 @@ export function OrgHistory({ api, view }: { api: OrgApi; view: OrgView }) {
           </select>
           <input
             type="date"
-            className={field}
+            className={box}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
             aria-label={t("org.from")}
           />
           <input
             type="date"
-            className={field}
+            className={box}
             value={to}
             onChange={(e) => setTo(e.target.value)}
             aria-label={t("org.to")}

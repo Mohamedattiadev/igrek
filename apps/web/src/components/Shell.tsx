@@ -50,7 +50,7 @@ import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
 import { UndoToast } from "./UndoToast";
-import { Kbd, StatusDot } from "./ui";
+import { Count, Kbd, StatusDot } from "./ui";
 import { WhatIs } from "./WhatIs";
 import { WorkspacePicker } from "./WorkspacePicker";
 
@@ -214,16 +214,12 @@ function ToolStripLink({
         </span>
       )}
       {!!badge && (
-        <span
-          data-tip={badgeTip}
-          className={cn(
-            "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-on-strong",
-            badgeTone === "danger" ? "bg-danger" : badgeTone === "accent" ? "bg-accent" : "bg-warning",
-            !wide && "absolute -end-0.5 -top-0.5",
-          )}
-        >
-          {badge}
-        </span>
+        <Count
+          n={badge}
+          tip={badgeTip}
+          tone={badgeTone === "danger" ? "danger" : badgeTone === "accent" ? "accent" : "warning"}
+          className={cn(!wide && "absolute -end-0.5 -top-0.5")}
+        />
       )}
     </NavLink>
   );

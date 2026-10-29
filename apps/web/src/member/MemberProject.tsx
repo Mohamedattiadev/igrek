@@ -1,7 +1,7 @@
 import { History, MousePointerClick, SquareCheckBig } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Card, Segmented } from "../components/ui";
+import { Badge, Card, PageHeader, Segmented, TabBar } from "../components/ui";
 import { relativeTime } from "../lib/format";
 import type { MemberClient } from "./client";
 import { BoardView } from "./MemberBoard";
@@ -158,36 +158,42 @@ export function MemberProjectPage({
   const current = (["overview", "sessions", "board", "decisions"] as const).find((x) => x === tab) ?? "overview";
   const open = [...project.tasks.values()].filter((x) => !x.deleted && x.status !== "done").length;
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-4 p-4 md:p-6">
-      {session ? (
-        <SessionView client={client} project={project} id={session} onBack={() => setSession(undefined)} />
-      ) : (
-        <>
-          <header className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h1 className="text-[20px] font-semibold tracking-tight">{project.name}</h1>
-              <p className="text-[12.5px] text-fg-subtle">
-                {t("member.stats", { sessions: project.sessions.size, count: open })}
-              </p>
-            </div>
-            <Segmented
-              label={project.name}
-              value={current}
-              onChange={onTab}
-              options={[
-                { value: "overview", label: t("member.overview") },
-                { value: "sessions", label: t("member.sessions") },
-                { value: "board", label: t("member.board") },
-                { value: "decisions", label: t("member.decisions") },
-              ]}
-            />
-          </header>
-          {current === "overview" && <Overview client={client} project={project} onSession={setSession} />}
-          {current === "sessions" && <SessionList project={project} onOpen={setSession} />}
-          {current === "board" && <BoardView client={client} project={project} />}
-          {current === "decisions" && <Decisions client={client} project={project} />}
-        </>
+    <>
+      <PageHeader
+        title={project.name}
+        actions={
+          <span className="text-[12.5px] text-fg-subtle">
+            {t("member.stats", { sessions: project.sessions.size, count: open })}
+          </span>
+        }
+      />
+      {!session && (
+        <TabBar>
+          <Segmented
+            label={project.name}
+            value={current}
+            onChange={onTab}
+            options={[
+              { value: "overview", label: t("member.overview") },
+              { value: "sessions", label: t("member.sessions") },
+              { value: "board", label: t("member.board") },
+              { value: "decisions", label: t("member.decisions") },
+            ]}
+          />
+        </TabBar>
       )}
-    </div>
+      <div className="mx-auto w-full max-w-6xl space-y-4 p-4 md:p-6">
+        {session ? (
+          <SessionView client={client} project={project} id={session} onBack={() => setSession(undefined)} />
+        ) : (
+          <>
+            {current === "overview" && <Overview client={client} project={project} onSession={setSession} />}
+            {current === "sessions" && <SessionList project={project} onOpen={setSession} />}
+            {current === "board" && <BoardView client={client} project={project} />}
+            {current === "decisions" && <Decisions client={client} project={project} />}
+          </>
+        )}
+      </div>
+    </>
   );
 }

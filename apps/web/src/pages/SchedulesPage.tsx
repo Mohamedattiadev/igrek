@@ -13,7 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Badge, Button, Card, EmptyState, PageHeader, RUN_TONE } from "../components/ui";
+import { Badge, Button, Card, EmptyState, field, PageHeader, RUN_TONE } from "../components/ui";
 import { api } from "../lib/api";
 import { dateTime, relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
@@ -213,7 +213,7 @@ export function SchedulesPage() {
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
               aria-label={t("meeting.project")}
-              className="h-8 rounded-md border border-border bg-bg px-2 text-[12.5px]"
+              className={field}
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>

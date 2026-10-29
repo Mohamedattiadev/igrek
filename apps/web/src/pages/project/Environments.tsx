@@ -24,13 +24,13 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
 
-const field = "h-8 w-full rounded-ui border border-border bg-bg px-2 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 
 function CheckRow({ check }: { check: DeployCheck }) {
   const { t } = useTranslation();
@@ -120,7 +120,7 @@ function DeployDialog({ env, onClose }: { env?: EnvironmentInfo; onClose: () => 
                 <select
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className={field}
+                  className={box}
                   aria-label={t("deploy.branch")}
                 >
                   {[...new Set([env.branch, ...branches])].map((b) => (
@@ -145,7 +145,7 @@ function DeployDialog({ env, onClose }: { env?: EnvironmentInfo; onClose: () => 
                 <input
                   value={typed}
                   onChange={(e) => setTyped(e.target.value)}
-                  className={field}
+                  className={box}
                   aria-label={t("deploy.typeName", { env: env.name })}
                 />
               </label>
@@ -336,7 +336,7 @@ function EnvCard({ env, onDeploy, onRemoved }: { env: EnvironmentInfo; onDeploy:
               value={editing}
               onChange={(e) => setEditing(e.target.value)}
               placeholder="docker compose up -d --build"
-              className={`${field} flex-1 font-mono`}
+              className={`${box} flex-1 font-mono`}
               aria-label={t("deploy.command")}
             />
             <Button
@@ -529,13 +529,13 @@ export function EnvironmentsTab({ project }: { project: ProjectDetail }) {
               onChange={(e) => setAdding({ ...adding, name: e.target.value })}
               placeholder="production"
               aria-label={t("deploy.name")}
-              className={field}
+              className={box}
             />
             <select
               value={adding.serverId}
               onChange={(e) => setAdding({ ...adding, serverId: e.target.value })}
               aria-label={t("env.server")}
-              className={field}
+              className={box}
             >
               {servers.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -548,21 +548,21 @@ export function EnvironmentsTab({ project }: { project: ProjectDetail }) {
               onChange={(e) => setAdding({ ...adding, path: e.target.value })}
               placeholder="/srv/app"
               aria-label={t("deploy.path")}
-              className={`${field} font-mono`}
+              className={`${box} font-mono`}
             />
             <input
               value={adding.branch}
               onChange={(e) => setAdding({ ...adding, branch: e.target.value })}
               placeholder="main"
               aria-label={t("deploy.branch")}
-              className={`${field} font-mono`}
+              className={`${box} font-mono`}
             />
             <input
               value={adding.deployCommand}
               onChange={(e) => setAdding({ ...adding, deployCommand: e.target.value })}
               placeholder="docker compose up -d --build"
               aria-label={t("deploy.command")}
-              className={`${field} font-mono`}
+              className={`${box} font-mono`}
             />
             {adding.error && <p className="text-xs text-danger">{adding.error}</p>}
             <div className="flex justify-end gap-2">

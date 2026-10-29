@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Logo } from "../components/Logo";
 import { Call, type CallEvent, type CallTransport } from "../components/meet/call";
 import { Tile } from "../components/meet/MeetRoom";
-import { Button } from "../components/ui";
+import { Button, field } from "../components/ui";
+import { cn } from "../lib/cn";
 
 /** A guest's own connection to the hub: it opens this one call's room and nothing else. */
 function guestTransport(token: string): { transport: CallTransport; close: () => void } {
@@ -72,7 +73,7 @@ export function GuestCall({ token, meetingKey, title }: { token: string; meeting
         </h1>
         <p className="text-xs text-fg-muted">{t("meet.guestHint")}</p>
         <input
-          className="h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent"
+          className={cn(field, "w-full")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t("meet.guestName")}

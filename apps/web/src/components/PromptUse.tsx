@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { useProjects } from "../lib/live";
 import { fill, variables } from "../lib/prompt-library";
-import { Button, Dialog } from "./ui";
+import { Button, Dialog, field } from "./ui";
 
 /**
  * A prompt into a new chat: pick the project, fill the blanks, check the text, open the chat with
@@ -50,11 +51,7 @@ export function PromptUse({
           </div>
           <label className="block space-y-1">
             <span className="text-xs font-medium text-fg-muted">{t("prompts.project")}</span>
-            <select
-              value={chosen}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="h-8 w-full rounded-ui border border-border bg-bg px-2 text-[13px]"
-            >
+            <select value={chosen} onChange={(e) => setProjectId(e.target.value)} className={cn(field, "w-full")}>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -68,7 +65,7 @@ export function PromptUse({
               <input
                 value={values[name] ?? ""}
                 onChange={(e) => setValues((v) => ({ ...v, [name]: e.target.value }))}
-                className="h-8 w-full rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+                className={cn(field, "w-full")}
               />
             </label>
           ))}

@@ -6,10 +6,9 @@ import { api, request } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useSettings } from "../lib/settings";
-import { Button, Segmented } from "./ui";
+import { Button, field, Segmented } from "./ui";
 
-const field =
-  "h-8 w-full max-w-72 rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent";
+const box = cn(field, "w-full max-w-72");
 
 /** One-file backup of memory, lessons, the library and personas, optionally locked with a password (plan.md 11). */
 export function BackupPanel() {
@@ -44,7 +43,7 @@ export function BackupPanel() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t("backup.password")}
           aria-label={t("backup.password")}
-          className={field}
+          className={box}
         />
         <Button icon={Download} disabled={busy} onClick={() => void download()}>
           {t("backup.export")}
@@ -57,7 +56,7 @@ export function BackupPanel() {
           onChange={(e) => setImportPassword(e.target.value)}
           placeholder={t("backup.importPassword")}
           aria-label={t("backup.importPassword")}
-          className={field}
+          className={box}
         />
         <Button variant="ghost" icon={Upload} onClick={() => input.current?.click()}>
           {t("backup.import")}
@@ -126,7 +125,7 @@ export function MovePanel() {
         onChange={(e) => setPassword(e.target.value)}
         placeholder={t("move.password")}
         aria-label={t("move.password")}
-        className={field}
+        className={box}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -314,12 +313,12 @@ export function LocalModelPanel() {
             }
           }}
           aria-label={t("localModel.url")}
-          className={field}
+          className={box}
         />
         <select
           value={settings.localModelName}
           onChange={(e) => void update({ localModelName: e.target.value })}
-          className={field}
+          className={box}
           aria-label={t("localModel.model")}
           disabled={!status?.models.length}
         >
@@ -483,7 +482,7 @@ export function McpServersPanel() {
           placeholder={t("mcpServers.env")}
           aria-label={t("mcpServers.env")}
           rows={1}
-          className="min-w-0 basis-full rounded-ui border border-border bg-bg px-2.5 py-1.5 font-mono text-[12px] outline-none focus:border-accent"
+          className={cn(field, "h-auto min-w-0 basis-full font-mono py-1.5")}
         />
         <Button type="submit" disabled={!form.command.trim() || busy === "add"}>
           {t("mcpServers.add")}
@@ -624,7 +623,7 @@ export function BridgesPanel() {
             setKind(e.target.value as BridgeKind);
             setValues({});
           }}
-          className={field}
+          className={box}
           aria-label={t("bridges.kind")}
         >
           {(["telegram", "discord", "email"] as const).map((k) => (
@@ -715,7 +714,7 @@ export function DiskPanel() {
         <select
           value={settings.transcriptDays}
           onChange={(e) => void update({ transcriptDays: Number(e.target.value) })}
-          className={field}
+          className={box}
         >
           {[0, 30, 90, 180, 365].map((d) => (
             <option key={d} value={d}>

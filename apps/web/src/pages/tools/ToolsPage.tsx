@@ -20,8 +20,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
-import { PageHeader } from "../../components/ui";
-import { cn } from "../../lib/cn";
+import { PageHeader, Segmented, TabBar } from "../../components/ui";
 import { pluginApi } from "../../lib/ops-api";
 import { BackupsTab } from "./Backups";
 import { CalendarTab } from "./Calendar";
@@ -93,28 +92,22 @@ export function ToolsPage() {
   const asked = params.get("tab") ?? "uptime";
   const tab = TOOL_TABS.some((x) => x.key === asked) || pluginTabs.some((x) => x.key === asked) ? asked : "uptime";
   const pluginTab = pluginTabs.find((x) => x.key === tab);
-  const button = (key: string, Icon: LucideIcon, label: string) => (
-    <button
-      key={key}
-      type="button"
-      onClick={() => setParams({ tab: key })}
-      className={cn(
-        "-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-[13px] transition-colors",
-        tab === key ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
-      )}
-    >
-      <Icon size={14} aria-hidden="true" />
-      {label}
-    </button>
-  );
   return (
     <>
       <PageHeader title={t("suite.title")} />
       {/* Wrapped, not scrolled: with fourteen tabs the last ones were cut off and nothing said there was more. */}
-      <nav className="flex shrink-0 flex-wrap gap-x-1 border-b border-border px-6" aria-label={t("suite.title")}>
-        {TOOL_TABS.map(({ key, icon }) => button(key, icon, t(`suite.${key}`)))}
-        {pluginTabs.map((x) => button(x.key, Puzzle, x.title))}
-      </nav>
+      <TabBar>
+        <Segmented
+          label={t("suite.title")}
+          value={tab}
+          wrap
+          onChange={(key) => setParams({ tab: key })}
+          options={[
+            ...TOOL_TABS.map(({ key, icon }) => ({ value: key as string, label: t(`suite.${key}`), icon })),
+            ...pluginTabs.map((x) => ({ value: x.key, label: x.title, icon: Puzzle })),
+          ]}
+        />
+      </TabBar>
       <div className="mx-auto w-full max-w-6xl p-6">
         {pluginTab ? (
           <PluginFrame key={pluginTab.key} plugin={pluginTab.plugin} entry={pluginTab.entry} />

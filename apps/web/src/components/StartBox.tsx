@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { useAccounts } from "../lib/live";
+import { field } from "./ui";
 
 /** What was typed and not sent yet: it waits for the user when they come back (a tester lost hers). */
 const DRAFT = "igrek.home.draft";
@@ -218,7 +220,7 @@ export function StartBox({ projectId: fixed }: { projectId?: string }) {
           onChange={(event) => setTarget(event.target.value)}
           aria-label={t("start.where")}
           data-tip={t("start.whereTip")}
-          className="h-7 max-w-40 shrink-0 truncate rounded-md border border-border bg-bg px-1.5 text-[12px] text-fg-muted"
+          className={cn(field, "h-7 px-1.5 text-[12px] max-w-40 shrink-0 truncate text-fg-muted")}
         >
           <option value="">{t("start.chief")}</option>
           {projects.map((p) => (

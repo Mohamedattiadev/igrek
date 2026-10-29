@@ -2,7 +2,7 @@ import { Building2, House, type LucideIcon, Menu, MessagesSquare, Network, Shiel
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "../components/Logo";
-import { EmptyState, StatusDot } from "../components/ui";
+import { Count, EmptyState, StatusDot } from "../components/ui";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import i18n, { loadBundled } from "../lib/i18n";
@@ -52,11 +52,7 @@ function Item({
     >
       {lead ?? (Icon && <Icon size={18} strokeWidth={1.75} className="shrink-0" />)}
       <span className="min-w-0 flex-1 truncate text-start">{label}</span>
-      {!!badge && (
-        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-on-strong">
-          {badge}
-        </span>
-      )}
+      {!!badge && <Count n={badge} />}
     </button>
   );
 }

@@ -201,7 +201,7 @@ export function ArenaTab() {
           placeholder={t("arena.request")}
           aria-label={t("arena.request")}
           rows={2}
-          className="w-full rounded-ui border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+          className={cn(field, "h-auto w-full p-2 py-1.5")}
         />
         <div className="flex flex-wrap items-center gap-2">
           <select

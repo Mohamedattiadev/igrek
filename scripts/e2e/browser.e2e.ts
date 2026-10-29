@@ -154,14 +154,14 @@ describe.skipIf(!ready)("the app in a browser", () => {
   test("the Simple view shows a project's overview, chats and files; the Developer view every tab", async () => {
     await settings({ mode: "simple" });
     const simple = await open("light", `/p/${project}`);
-    const tabs = simple.page.locator("header nav button");
+    const tabs = simple.page.locator("header fieldset label");
     await tabs.first().waitFor();
     const names = (await tabs.allInnerTexts()).map((x) => x.replace(/\d+/g, "").trim());
     expect(names).toEqual(["Overview", "Chats", "Files"]);
     await simple.ctx.close();
     await settings({ mode: "pro" });
     const pro = await open("light", `/p/${project}`);
-    await pro.page.getByRole("button", { name: "Code", exact: true }).waitFor();
+    await pro.page.getByRole("radio", { name: "Code", exact: true }).waitFor({ state: "attached" });
     await pro.ctx.close();
     await settings({ mode: "simple" });
   }, 30_000);

@@ -2,7 +2,8 @@ import { Bug, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
-import { Button, CopyButton, Dialog } from "./ui";
+import { cn } from "../lib/cn";
+import { Button, CopyButton, Dialog, field } from "./ui";
 
 const ISSUES = "https://github.com/Mohamedattiadev/igrek/issues/new";
 /** GitHub refuses very long addresses; the end of a long log is what matters. */
@@ -43,14 +44,14 @@ export function ReportProblem({ open, onClose }: { open: boolean; onClose: () =>
           onChange={(e) => setTitle(e.target.value)}
           placeholder={t("report.titlePlaceholder")}
           aria-label={t("report.titlePlaceholder")}
-          className="h-8 w-full rounded-ui border border-border bg-bg px-2"
+          className={cn(field, "w-full")}
         />
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={12}
           aria-label={t("report.title")}
-          className="w-full rounded-ui border border-border bg-bg p-2 font-mono text-[12px]"
+          className={cn(field, "h-auto w-full p-2 font-mono py-1.5")}
         />
         {error && <p className="text-xs text-danger">{error}</p>}
         <p className="text-[12px] text-fg-subtle">{t("report.public")}</p>

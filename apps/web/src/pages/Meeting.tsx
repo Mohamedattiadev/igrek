@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
-import { Badge, Button, Card, PageHeader } from "../components/ui";
+import { Badge, Button, Card, field, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
@@ -193,7 +193,7 @@ export function MeetingPage() {
                     e.target.value && void act("commit", () => api.meetingProject(meeting.id, e.target.value))
                   }
                   aria-label={t("meeting.project")}
-                  className="h-8 rounded-md border border-border bg-bg px-2 text-[13px]"
+                  className={field}
                 >
                   <option value="">{t("persona.pickProject")}</option>
                   {projects.map((p) => (

@@ -30,7 +30,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { FixButton } from "../components/FixButton";
-import { Badge, Button, Card, PageHeader } from "../components/ui";
+import { Badge, Button, Card, field, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -277,7 +277,7 @@ export function TestersTab() {
               max={10}
               value={copies}
               onChange={(e) => setCopies(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
-              className="h-7 w-14 rounded-md border border-border bg-bg px-1.5 text-fg"
+              className={cn(field, "h-7 px-1.5 text-[12px] w-14")}
             />
           </label>
           <label className="flex items-center gap-1.5">
@@ -288,7 +288,7 @@ export function TestersTab() {
               max={10}
               value={parallel}
               onChange={(e) => setParallel(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
-              className="h-7 w-14 rounded-md border border-border bg-bg px-1.5 text-fg"
+              className={cn(field, "h-7 px-1.5 text-[12px] w-14")}
             />
           </label>
           <label className="flex items-center gap-1.5">
@@ -296,7 +296,7 @@ export function TestersTab() {
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="h-7 rounded-md border border-border bg-bg px-1.5 text-fg"
+              className={cn(field, "h-7 px-1.5 text-[12px]")}
             >
               <option value="sonnet">Sonnet</option>
               <option value="haiku">Haiku</option>

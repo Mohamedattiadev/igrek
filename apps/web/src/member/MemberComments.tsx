@@ -1,12 +1,13 @@
 import { MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/ui";
+import { Button, field } from "../components/ui";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import type { MemberClient } from "./client";
 import type { MemberProject } from "./model";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 
 /** Comments on a session, a decision or a card, like in Igrek; viewers only read them. */
 export function MemberComments({
@@ -53,7 +54,7 @@ export function MemberComments({
             onChange={(e) => setText(e.target.value)}
             placeholder={t("member.commentPlaceholder")}
             aria-label={t("member.commentPlaceholder")}
-            className={field}
+            className={box}
           />
           <Button type="submit" variant="primary" disabled={!text.trim()}>
             {t("member.send")}

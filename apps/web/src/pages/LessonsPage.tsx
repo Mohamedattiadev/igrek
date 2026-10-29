@@ -2,8 +2,9 @@ import type { Lesson } from "@igrek/core";
 import { EyeOff, NotebookPen, Plus, Repeat2, ScrollText, Search, Trash2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, EmptyState, field, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
 import { usePersonaLabel, usePersonas } from "../lib/personas";
@@ -62,7 +63,7 @@ function LessonCard({ lesson, projectName }: { lesson: Lesson; projectName?: str
             value={target}
             onChange={(e) => setTarget(e.target.value)}
             aria-label={t("lessons.ruleTarget")}
-            className="h-7 rounded-md border border-border bg-bg px-1.5 text-[12px]"
+            className={cn(field, "h-7 px-1.5 text-[12px]")}
           >
             <option value="" disabled>
               {t("lessons.ruleTarget")}
@@ -215,8 +216,8 @@ export function LessonsPage() {
           </div>
         }
       />
+      <LibraryTabs active="lessons" />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <LibraryTabs active="lessons" />
         <p className="text-[13px] leading-relaxed text-fg-muted">{t("lessons.intro")}</p>
         <div className="flex flex-wrap items-center gap-2">
           <input
@@ -230,7 +231,7 @@ export function LessonsPage() {
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             aria-label={t("meeting.project")}
-            className="h-8 rounded-md border border-border bg-bg px-2 text-[12.5px]"
+            className={field}
           >
             <option value="">{t("lessons.allProjects")}</option>
             {projects.map((p) => (

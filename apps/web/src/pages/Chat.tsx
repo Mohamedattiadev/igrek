@@ -88,7 +88,7 @@ import { SkillsDialog } from "../components/SkillsDialog";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
 import { EstimateMeter, SpendMeter } from "../components/SpendMeter";
 import { TodoStrip } from "../components/TodoStrip";
-import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
+import { Badge, Button, EmptyState, field, StatusDot } from "../components/ui";
 import { WhyButton, WhyContext } from "../components/Why";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
@@ -522,7 +522,7 @@ function QuestionCard({
             }}
             placeholder={t("chat.askOther")}
             aria-label={`${q.question} ${t("chat.askOther")}`}
-            className="h-7 w-full max-w-md rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+            className={cn(field, "h-7 px-1.5 text-[12px] w-full max-w-md")}
           />
         </fieldset>
       ))}
@@ -710,7 +710,7 @@ function PermissionCard({
             aria-label={t("chat.denyWhy")}
             // biome-ignore lint/a11y/noAutofocus: the user just asked to write a reason
             autoFocus
-            className="h-7 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+            className={cn(field, "h-7 px-1.5 text-[12px] min-w-0 flex-1")}
           />
           <Button size="sm" type="submit">
             {t("chat.deny")}

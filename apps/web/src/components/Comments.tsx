@@ -2,11 +2,12 @@ import { MessageSquare, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { useTeamPeople } from "./TeamAvatar";
 import { TeamText } from "./TeamText";
-import { Button, Card } from "./ui";
+import { Button, Card, field } from "./ui";
 
 interface CommentRow {
   id: string;
@@ -103,7 +104,7 @@ export function Comments({
           rows={1}
           placeholder={t("comments.placeholder")}
           aria-label={t("comments.placeholder")}
-          className="min-h-8 flex-1 resize-none rounded-ui border border-border bg-bg px-2 py-1.5 text-[13px] outline-none focus:border-accent"
+          className={cn(field, "h-auto min-h-8 flex-1 resize-none py-1.5")}
         />
         <Button size="sm" icon={Send} disabled={!text.trim()} onClick={send} aria-label={t("comments.send")} />
       </div>

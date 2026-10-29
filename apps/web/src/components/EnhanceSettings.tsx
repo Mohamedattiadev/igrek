@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useSettings } from "../lib/settings";
-import { Button } from "./ui";
+import { Button, field } from "./ui";
 
-const field = "h-8 rounded-ui border border-border bg-bg px-2 text-[13px] outline-none focus:border-accent";
+const box = field;
 
 /** The user's own shorthands ("dyy" → "doğrusunu yap") and the weekly note (plan.md 4.5.4). */
 export function EnhanceSettings() {
@@ -47,14 +47,14 @@ export function EnhanceSettings() {
         ))}
         <div className="flex flex-wrap items-center gap-2">
           <input
-            className={`${field} w-24 font-mono`}
+            className={`${box} w-24 font-mono`}
             placeholder="dyy"
             aria-label={t("enhance.shortcutShort")}
             value={draft.short}
             onChange={(e) => setDraft({ ...draft, short: e.target.value.trim().toLowerCase() })}
           />
           <input
-            className={`${field} min-w-48 flex-1`}
+            className={`${box} min-w-48 flex-1`}
             placeholder={t("enhance.shortcutLongPh")}
             aria-label={t("enhance.shortcutLong")}
             value={draft.long}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Markdown } from "../../components/Markdown";
 import { Mermaid } from "../../components/Mermaid";
-import { Button, Card, EmptyState } from "../../components/ui";
+import { Button, Card, EmptyState, field } from "../../components/ui";
 import { DocsSiteButton, LaunchKitButton, ReleaseNotesButton } from "../../components/Writeups";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
@@ -91,7 +91,7 @@ function PageView({
               onChange={(e) => setTitle(e.target.value)}
               aria-label={t("wiki.title")}
               placeholder={t("wiki.title")}
-              className="h-9 min-w-0 flex-1 rounded-ui border border-border bg-bg px-2.5 text-[15px] font-semibold outline-none focus:border-accent"
+              className={cn(field, "min-w-0 flex-1 text-[15px] font-semibold")}
             />
           ) : (
             <h2 className="min-w-0 flex-1 truncate text-[17px] font-semibold">{page.title}</h2>
@@ -148,7 +148,7 @@ function PageView({
               aria-label={t("wiki.body")}
               spellCheck
               rows={22}
-              className="w-full rounded-ui border border-border bg-bg p-3 font-mono text-[13px] leading-relaxed outline-none focus:border-accent"
+              className={cn(field, "h-auto w-full p-3 font-mono leading-relaxed py-1.5")}
             />
             <p className="text-[11px] text-fg-subtle">{t("wiki.syntax")}</p>
           </>

@@ -23,7 +23,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useTranslation } from "react-i18next";
 import { FilePreview } from "../components/FilePreview";
 import { ResizeHandle, usePanelSize } from "../components/Resizable";
-import { Badge, Button, Card, Dialog, PageHeader } from "../components/ui";
+import { Badge, Button, Card, Dialog, field, PageHeader } from "../components/ui";
 import { actions } from "../lib/actions";
 import { api, fs } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -76,7 +76,7 @@ function Prompt({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
-          className="h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent"
+          className={cn(field, "w-full")}
         />
         {error && <p className="text-xs text-danger">{error}</p>}
         <div className="flex justify-end gap-2">
@@ -386,7 +386,7 @@ export function FilesPage() {
                 setSelected(undefined);
               }}
               aria-label={t("files.roots")}
-              className="h-8 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 text-[13px]"
+              className={cn(field, "min-w-0 flex-1")}
             >
               {roots.map((r) => (
                 <option key={r.path} value={r.path}>

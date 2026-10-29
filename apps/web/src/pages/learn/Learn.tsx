@@ -11,13 +11,13 @@ import { ArrowUpCircle, GraduationCap, Map as MapIcon, Search, Star } from "luci
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
-import { Badge, Card, PageHeader, Segmented } from "../../components/ui";
+import { Badge, Card, field, PageHeader, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { hitLink, learnApi } from "../../lib/learn-api";
 import { useProjects } from "../../lib/live";
 import { usePersonaLabel, usePersonas } from "../../lib/personas";
 
-const input = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13.5px] outline-none focus:border-accent";
+const input = cn(field, "w-full");
 
 export interface LearnIndex {
   sheets: SheetInfo[];
@@ -213,7 +213,7 @@ export function LearnPage() {
               value={projectId}
               onChange={(e) => set({ project: e.target.value })}
               aria-label={t("learn.forProject")}
-              className="h-8 max-w-[260px] rounded-ui border border-border bg-bg px-2 text-[13px]"
+              className={cn(field, "max-w-[260px]")}
             >
               <option value="">{t("learn.forProject")}</option>
               {projects.map((p) => (

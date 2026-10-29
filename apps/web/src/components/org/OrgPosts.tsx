@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
 import { TeamAvatar } from "../TeamAvatar";
-import { Badge, Button } from "../ui";
+import { Badge, Button, field } from "../ui";
 import { nameOf, type OrgApi, type OrgView, teamName } from "./api";
 
 /** What the bot said, in the reader's language: a text key and its values. */
@@ -80,7 +80,7 @@ function PostItem({ api, view, post }: { api?: OrgApi; view: OrgView; post: OrgP
             }}
           >
             <input
-              className="h-8 w-full rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+              className={cn(field, "w-full")}
               value={editing}
               onChange={(e) => setEditing(e.target.value)}
               onKeyDown={(e) => e.key === "Escape" && setEditing(undefined)}
@@ -206,7 +206,7 @@ function Announce({ api, view }: { api: OrgApi; view: OrgView }) {
     >
       <textarea
         style={{ minHeight: 64 }}
-        className="w-full rounded-ui border border-border bg-bg px-3 py-2 text-[13px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full py-1.5")}
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={t("org.announcePlaceholder")}
@@ -291,12 +291,7 @@ function NewPair({ view, onPick }: { view: OrgView; onPick: (id: string) => void
   const teams = view.structure.teams;
   if (teams.length < 2) return null;
   const select = (value: string, set: (v: string) => void) => (
-    <select
-      className="h-8 rounded-ui border border-border bg-bg px-2 text-[12px]"
-      value={value}
-      onChange={(e) => set(e.target.value)}
-      aria-label={t("org.teams")}
-    >
+    <select className={field} value={value} onChange={(e) => set(e.target.value)} aria-label={t("org.teams")}>
       <option value="">-</option>
       {teams.map((x) => (
         <option key={x.id} value={x.id}>

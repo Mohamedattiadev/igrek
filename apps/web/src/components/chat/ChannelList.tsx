@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { TeamAvatar } from "../TeamAvatar";
-import { Button, Dialog, field } from "../ui";
+import { Button, Count, Dialog, field } from "../ui";
 
 function NewChannel({
   projects,
@@ -121,9 +121,7 @@ function DirectList({
               >
                 <TeamAvatar member={member} size={18} />
                 <span className="min-w-0 flex-1 truncate">{member.displayName || member.username}</span>
-                {unread > 0 && selected !== id && (
-                  <span className="rounded-full bg-accent px-1.5 text-[10.5px] font-semibold text-white">{unread}</span>
-                )}
+                {unread > 0 && selected !== id && <Count n={unread} />}
               </button>
             </li>
           );
@@ -207,11 +205,7 @@ export function ChannelList({
                     >
                       <Hash size={13} className="shrink-0 opacity-70" aria-hidden="true" />
                       <span className="min-w-0 flex-1 truncate">{c.name}</span>
-                      {c.unread > 0 && selected !== c.id && (
-                        <span className="rounded-full bg-accent px-1.5 text-[10.5px] font-semibold text-white">
-                          {c.unread}
-                        </span>
-                      )}
+                      {c.unread > 0 && selected !== c.id && <Count n={c.unread} />}
                     </button>
                   </li>
                 ))}

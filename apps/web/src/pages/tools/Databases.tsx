@@ -297,7 +297,7 @@ function QueryEditor({ conn, initial }: { conn: DbConnection; initial?: string }
         spellCheck={false}
         rows={6}
         aria-label={t("db.query")}
-        className="w-full rounded-ui border border-border bg-bg p-2 font-mono text-[12.5px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full p-2 font-mono py-1.5")}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="primary" icon={Play} disabled={busy || !text.trim()} onClick={() => void run()}>

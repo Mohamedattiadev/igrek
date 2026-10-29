@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api, type HandoffItem, type HandoffProblem } from "../lib/api";
+import { cn } from "../lib/cn";
 import { useServerEvent } from "../lib/live";
-import { Button, Card } from "./ui";
+import { Button, Card, field } from "./ui";
 
 /**
  * On the computer that has the chat: send it to the user's other computers and teammates through the
@@ -117,7 +118,7 @@ function HandoffRow({ item, projects }: { item: HandoffItem; projects: ProjectLi
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             aria-label={t("handoff.which")}
-            className="h-7 rounded-md border border-border bg-bg px-1.5 text-[12px]"
+            className={cn(field, "h-7 px-1.5 text-[12px]")}
           >
             <option value="">{t("handoff.which")}</option>
             {projects.map((p) => (

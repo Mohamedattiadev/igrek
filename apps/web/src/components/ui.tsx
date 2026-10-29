@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Copy, Gauge, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Copy, Gauge, type LucideIcon } from "lucide-react";
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
@@ -105,6 +105,32 @@ export function Badge({ tone = "neutral", children }: { tone?: Tone; children: R
   );
 }
 
+/** A small number in a bubble (unread messages, running work, things to look at): drawn the same everywhere. */
+export function Count({
+  n,
+  tone = "accent",
+  className,
+  tip,
+}: {
+  n: ReactNode;
+  tone?: "accent" | "danger" | "warning";
+  className?: string;
+  tip?: string;
+}) {
+  return (
+    <span
+      data-tip={tip}
+      className={cn(
+        "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-on-strong",
+        tone === "danger" ? "bg-danger" : tone === "warning" ? "bg-warning" : "bg-accent",
+        className,
+      )}
+    >
+      {n}
+    </span>
+  );
+}
+
 export function StatusDot({ tone, pulse }: { tone: "success" | "warning" | "danger" | "neutral"; pulse?: boolean }) {
   const color = {
     success: "bg-success",
@@ -151,32 +177,57 @@ export function EmptyState({
   );
 }
 
+/** One choice of a Segmented: `tip` is a one-line explanation shown on hover, `count` a small number after it. */
+export interface SegmentedOption<T extends string> {
+  value: T;
+  label: string;
+  tip?: string;
+  icon?: LucideIcon;
+  count?: ReactNode;
+}
+
+const segment = (on: boolean) =>
+  cn(
+    "relative flex h-7 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[6px] px-3 text-[13px] transition-colors",
+    on ? "bg-bg font-medium text-fg shadow-sm" : "text-fg-muted hover:text-fg",
+  );
+
+/**
+ * Every switch between views of a page or a list looks the same, everywhere in Igrek (a user found
+ * the Experts page's tabs drawn one way and the Company page's another). Choices used less go under
+ * `more`, a menu at the end of the same bar; a long bar wraps (`wrap`) instead of hiding its end.
+ */
 export function Segmented<T extends string>({
   value,
   options,
   onChange,
   label,
+  more,
+  wrap,
 }: {
   value: T;
-  /** `tip`: a one-line explanation shown on hover. */
-  options: { value: T; label: string; tip?: string }[];
+  options: SegmentedOption<T>[];
   onChange: (value: T) => void;
   label?: string;
+  more?: { label: string; options: SegmentedOption<T>[] };
+  wrap?: boolean;
 }) {
   const name = useId();
   return (
     <fieldset
       aria-label={label}
-      className="inline-flex min-w-0 max-w-full shrink-0 overflow-x-auto rounded-ui border border-border bg-bg-subtle p-0.5 [scrollbar-width:none]"
+      className={cn(
+        "inline-flex min-w-0 max-w-full shrink-0 rounded-ui border border-border bg-bg-subtle p-0.5",
+        wrap ? "flex-wrap" : "overflow-x-auto [scrollbar-width:none]",
+      )}
     >
       {options.map((option) => (
         <label
           key={option.value}
           data-tip={option.tip}
           className={cn(
-            "relative flex h-7 cursor-pointer items-center whitespace-nowrap rounded-[6px] px-3 text-[13px] transition-colors",
+            segment(value === option.value),
             "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
-            value === option.value ? "bg-bg font-medium text-fg shadow-sm" : "text-fg-muted hover:text-fg",
           )}
         >
           <input
@@ -187,11 +238,84 @@ export function Segmented<T extends string>({
             onChange={() => onChange(option.value)}
             className="sr-only"
           />
+          {option.icon && <option.icon size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />}
           {option.label}
+          {option.count !== undefined && <span className="text-fg-subtle">{option.count}</span>}
         </label>
       ))}
+      {more && more.options.length > 0 && <SegmentedMore value={value} more={more} onChange={onChange} />}
     </fieldset>
   );
+}
+
+/** The "More" menu at the end of a Segmented; it shows the chosen one's name while one of them is open. */
+function SegmentedMore<T extends string>({
+  value,
+  more,
+  onChange,
+}: {
+  value: T;
+  more: { label: string; options: SegmentedOption<T>[] };
+  onChange: (value: T) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = more.options.find((o) => o.value === value);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const esc = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    window.addEventListener("mousedown", close);
+    window.addEventListener("keydown", esc);
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={segment(!!current)}
+      >
+        {current?.icon && <current.icon size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />}
+        {current ? current.label : more.label}
+        <ChevronDown size={13} aria-hidden="true" className={cn("transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div role="menu" className="fixed z-30 mt-1 w-56 rounded-ui border border-border bg-bg p-1 shadow-ui">
+          {more.options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onChange(option.value);
+              }}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-start text-[13px] hover:bg-bg-hover",
+                value === option.value ? "font-medium text-accent" : "text-fg",
+              )}
+            >
+              {option.icon && <option.icon size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />}
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The strip under a page's title that holds its tabs: the same place and spacing on every page. */
+export function TabBar({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn("shrink-0 border-b border-border px-4 py-2 sm:px-6", className)}>{children}</div>;
 }
 
 /**

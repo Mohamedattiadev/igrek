@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import type { BoardHandle } from "../../components/BoardEditor";
 import { Markdown } from "../../components/Markdown";
-import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
@@ -295,7 +295,7 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
             onChange={(e) => setFlow(e.target.value)}
             placeholder={t("boards.flowPlaceholder")}
             aria-label={t("boards.draw_flow")}
-            className="h-8 min-w-0 flex-1 rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+            className={cn(field, "min-w-0 flex-1")}
           />
           <Button type="submit" size="sm" variant="primary" disabled={!flow.trim() || !!busy}>
             {busy === "flow" ? t("boards.thinking") : t("boards.drawIt")}
@@ -347,7 +347,7 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder={t("boards.askAnything")}
                 aria-label={t("boards.askAnything")}
-                className="h-8 min-w-0 flex-1 rounded-ui border border-border bg-bg px-2 text-[13px] outline-none focus:border-accent"
+                className={cn(field, "min-w-0 flex-1")}
               />
               <Button type="submit" size="sm" disabled={!question.trim() || !!busy}>
                 {busy === "question" ? t("boards.thinking") : t("boards.ask")}

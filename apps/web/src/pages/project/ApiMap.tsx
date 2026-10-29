@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { Diagram } from "../../components/insight";
-import { Badge, Button, Card, Dialog } from "../../components/ui";
+import { Badge, Button, Card, Dialog, field } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 
@@ -284,7 +284,7 @@ export function ApiMapView({ projectId, map }: { projectId: string; map: ApiMap 
                 onChange={(e) => setBase(e.target.value.replace(/\/+$/, ""))}
                 aria-label={t("apis.base")}
                 data-tip={t("apis.baseTip")}
-                className="h-7 w-52 rounded-ui border border-border bg-bg px-2 font-mono text-[11px] outline-none focus:border-accent"
+                className={cn(field, "h-7 px-1.5 text-[12px] w-52 font-mono text-[11px]")}
               />
               <Button
                 size="sm"

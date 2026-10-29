@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { chmodSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { Account, AiTool, RateLimitInfo } from "@igrek/core";
@@ -189,7 +189,7 @@ export class Accounts {
         const status = JSON.parse(out) as { loggedIn?: boolean; email?: string; subscriptionType?: string };
         loggedIn = !!status.loggedIn;
         email = status.email ?? null;
-        plan = status.subscriptionType ?? null;
+        plan = withTier(status.subscriptionType, account.configDir) ?? null;
       } catch {
         // Older CLI or unexpected output: leave as not logged in.
       }
@@ -278,5 +278,23 @@ export class Accounts {
 
   private changed(): void {
     this.bus.publish({ type: "accounts-changed" });
+  }
+}
+
+/**
+ * Claude Max is 5x ($100) or 20x ($200) and the CLI only says "max"; the login file next to it says
+ * which (its rate limit tier). Only that one field is read, and it stays on this computer. Without
+ * the file (macOS keeps the login in the Keychain) the plan stays "max" and its price unknown.
+ */
+export function withTier(plan: string | undefined, configDir: string): string | undefined {
+  if (plan !== "max") return plan;
+  try {
+    const login = JSON.parse(readFileSync(join(configDir, ".credentials.json"), "utf8")) as {
+      claudeAiOauth?: { rateLimitTier?: string };
+    };
+    const times = /max_(5|20)x/.exec(login.claudeAiOauth?.rateLimitTier ?? "")?.[1];
+    return times ? `max ${times}x` : plan;
+  } catch {
+    return plan;
   }
 }

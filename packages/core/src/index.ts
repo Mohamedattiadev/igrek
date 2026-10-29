@@ -24,6 +24,7 @@ export * from "./private";
 export * from "./prompt";
 export * from "./schedules";
 export * from "./scrub";
+export * from "./seat-advice";
 export * from "./testusers";
 export * from "./writing";
 

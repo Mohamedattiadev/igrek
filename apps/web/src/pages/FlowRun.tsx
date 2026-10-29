@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { Markdown } from "../components/Markdown";
-import { Badge, Button, Card, Dialog, PageHeader, RUN_TONE } from "../components/ui";
+import { Badge, Button, Card, Dialog, field, PageHeader, RUN_TONE } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { dateTime, relativeTime } from "../lib/format";
@@ -109,7 +109,7 @@ function NodeCard({ run, node }: { run: FlowRun; node: FlowNodeState }) {
             rows={2}
             placeholder={t("flows.feedbackHint")}
             aria-label={t("flows.feedback")}
-            className="w-full rounded-md border border-border bg-bg px-2 py-1 text-[12px] outline-none focus:border-accent"
+            className={cn(field, "h-auto w-full py-1.5")}
           />
           <div className="flex gap-1.5">
             <Button size="sm" variant="primary" onClick={() => respond("approve")}>
@@ -248,7 +248,7 @@ function Approval({ run }: { run: FlowRun }) {
         rows={2}
         placeholder={t("flows.reviseHint")}
         aria-label={t("flows.feedback")}
-        className="w-full rounded-md border border-border bg-bg px-2 py-1 text-[12.5px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full py-1.5")}
       />
       {error && <p className="text-xs text-danger">{error}</p>}
       <div className="flex flex-wrap justify-end gap-2">

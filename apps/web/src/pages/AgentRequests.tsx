@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { HtmlReport } from "../components/HtmlReport";
-import { Button, Card, PageHeader } from "../components/ui";
+import { Button, Card, field, PageHeader } from "../components/ui";
 import { request } from "../lib/api";
+import { cn } from "../lib/cn";
 import { useLiveData } from "../lib/live";
 
 type SecretRequest = {
@@ -63,7 +64,7 @@ export function SecretRequestPage() {
                     onChange={(e) => setValue(e.target.value)}
                     aria-label={data.key}
                     placeholder={data.key}
-                    className="h-9 w-full rounded-ui border border-border bg-bg px-2.5 font-mono text-[13px] outline-none focus:border-accent"
+                    className={cn(field, "w-full font-mono")}
                   />
                   <p className="text-[12px] text-fg-subtle">{t("agentAsk.secretNote", { key: data.key })}</p>
                   {problem && <p className="text-[12px] text-danger">{problem}</p>}
@@ -114,7 +115,7 @@ type FormRequest = {
   status: "pending" | "answered" | "declined";
 };
 
-const INPUT = "h-9 w-full rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent";
+const INPUT = cn(field, "w-full");
 
 /** One field drawn from the agent's JSON schema. */
 function FormInput({

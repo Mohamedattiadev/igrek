@@ -3,7 +3,7 @@ import { Copy, MessageSquarePlus, Pencil, Plus, Search, Trash2 } from "lucide-re
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PromptUse } from "../components/PromptUse";
-import { Badge, Button, Card, Dialog, PageHeader } from "../components/ui";
+import { Badge, Button, Card, Dialog, field, PageHeader, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { duplicates, PROMPT_CATEGORIES, PROMPT_LIBRARY, variables } from "../lib/prompt-library";
@@ -25,21 +25,21 @@ function Editor({ prompt, onClose }: { prompt?: Partial<SavedPrompt>; onClose: (
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder={t("prompts.titleLabel")}
-        className="h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent"
+        className={cn(field, "w-full")}
       />
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={8}
         placeholder={t("prompts.bodyLabel")}
-        className="w-full resize-y rounded-ui border border-border bg-bg p-3 font-mono text-[12.5px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full resize-y p-3 font-mono py-1.5")}
       />
       <p className="text-[11px] text-fg-subtle">{t("prompts.bodyHint")}</p>
       <input
         value={tags}
         onChange={(e) => setTags(e.target.value)}
         placeholder={t("prompts.tags")}
-        className="h-8 w-full rounded-ui border border-border bg-bg px-3 text-[12.5px] outline-none focus:border-accent"
+        className={cn(field, "w-full")}
       />
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={() => onClose(false)}>
@@ -153,20 +153,18 @@ export function PromptsPage() {
                     className="min-w-0 flex-1 bg-transparent text-[13px] outline-none"
                   />
                 </label>
-                {tags.length > 0 &&
-                  [undefined, ...tags].map((value) => (
-                    <button
-                      key={value ?? "all"}
-                      type="button"
-                      onClick={() => setTag(value)}
-                      className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[12px]",
-                        tag === value ? "bg-bg-active font-medium text-fg" : "text-fg-muted hover:bg-bg-hover",
-                      )}
-                    >
-                      {value ?? t("prompts.allTags")}
-                    </button>
-                  ))}
+                {tags.length > 0 && (
+                  <Segmented
+                    label={t("prompts.allTags")}
+                    value={tag ?? ""}
+                    wrap
+                    onChange={(value) => setTag(value || undefined)}
+                    options={[
+                      { value: "", label: t("prompts.allTags") },
+                      ...tags.map((value) => ({ value, label: value })),
+                    ]}
+                  />
+                )}
               </div>
               {copies.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft px-3 py-2 text-[12.5px]">

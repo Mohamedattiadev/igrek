@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, Dialog } from "../../components/ui";
+import { Badge, Button, Card, Dialog, field } from "../../components/ui";
 import { api, request } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { compactNumber, relativeTime } from "../../lib/format";
@@ -242,7 +242,7 @@ export function ScoringDialog({
                             setConfig({ ...config, reasons: { ...config.reasons, [f.id]: e.target.value } })
                           }
                           placeholder={t("scoring.whyPlaceholder")}
-                          className="mt-0.5 h-8 w-full rounded-ui border border-border bg-bg px-2 text-[12.5px] text-fg outline-none focus:border-accent"
+                          className={cn(field, "mt-0.5 w-full")}
                         />
                       </label>
                     ))}

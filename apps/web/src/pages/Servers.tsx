@@ -6,7 +6,18 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { RemoteFiles } from "../components/RemoteFiles";
 import { RiskBadge } from "../components/RiskBadge";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented, StatusDot } from "../components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  Dialog,
+  EmptyState,
+  field,
+  PageHeader,
+  Segmented,
+  StatusDot,
+  TabBar,
+} from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -259,7 +270,7 @@ function RunBox({ server, onRan }: { server: ServerInfo; onRan: (run: RemoteRun)
           onChange={(e) => setCommand(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && command.trim() && start()}
           placeholder={t("servers.runPlaceholder")}
-          className="h-9 min-w-0 flex-1 rounded-ui border border-border bg-bg px-3 font-mono text-[12.5px] outline-none focus:border-accent"
+          className={cn(field, "min-w-0 flex-1 font-mono")}
         />
         <Button variant="primary" disabled={!command.trim() || busy} onClick={start}>
           {t("servers.run")}
@@ -555,14 +566,14 @@ export function ServerPage() {
           {t("servers.openShell")}
         </Button>
       </header>
-      <div className="border-b border-border px-6 py-2">
+      <TabBar>
         <Segmented
           label={server.name}
           value={tab}
           onChange={(v) => setParams(v === "overview" ? {} : { tab: v }, { replace: true })}
           options={TABS.map((v) => ({ value: v, label: t(`serverFix.tab_${v}`) }))}
         />
-      </div>
+      </TabBar>
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
         {tab === "overview" && <ServerOverview server={server} />}
         {tab === "security" && <ServerSecurity server={server} />}

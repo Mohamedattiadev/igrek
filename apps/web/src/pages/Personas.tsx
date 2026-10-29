@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { BotsTab } from "../components/BotsTab";
 import { PacksTab } from "../components/PacksTab";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field, PageHeader, Segmented, TabBar } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
@@ -131,7 +131,7 @@ function NewMeeting({
           onChange={(e) => setQuestion(e.target.value)}
           rows={3}
           placeholder={t("meeting.questionHint")}
-          className="w-full resize-y rounded-ui border border-border bg-bg px-2.5 py-2 text-[13.5px] outline-none focus:border-accent"
+          className={cn(field, "h-auto w-full resize-y py-1.5")}
         />
       </label>
       <div className="flex flex-wrap items-center gap-2">
@@ -140,7 +140,7 @@ function NewMeeting({
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="h-7 rounded-md border border-border bg-bg px-1.5 text-[12px] text-fg"
+            className={cn(field, "h-7 px-1.5 text-[12px]")}
           >
             <option value="">{t("meeting.noProject")}</option>
             {projects.map((p) => (
@@ -356,7 +356,7 @@ function ExportDialog({ open, onClose }: { open: boolean; onClose: () => void })
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             aria-label={t("meeting.project")}
-            className="h-8 w-full rounded-md border border-border bg-bg px-2 text-[13px]"
+            className={cn(field, "w-full")}
           >
             <option value="">{t("persona.pickProject")}</option>
             {projects.map((p) => (
@@ -434,39 +434,26 @@ export function PersonasPage() {
           </div>
         }
       />
-      <div className="mx-auto w-full max-w-5xl space-y-4 p-6">
+      <TabBar>
         {/* Four tabs in front; the scorecard, the arena and the packs are for later, under "More". */}
-        <div className="flex flex-wrap items-center gap-1">
-          {(["team", "bots", "meetings", "testers"] as Tab[]).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => go(value)}
-              className={cn(
-                "rounded-ui px-3 py-1 text-[13px]",
-                tab === value ? "bg-bg-active font-medium text-fg" : "text-fg-muted hover:bg-bg-hover",
-              )}
-            >
-              {t(`persona.tab_${value}`)}
-            </button>
-          ))}
-          <select
-            value={["scores", "arena", "packs"].includes(tab) ? tab : ""}
-            onChange={(e) => e.target.value && go(e.target.value as Tab)}
-            aria-label={t("persona.tabMore")}
-            className={cn(
-              "h-7 rounded-ui bg-transparent px-2 text-[13px]",
-              ["scores", "arena", "packs"].includes(tab) ? "bg-bg-active font-medium text-fg" : "text-fg-muted",
-            )}
-          >
-            <option value="">{t("persona.tabMore")}</option>
-            {(["scores", "arena", "packs"] as Tab[]).map((value) => (
-              <option key={value} value={value}>
-                {t(`persona.tab_${value}`)}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Segmented
+          label={t("persona.title")}
+          value={tab}
+          onChange={go}
+          options={(["team", "bots", "meetings", "testers"] as Tab[]).map((value) => ({
+            value,
+            label: t(`persona.tab_${value}`),
+          }))}
+          more={{
+            label: t("persona.tabMore"),
+            options: (["scores", "arena", "packs"] as Tab[]).map((value) => ({
+              value,
+              label: t(`persona.tab_${value}`),
+            })),
+          }}
+        />
+      </TabBar>
+      <div className="mx-auto w-full max-w-5xl space-y-4 p-6">
         {tab !== "team" && <p className="text-[13px] text-fg-muted">{t(`persona.tabHint_${tab}`)}</p>}
         {tab === "bots" && <BotsTab />}
         {tab === "team" &&

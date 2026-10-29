@@ -14,7 +14,7 @@ import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
 import { useCoalesced, useServerEvent } from "../../lib/live";
-import { Badge, EmptyState } from "../ui";
+import { Badge, EmptyState, field } from "../ui";
 
 const KIND: Record<TeamTimelineItem["kind"], LucideIcon> = {
   session: TerminalSquare,
@@ -101,7 +101,7 @@ export function TeamTimeline() {
           value={who}
           onChange={(e) => setWho(e.target.value)}
           aria-label={t("timeline.who")}
-          className="ms-auto h-8 rounded-ui border border-border bg-bg px-2 text-[13px]"
+          className={cn(field, "ms-auto")}
         >
           <option value="">{t("timeline.everyone")}</option>
           <option value="me">{t("timeline.you")}</option>

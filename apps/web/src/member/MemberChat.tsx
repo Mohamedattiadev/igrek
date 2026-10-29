@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TypingLine, UnreadLine } from "../components/chat/ChannelTools";
 import { useMessageWindow } from "../components/chat/window";
-import { Button, EmptyState } from "../components/ui";
+import { Button, Count, EmptyState } from "../components/ui";
 import { cn } from "../lib/cn";
 import { channelKey, directKey, type MemberClient } from "./client";
 import { type ComposerQuote, MemberComposer } from "./MemberComposer";
@@ -16,11 +16,6 @@ const row = (on: boolean, unread: boolean) =>
     on ? "bg-accent-soft text-accent" : "text-fg-muted hover:bg-bg-hover",
     unread && !on && "font-semibold text-fg",
   );
-
-function Count({ n }: { n: number }) {
-  if (!n) return null;
-  return <span className="rounded-full bg-accent px-1.5 text-[10.5px] font-semibold text-white">{n}</span>;
-}
 
 /** Channels grouped by project, then a direct talk with each teammate, as in Igrek's sidebar. */
 function Conversations({
@@ -58,7 +53,7 @@ function Conversations({
                   >
                     <Hash size={13} aria-hidden="true" />
                     <span className="min-w-0 flex-1 truncate">{c.name}</span>
-                    {open !== key && <Count n={n} />}
+                    {open !== key && n > 0 && <Count n={n} />}
                   </button>
                 </li>
               );
@@ -85,7 +80,7 @@ function Conversations({
                   >
                     <PersonAvatar client={client} id={m.id} size={18} />
                     <span className="min-w-0 flex-1 truncate">{client.nameOf(m.id)}</span>
-                    {open !== key && <Count n={n} />}
+                    {open !== key && n > 0 && <Count n={n} />}
                   </button>
                 </li>
               );

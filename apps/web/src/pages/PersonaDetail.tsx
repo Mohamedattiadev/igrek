@@ -12,9 +12,10 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
-import { Badge, Button, Card, Dialog, PageHeader, Section } from "../components/ui";
+import { Badge, Button, Card, Dialog, field, PageHeader, Section } from "../components/ui";
 import { api } from "../lib/api";
 import { sameBook } from "../lib/books";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
 import { usePersonaText } from "../lib/persona-text";
@@ -83,7 +84,7 @@ function Notebook({ personaId }: { personaId: string }) {
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
           aria-label={t("meeting.project")}
-          className="h-7 rounded-md border border-border bg-bg px-1.5 text-[12px]"
+          className={cn(field, "h-7 px-1.5 text-[12px]")}
         >
           <option value="">{t("persona.generalOnly")}</option>
           {projects.map((p) => (

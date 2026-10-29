@@ -5435,8 +5435,14 @@
     "perMonth": "${{usd}}/month",
     "priceUnknown": "price not known",
     "billTotal": "Known plans: ${{usd}} a month (list prices, before tax).",
-    "billUnknown_one": "{{count}} account's price is not known: its plan was not reported, or it is Claude Max ($100 or $200, and which one Igrek cannot see).",
-    "billUnknown_other": "{{count}} accounts' prices are not known: their plan was not reported, or it is Claude Max ($100 or $200, and which one Igrek cannot see)."
+    "billUnknown_one": "{{count}} account's price is not known: its plan was not reported, or it is Claude Max ($100 or $200, and that computer keeps its login where Igrek cannot read which one, as on macOS).",
+    "billUnknown_other": "{{count}} accounts' prices are not known: their plan was not reported, or it is Claude Max ($100 or $200, and that computer keeps its login where Igrek cannot read which one, as on macOS).",
+    "adviceTitle": "Account suggestions",
+    "adviceNone": "Nothing to change: everyone's plan fits how they use it.",
+    "adviceNoAccount": "{{name}} has no AI account in Igrek: add one, or they cannot ask a model.",
+    "adviceLarger": "{{name}}'s {{account}} is at {{pct}}% of its weekly limit: a larger plan would stop the waiting.",
+    "adviceLargerTo": "{{name}}'s {{account}} is at {{pct}}% of its weekly limit: a larger plan, or give some of the work to {{to}}, who has room.",
+    "adviceSmaller": "{{name}} uses {{pct}}% of a Claude {{plan}} plan this week so far: if it stays like this, Pro may be enough."
   },
   "serverAccess": {
     "title": "Who used this server",

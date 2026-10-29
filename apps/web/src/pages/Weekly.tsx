@@ -2,8 +2,9 @@ import { Briefcase, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Markdown } from "../components/Markdown";
-import { Button, Card, EmptyState, PageHeader } from "../components/ui";
+import { Button, Card, EmptyState, field, PageHeader } from "../components/ui";
 import { request } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 
 type Report = { week: string; text: string; at: number };
@@ -45,7 +46,7 @@ export function WeeklyPage() {
                   load(e.target.value);
                 }}
                 aria-label={t("weekly.week")}
-                className="h-7 rounded-ui border border-border bg-bg px-1.5 text-xs"
+                className={cn(field, "h-7 px-1.5 text-[12px]")}
               >
                 {weeks.map((w) => (
                   <option key={w}>{w}</option>

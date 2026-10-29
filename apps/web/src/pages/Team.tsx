@@ -37,7 +37,18 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { TeamAvatar } from "../components/TeamAvatar";
 import { TeamBoard } from "../components/TeamBoard";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Section, Segmented, StatusDot } from "../components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  Dialog,
+  EmptyState,
+  field,
+  PageHeader,
+  Section,
+  Segmented,
+  StatusDot,
+} from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
@@ -46,7 +57,7 @@ import { CompanyAudit } from "./company/CompanyAudit";
 import { TodayInTeam } from "./Person";
 import { AccessSection, AlertsSection, KeyRequestsSection, RotateKeySection, saveRecoveryFile } from "./TeamSecurity";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 const SHARES: ShareLevel[] = ["off", "summary", "full"];
 const ROLES = ["member", "viewer", "admin"] as const;
 
@@ -159,7 +170,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               onChange={(e) => setForm({ ...form, invite: e.target.value })}
             />
             <input
-              className={field}
+              className={box}
               type="password"
               autoComplete="new-password"
               placeholder={t("team.newPassword")}
@@ -177,14 +188,14 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               onChange={(e) => setForm({ ...form, hub: e.target.value })}
             />
             <input
-              className={field}
+              className={box}
               autoComplete="username"
               placeholder={t("team.username")}
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
             <input
-              className={field}
+              className={box}
               type="password"
               autoComplete="current-password"
               placeholder={t("team.password")}
@@ -571,13 +582,13 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
               onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
             <input
-              className={field}
+              className={box}
               placeholder={t("team.displayName")}
               value={form.displayName}
               onChange={(e) => setForm({ ...form, displayName: e.target.value })}
             />
             <input
-              className={field}
+              className={box}
               type="email"
               autoComplete="off"
               placeholder={t("team.emailOptional")}
@@ -743,7 +754,7 @@ export function AdminPanel({
                     </div>
                   </div>
                   <select
-                    className="h-7 rounded-ui border border-border bg-bg px-2 text-xs"
+                    className={cn(field, "h-7 px-1.5 text-[12px]")}
                     value={u.role}
                     aria-label={t("team.role")}
                     onChange={(e) => act(api.teamUpdateUser(u.id, { role: e.target.value }))}

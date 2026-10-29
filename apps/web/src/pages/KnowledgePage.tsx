@@ -2,8 +2,8 @@ import type { KnowledgeOverview, KnowledgeSources, NewsItem, PackageComparison }
 import { ExternalLink, Newspaper, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
-import { Badge, Button, Card, EmptyState, PageHeader, Segmented } from "../components/ui";
+import { useNavigate } from "react-router";
+import { Badge, Button, Card, EmptyState, field, PageHeader, Segmented, TabBar } from "../components/ui";
 import { api } from "../lib/api";
 import { compactNumber, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
@@ -16,25 +16,20 @@ const LIST_KEYS = ["hn", "reddit", "lobsters", "mastodon", "bluesky", "arxiv", "
 
 export function LibraryTabs({ active }: { active: "library" | "lessons" | "knowledge" }) {
   const { t } = useTranslation();
-  const tabs = [
-    { key: "library", to: "/library", label: t("library.title") },
-    { key: "lessons", to: "/lessons", label: t("lessons.page") },
-    { key: "knowledge", to: "/knowledge", label: t("knowledge.page") },
-  ] as const;
+  const navigate = useNavigate();
   return (
-    <div className="flex gap-1 text-[13px]">
-      {tabs.map((tab) =>
-        tab.key === active ? (
-          <span key={tab.key} className="rounded-ui bg-bg-active px-3 py-1 font-medium">
-            {tab.label}
-          </span>
-        ) : (
-          <Link key={tab.key} to={tab.to} className="rounded-ui px-3 py-1 text-fg-muted hover:bg-bg-hover">
-            {tab.label}
-          </Link>
-        ),
-      )}
-    </div>
+    <TabBar>
+      <Segmented
+        label={t("library.title")}
+        value={active}
+        onChange={(key) => void navigate(`/${key}`)}
+        options={[
+          { value: "library", label: t("library.title") },
+          { value: "lessons", label: t("lessons.page") },
+          { value: "knowledge", label: t("knowledge.page") },
+        ]}
+      />
+    </TabBar>
   );
 }
 
@@ -95,7 +90,7 @@ function SourcesEditor() {
           value={personaId}
           onChange={(e) => setPersonaId(e.target.value)}
           aria-label={t("persona.picker")}
-          className="h-8 rounded-md border border-border bg-bg px-2 text-[12.5px]"
+          className={field}
         >
           {personas.map((p) => (
             <option key={p.id} value={p.id}>
@@ -288,8 +283,8 @@ export function KnowledgePage() {
           </Button>
         }
       />
+      <LibraryTabs active="knowledge" />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <LibraryTabs active="knowledge" />
         <p className="text-[13px] leading-relaxed text-fg-muted">{t("knowledge.intro")}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Segmented
@@ -311,7 +306,7 @@ export function KnowledgePage() {
             value={persona}
             onChange={(e) => setPersona(e.target.value)}
             aria-label={t("persona.picker")}
-            className="h-8 rounded-md border border-border bg-bg px-2 text-[12.5px]"
+            className={field}
           >
             <option value="">{t("knowledge.allPersonas")}</option>
             {personas.map((p) => (

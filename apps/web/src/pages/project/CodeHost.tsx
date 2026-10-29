@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { FixButton } from "../../components/FixButton";
-import { Badge, Button, Card, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, EmptyState, field } from "../../components/ui";
+import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import { hostApi } from "../../lib/ops-api";
 
@@ -170,7 +171,7 @@ function Review({ projectId, number }: { projectId: string; number: number }) {
         rows={3}
         placeholder={t("host.reviewPlaceholder")}
         aria-label={t("host.reviewPlaceholder")}
-        className="w-full rounded-ui border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full p-2 py-1.5")}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant="primary" disabled={busy} onClick={() => void send("approve")}>

@@ -18,13 +18,12 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
-import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
 
-const field =
-  "h-8 w-full rounded-ui border border-border bg-bg px-2 font-mono text-[12px] outline-none focus:border-accent";
+const box = cn(field, "w-full font-mono text-[12px]");
 
 function issueText(t: (k: string, o?: Record<string, unknown>) => string, issue: EnvIssue): string {
   if (issue.kind === "format") return t(`env.issue_format_${issue.expected}`, { file: issue.file });
@@ -84,7 +83,7 @@ function ValueCell({
             if (e.key === "Escape") setEditing(undefined);
           }}
           aria-label={t("env.value")}
-          className={field}
+          className={box}
         />
         <div className="flex gap-1">
           <Button size="sm" variant="primary" onClick={save}>
@@ -340,7 +339,7 @@ export function EnvView({ projectId }: { projectId: string }) {
               value={restart.command}
               onChange={(e) => setRestart({ ...restart, command: e.target.value })}
               aria-label={t("env.restartCommand")}
-              className="h-8 flex-1 rounded-ui border border-border bg-bg px-2 font-mono text-[12px] outline-none focus:border-accent"
+              className={cn(field, "flex-1 font-mono")}
             />
             <Button
               variant="primary"
@@ -504,7 +503,7 @@ export function EnvView({ projectId }: { projectId: string }) {
               value={adding.file}
               onChange={(e) => setAdding({ ...adding, file: e.target.value })}
               aria-label={t("env.file")}
-              className={field}
+              className={box}
             >
               {(realFiles.length ? realFiles.map((f) => f.path) : [".env"]).map((p) => (
                 <option key={p} value={p}>
@@ -513,14 +512,14 @@ export function EnvView({ projectId }: { projectId: string }) {
               ))}
             </select>
             <input
-              className={field}
+              className={box}
               placeholder="API_KEY"
               aria-label={t("env.key")}
               value={adding.key}
               onChange={(e) => setAdding({ ...adding, key: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_") })}
             />
             <input
-              className={field}
+              className={box}
               autoComplete="off"
               spellCheck={false}
               placeholder={t("env.value")}
@@ -576,7 +575,7 @@ export function EnvView({ projectId }: { projectId: string }) {
               value={linking.serverId}
               onChange={(e) => setLinking({ ...linking, serverId: e.target.value })}
               aria-label={t("env.server")}
-              className={field}
+              className={box}
             >
               {servers.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -589,7 +588,7 @@ export function EnvView({ projectId }: { projectId: string }) {
               onChange={(e) => setLinking({ ...linking, path: e.target.value })}
               placeholder="/srv/app/.env"
               aria-label={t("env.remotePath")}
-              className={field}
+              className={box}
             />
             {linking.error && <p className="text-xs text-danger">{linking.error}</p>}
             <div className="flex justify-end gap-2">

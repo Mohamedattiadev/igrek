@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { Term } from "../components/Term";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Section, Segmented } from "../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, modelName, relativeTime } from "../lib/format";
@@ -303,7 +303,7 @@ function AddAccount({ onAdded }: { onAdded: (account: Account) => void }) {
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder={t("accounts.labelPlaceholder")}
-            className="h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent"
+            className={cn(field, "w-full")}
           />
           <p className="text-xs text-fg-muted">{t("accounts.loginHint")}</p>
           {error && <p className="text-xs text-danger">{error}</p>}

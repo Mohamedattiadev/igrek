@@ -8,7 +8,7 @@ import { EnhanceButton, EnhanceDialog } from "../components/Enhance";
 import { NewSession } from "../components/NewSession";
 import { PromptPicker } from "../components/PromptPicker";
 import { TerminalView } from "../components/TerminalView";
-import { Badge, PageHeader, StatusDot } from "../components/ui";
+import { Badge, field, PageHeader, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useChats, useLiveData, useServerEvent, useTerminals } from "../lib/live";
@@ -32,7 +32,7 @@ function StartHere() {
         value={projectId}
         onChange={(e) => setPicked(e.target.value)}
         aria-label={t("term.startIn")}
-        className="h-8 min-w-0 max-w-56 rounded-ui border border-border bg-bg px-2 text-[13px]"
+        className={cn(field, "min-w-0 max-w-56")}
       >
         {recent.map((p) => (
           <option key={p.id} value={p.id}>

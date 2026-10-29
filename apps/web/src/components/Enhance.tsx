@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useSettings } from "../lib/settings";
-import { Badge, Button, Dialog, ModelMark, useModelTip } from "./ui";
+import { Badge, Button, Dialog, field, ModelMark, useModelTip } from "./ui";
 
 export interface EnhanceTarget {
   projectId?: string;
@@ -358,7 +358,7 @@ export function EnhancePanel({
                 onChange={(e) => setDraft(e.target.value)}
                 rows={Math.min(16, Math.max(6, final.split("\n").length + 1))}
                 aria-label={t("enhance.better")}
-                className="w-full resize-y rounded-ui border border-border bg-bg p-2 font-mono text-[12px] leading-relaxed outline-none focus:border-accent"
+                className={cn(field, "h-auto w-full resize-y p-2 font-mono leading-relaxed py-1.5")}
               />
             </div>
           </div>
@@ -462,7 +462,7 @@ export function EnhanceDialog({
               }}
               rows={3}
               placeholder={t("enhance.dialogPlaceholder")}
-              className="w-full resize-none rounded-ui border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+              className={cn(field, "h-auto w-full resize-none p-2 py-1.5")}
             />
             <div className="flex justify-end">
               <Button

@@ -26,7 +26,7 @@ import { CheckpointRestore } from "../../components/CheckpointRestore";
 import { EnhanceDialog } from "../../components/Enhance";
 import { FilePreview } from "../../components/FilePreview";
 import { ResizeHandle, usePanelSize } from "../../components/Resizable";
-import { Button } from "../../components/ui";
+import { Button, field } from "../../components/ui";
 import { actions, type EnhanceCodeRequest } from "../../lib/actions";
 import type { GitBranchInfo } from "../../lib/api";
 import { api, fs } from "../../lib/api";
@@ -154,7 +154,7 @@ function ChangesPanel({ project, onOpenDiff }: { project: ProjectDetail; onOpenD
           onChange={(e) => setMessage(e.target.value)}
           placeholder={t("code.commitPlaceholder")}
           rows={2}
-          className="w-full resize-none rounded-md border border-border bg-bg p-1.5 text-[12px] outline-none focus:border-accent"
+          className={cn(field, "h-auto w-full resize-none p-1.5 py-1.5")}
         />
         <div className="flex items-center gap-1">
           <Button
@@ -284,7 +284,7 @@ function BranchesPanel({ projectId }: { projectId: string }) {
           onChange={(e) => setName(e.target.value.replace(/\s+/g, "-"))}
           placeholder={t("code.newBranch")}
           aria-label={t("code.newBranch")}
-          className="h-7 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 font-mono text-[11px] outline-none focus:border-accent"
+          className={cn(field, "h-7 px-1.5 text-[12px] min-w-0 flex-1 font-mono text-[11px]")}
         />
         <Button
           size="sm"
@@ -406,7 +406,7 @@ function SearchPanel({
               }}
               placeholder={t("code.replaceWith")}
               aria-label={t("code.replaceWith")}
-              className="h-7 w-full rounded-md border border-border bg-bg px-2 text-[12px] outline-none focus:border-accent"
+              className={cn(field, "h-7 px-1.5 text-[12px] w-full")}
             />
             <div className="flex flex-wrap items-center gap-2 text-[11px] text-fg-muted">
               <label className="flex items-center gap-1">

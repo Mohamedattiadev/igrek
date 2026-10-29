@@ -21,6 +21,7 @@ import { CHAT, findProject, fold, GUIDE, has, LAST, NEW, TERMINAL, TOUR, WHERE_T
 import { startTour } from "../lib/tour";
 import { LazyMarkdown as Markdown } from "./LazyMarkdown";
 import { ReportProblem } from "./ReportProblem";
+import { field } from "./ui";
 
 /** Something the helper offers: a page to open or a thing to do. */
 interface Action {
@@ -364,7 +365,7 @@ export function Helper() {
             aria-label={t("helper.placeholder")}
             // biome-ignore lint/a11y/noAutofocus: the panel was opened to type in it
             autoFocus
-            className="h-9 min-w-0 flex-1 rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent"
+            className={cn(field, "min-w-0 flex-1")}
           />
           <button
             type="submit"

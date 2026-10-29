@@ -1,7 +1,7 @@
 import type { CacheAudit, CodeCacheReport, PageVitals, RenderAdvice, RoutePerf, VitalValue } from "@igrek/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../../components/ui";
+import { Button, field } from "../../components/ui";
 import { request } from "../../lib/api";
 import { cn } from "../../lib/cn";
 
@@ -196,7 +196,7 @@ function CacheCheck() {
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://"
           aria-label={t("perf.cacheUrl")}
-          className="h-8 min-w-60 flex-1 rounded-ui border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+          className={cn(field, "min-w-60 flex-1")}
         />
         <Button type="submit" size="sm" variant="primary" disabled={busy || !/^https?:\/\//.test(url)}>
           {busy ? t("perf.cacheRunning") : t("perf.cacheRun")}

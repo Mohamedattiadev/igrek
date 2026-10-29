@@ -4,7 +4,7 @@ import { type DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { LibrarySuggestions } from "../components/LibrarySuggestions";
-import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, EmptyState, field, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -55,7 +55,7 @@ function ShelfPicker({ value, onChange }: { value: string[]; onChange: (ids: str
       value={value[0] ?? ""}
       onChange={(e) => onChange(e.target.value ? [e.target.value] : [])}
       aria-label={t("library.shelf")}
-      className="h-8 rounded-md border border-border bg-bg px-2 text-[12.5px]"
+      className={field}
     >
       <option value="">{t("library.everyone")}</option>
       {personas.map((p) => (
@@ -207,8 +207,8 @@ export function LibraryPage() {
   return (
     <>
       <PageHeader title={t("library.title")} />
+      <LibraryTabs active="library" />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <LibraryTabs active="library" />
         <p className="text-[13px] leading-relaxed text-fg-muted">{t("library.intro")}</p>
         <Card className="space-y-3 p-pad">
           {/* biome-ignore lint/a11y/noStaticElementInteractions: the drop zone has a real button inside for keyboard users */}
@@ -311,7 +311,7 @@ export function LibraryPage() {
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             aria-label={t("library.shelf")}
-            className="h-8 rounded-md border border-border bg-bg px-2 text-[12.5px]"
+            className={field}
           >
             <option value="">{t("library.allShelves")}</option>
             {personas.map((p) => (

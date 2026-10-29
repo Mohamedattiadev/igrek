@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { LoadError } from "../components/LoadError";
+import { field } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -109,7 +110,7 @@ export function ChiefPage() {
           value={thread}
           onChange={(e) => pick(e.target.value)}
           aria-label={t("chief.threads")}
-          className="h-8 w-full rounded-ui border border-border bg-bg px-2 text-[13px] md:hidden"
+          className={cn(field, "w-full md:hidden")}
         >
           <option value={GENERAL}>{t("chief.general")}</option>
           {ordered.map((p) => (

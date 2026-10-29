@@ -3,10 +3,11 @@ import { ChevronDown, ChevronRight, Moon, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { duration } from "../pages/tools/Time";
 import { LazyMarkdown as Markdown } from "./LazyMarkdown";
-import { Button } from "./ui";
+import { Button, field } from "./ui";
 
 const localDay = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -84,7 +85,7 @@ export function RecapCard() {
           value={day}
           onChange={(e) => setDay(e.target.value)}
           aria-label={t("recap.day")}
-          className="h-7 rounded-ui border border-border bg-bg px-1.5 text-xs"
+          className={cn(field, "h-7 px-1.5 text-[12px]")}
         >
           {choices.map((d) => (
             <option key={d} value={d}>

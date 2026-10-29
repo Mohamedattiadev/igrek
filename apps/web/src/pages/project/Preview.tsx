@@ -27,7 +27,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { saveUiNote, UiNotesPanel } from "../../components/UiNotesPanel";
-import { Badge, Button, Card } from "../../components/ui";
+import { Badge, Button, Card, field } from "../../components/ui";
 import { api, fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { useServerEvent } from "../../lib/live";
@@ -56,7 +56,7 @@ function AppPicker({ projectId, server }: { projectId: string; server: DevServer
       value={server.url}
       onChange={(e) => void api.previewTarget(projectId, e.target.value).catch(() => undefined)}
       aria-label={t("preview.app")}
-      className="h-7 max-w-64 rounded-ui border border-border bg-bg px-2 font-mono text-[11.5px]"
+      className={cn(field, "h-7 px-1.5 text-[12px] max-w-64 font-mono")}
     >
       {(server.apps ?? []).map((a) => (
         <option key={a.url} value={a.url}>
@@ -266,7 +266,7 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
               onChange={(e) => setExternalUrl(e.target.value)}
               placeholder={t("preview.urlHint")}
               aria-label={t("preview.url")}
-              className="h-8 w-56 rounded-md border border-border bg-bg px-2 font-mono text-[12px]"
+              className={cn(field, "w-56 font-mono")}
             />
             <Button
               size="sm"
@@ -342,14 +342,14 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
                     rows={2}
                     placeholder={t("preview.instructionHint")}
                     aria-label={t("preview.instruction")}
-                    className="w-full rounded-md border border-border bg-bg px-2 py-1 text-[12.5px] outline-none focus:border-accent"
+                    className={cn(field, "h-auto w-full py-1.5")}
                   />
                   <div className="flex items-center gap-2">
                     <select
                       value={persona}
                       onChange={(e) => setPersona(e.target.value)}
                       aria-label={t("persona.picker")}
-                      className="h-7 min-w-0 flex-1 rounded-md border border-border bg-bg px-1.5 text-[12px]"
+                      className={cn(field, "h-7 px-1.5 text-[12px] min-w-0 flex-1")}
                     >
                       <option value="">{t("persona.none")}</option>
                       {PERSONAS.map((id) => (

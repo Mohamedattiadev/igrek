@@ -2,10 +2,9 @@ import type { Idea, IdeaReview, IdeaStatus, ProjectListItem } from "@igrek/core"
 import { Briefcase, Lightbulb, ListFilter, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
-import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { deferDelete, usePendingDeletes } from "../lib/undo";
 
@@ -168,22 +167,16 @@ export function IdeasPage() {
         }
       />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <div className="flex gap-1">
-          {STATUSES.map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setFilter(status)}
-              className={cn(
-                "rounded-ui px-3 py-1 text-[13px]",
-                filter === status ? "bg-bg-active font-medium text-fg" : "text-fg-muted hover:bg-bg-hover",
-              )}
-            >
-              {t(`ideas.${status}`)}
-              <span className="ms-1.5 text-fg-subtle">{ideas.filter((i) => i.status === status).length}</span>
-            </button>
-          ))}
-        </div>
+        <Segmented
+          label={t("ideas.title")}
+          value={filter}
+          onChange={setFilter}
+          options={STATUSES.map((status) => ({
+            value: status,
+            label: t(`ideas.${status}`),
+            count: ideas.filter((i) => i.status === status).length,
+          }))}
+        />
         {error && <p className="text-xs text-danger">{error}</p>}
         {notice && <p className="text-xs text-success">{notice}</p>}
         {review && (

@@ -2,7 +2,8 @@ import { ArrowUp, Folder, FolderOpen, FolderPlus } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, fs } from "../lib/api";
-import { Button, Segmented } from "./ui";
+import { cn } from "../lib/cn";
+import { Button, field, Segmented } from "./ui";
 
 /**
  * Walk the folders to the one to add, instead of typing its path: starts in the home folder (or
@@ -116,7 +117,7 @@ export function AddProjectForm({
           aria-label={t("projects.addTitle")}
           // biome-ignore lint/a11y/noAutofocus: the folder is all this form asks for
           autoFocus={autoFocus}
-          className="h-9 min-w-0 flex-1 rounded-ui border border-border bg-bg px-3 font-mono text-[13px] outline-none focus:border-accent"
+          className={cn(field, "min-w-0 flex-1 font-mono")}
         />
         <Button icon={FolderOpen} onClick={() => setBrowsing((v) => !v)} aria-expanded={browsing}>
           {t("projects.browse")}

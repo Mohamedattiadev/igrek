@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../../components/BackLink";
 import { Markdown } from "../../components/Markdown";
-import { Badge, Button, Card, PageHeader } from "../../components/ui";
+import { Badge, Button, Card, field, PageHeader } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { learnApi, optionsIn, type StageCheck, textIn } from "../../lib/learn-api";
 import { useProjects } from "../../lib/live";
@@ -325,7 +325,7 @@ function StepView({
             onChange={(e) => setReason(e.target.value)}
             placeholder={t("learn.reportHint")}
             aria-label={t("learn.report")}
-            className="h-8 min-w-0 flex-1 rounded-ui border border-border bg-bg px-2.5 text-[13px]"
+            className={cn(field, "min-w-0 flex-1")}
           />
           <Button size="sm" type="submit">
             {t("learn.save")}
@@ -402,7 +402,7 @@ function ProjectStages() {
         value={projectId}
         onChange={(e) => setProjectId(e.target.value)}
         aria-label={t("learn.whereIs")}
-        className="h-8 w-full rounded-ui border border-border bg-bg px-2 text-[13px]"
+        className={cn(field, "w-full")}
       >
         <option value="">{t("learn.pickProject")}</option>
         {projects.map((p) => (

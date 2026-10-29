@@ -15,7 +15,7 @@ import { type DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { TeamAvatar, useTeamPeople } from "../../components/TeamAvatar";
-import { Badge, Button, Card, RUN_TONE, Segmented } from "../../components/ui";
+import { Badge, Button, Card, field, RUN_TONE, Segmented } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
@@ -305,15 +305,10 @@ function StartRun({ projectId }: { projectId: string }) {
         rows={2}
         placeholder={t("board.requestHint")}
         aria-label={t("board.request")}
-        className="w-full rounded-ui border border-border bg-bg px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full py-1.5")}
       />
       <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={flow}
-          onChange={(e) => setFlow(e.target.value)}
-          aria-label={t("board.flow")}
-          className="h-8 rounded-md border border-border bg-bg px-2 text-[12.5px]"
-        >
+        <select value={flow} onChange={(e) => setFlow(e.target.value)} aria-label={t("board.flow")} className={field}>
           {flows.map((f) => (
             <option key={f.name} value={f.name}>
               {t(`flows.name_${f.name}`, { defaultValue: f.name })}
@@ -463,7 +458,7 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t("board.newCard")}
                   aria-label={t("board.newCard")}
-                  className="h-8 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+                  className={cn(field, "min-w-0 flex-1")}
                 />
                 <Button size="sm" icon={Plus} type="submit" aria-label={t("board.add")} />
               </form>

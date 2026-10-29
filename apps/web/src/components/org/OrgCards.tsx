@@ -10,12 +10,13 @@ import {
 import { AlertTriangle, CalendarClock, Hand, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
-import { Badge, Button, Card, Segmented } from "../ui";
+import { Badge, Button, Card, field, Segmented } from "../ui";
 import { nameOf, type OrgApi, type OrgView, teamName } from "./api";
 import { BotText, PostList, Writer } from "./OrgPosts";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 const PRIORITIES: OrgPriority[] = ["low", "normal", "high", "urgent"];
 const TONE = { urgent: "danger", high: "warning", normal: "neutral", low: "neutral" } as const;
 
@@ -106,7 +107,7 @@ function Assign({ api, view, card }: { api: OrgApi; view: OrgView; card: OrgCard
   return (
     <select
       aria-label={t("org.giveTo")}
-      className={field}
+      className={box}
       value={value}
       onChange={(e) => {
         const v = e.target.value;
@@ -200,7 +201,7 @@ function Waiting({ api, view, card }: { api: OrgApi; view: OrgView; card: OrgCar
     >
       <select
         aria-label={t("org.waitFor")}
-        className={field}
+        className={box}
         style={{ width: 160 }}
         value={who}
         onChange={(e) => setWho(e.target.value)}
@@ -213,7 +214,7 @@ function Waiting({ api, view, card }: { api: OrgApi; view: OrgView; card: OrgCar
         ))}
       </select>
       <input
-        className={field}
+        className={box}
         style={{ flex: 1, minWidth: 140 }}
         value={what}
         onChange={(e) => setWhat(e.target.value)}
@@ -379,7 +380,7 @@ export function NewCard({
       }}
     >
       <input
-        className={field}
+        className={box}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder={t("org.cardTitle")}
@@ -387,19 +388,19 @@ export function NewCard({
       />
       <textarea
         style={{ minHeight: 64 }}
-        className="w-full rounded-ui border border-border bg-bg px-3 py-2 text-[13px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full py-1.5")}
         value={detail}
         onChange={(e) => setDetail(e.target.value)}
         placeholder={t("org.cardDetail")}
         aria-label={t("org.cardDetail")}
       />
       <div className="grid gap-2 sm:grid-cols-2">
-        <select className={field} value={to} onChange={(e) => setTo(e.target.value)} aria-label={t("org.giveTo")}>
+        <select className={box} value={to} onChange={(e) => setTo(e.target.value)} aria-label={t("org.giveTo")}>
           <option value="">{t("org.giveTo")}</option>
           <AssignOptions view={view} />
         </select>
         <select
-          className={field}
+          className={box}
           value={project}
           onChange={(e) => setProject(e.target.value)}
           aria-label={t("org.project")}
@@ -412,7 +413,7 @@ export function NewCard({
           ))}
         </select>
         <select
-          className={field}
+          className={box}
           value={priority}
           onChange={(e) => setPriority(e.target.value as OrgPriority)}
           aria-label={t("org.priority")}
@@ -425,7 +426,7 @@ export function NewCard({
         </select>
         <input
           type="date"
-          className={field}
+          className={box}
           value={due}
           onChange={(e) => setDue(e.target.value)}
           aria-label={t("org.due")}

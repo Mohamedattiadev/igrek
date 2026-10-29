@@ -6,9 +6,10 @@ import { Link } from "react-router";
 import { Comments } from "../../components/Comments";
 import { useTeamPeople } from "../../components/TeamAvatar";
 import { TeamText } from "../../components/TeamText";
-import { Button, Card, EmptyState } from "../../components/ui";
+import { Button, Card, EmptyState, field } from "../../components/ui";
 import { AdrExportButton } from "../../components/Writeups";
 import { type AgentFiles, api } from "../../lib/api";
+import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import { deferDelete, usePendingDeletes } from "../../lib/undo";
 
@@ -80,7 +81,7 @@ function MemoryRow({ item, projectId, onChange }: { item: MemoryItem; projectId:
           rows={2}
           // biome-ignore lint/a11y/noAutofocus: editing starts where the user clicked
           autoFocus
-          className="flex-1 resize-y rounded-md border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+          className={cn(field, "h-auto flex-1 resize-y p-2 py-1.5")}
         />
         <Button size="sm" variant="primary" icon={Check} onClick={save} aria-label={t("project.save")} />
         <Button

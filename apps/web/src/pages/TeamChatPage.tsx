@@ -27,8 +27,9 @@ import { useMessageWindow } from "../components/chat/window";
 import { GapsLine } from "../components/GapsLine";
 import { Markdown } from "../components/Markdown";
 import { useTeamPeople } from "../components/TeamAvatar";
-import { Button, EmptyState } from "../components/ui";
+import { Button, EmptyState, field } from "../components/ui";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { useCoalesced, useServerEvent } from "../lib/live";
 
 /**
@@ -307,7 +308,7 @@ function ChannelSelect({
       value={value}
       onChange={(e) => (e.target.value === "timeline" ? onTimeline() : onPick(e.target.value))}
       aria-label={t("teamChat.channels")}
-      className="m-2 h-8 rounded-ui border border-border bg-bg px-2 text-[13px] md:hidden"
+      className={cn(field, "m-2 md:hidden")}
     >
       <option value="timeline">{t("timeline.title")}</option>
       {channels.map((c) => (

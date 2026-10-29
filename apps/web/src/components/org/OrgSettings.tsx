@@ -2,11 +2,12 @@ import { canAssign, isManager } from "@igrek/core";
 import { Bot, CalendarOff, Clock } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "../../lib/cn";
 import { dateTime } from "../../lib/format";
-import { Button, Card } from "../ui";
+import { Button, Card, field } from "../ui";
 import { nameOf, type OrgApi, type OrgView } from "./api";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 const DAYS = [1, 2, 3, 4, 5, 6, 0];
 const HOURS = [...Array(24).keys()];
 const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -42,21 +43,21 @@ function BotSettings({ api, view }: { api: OrgApi; view: OrgView }) {
         <>
           <div className="grid gap-2 sm:grid-cols-3">
             <input
-              className={field}
+              className={box}
               value={name}
               onChange={(e) => setName(e.target.value)}
               aria-label={t("org.botName")}
               placeholder={t("org.botName")}
             />
             <input
-              className={field}
+              className={box}
               value={handle}
               onChange={(e) => setHandle(e.target.value.replace(/[^\w.-]/g, ""))}
               aria-label={t("org.botHandle")}
               placeholder={t("org.botHandle")}
             />
             <select
-              className={field}
+              className={box}
               value={hour}
               onChange={(e) => setHour(e.target.value)}
               aria-label={t("org.reportHour")}
@@ -122,7 +123,7 @@ function Availability({ api, view }: { api: OrgApi; view: OrgView }) {
       <div className="flex flex-wrap items-center gap-2 text-[13px]">
         <input
           type="time"
-          className={field}
+          className={box}
           style={{ width: 120 }}
           value={from}
           onChange={(e) => setFrom(e.target.value)}
@@ -131,7 +132,7 @@ function Availability({ api, view }: { api: OrgApi; view: OrgView }) {
         -
         <input
           type="time"
-          className={field}
+          className={box}
           style={{ width: 120 }}
           value={to}
           onChange={(e) => setTo(e.target.value)}
@@ -169,7 +170,7 @@ function Availability({ api, view }: { api: OrgApi; view: OrgView }) {
       <div className="flex flex-wrap gap-2">
         <input
           type="date"
-          className={field}
+          className={box}
           style={{ width: 160 }}
           value={leaveFrom}
           onChange={(e) => setLeaveFrom(e.target.value)}
@@ -177,7 +178,7 @@ function Availability({ api, view }: { api: OrgApi; view: OrgView }) {
         />
         <input
           type="date"
-          className={field}
+          className={box}
           style={{ width: 160 }}
           value={leaveTo}
           onChange={(e) => setLeaveTo(e.target.value)}

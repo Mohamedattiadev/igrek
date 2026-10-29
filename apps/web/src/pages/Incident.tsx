@@ -17,8 +17,9 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { Markdown } from "../components/Markdown";
-import { Badge, Button, Card, PageHeader } from "../components/ui";
+import { Badge, Button, Card, field, PageHeader } from "../components/ui";
 import { request } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 
@@ -244,7 +245,7 @@ export function IncidentPage() {
                   onChange={(e) => setNote(e.target.value)}
                   placeholder={t("incident.note")}
                   aria-label={t("incident.note")}
-                  className="h-8 min-w-0 flex-1 rounded-ui border border-border bg-bg px-2 text-xs outline-none focus:border-accent"
+                  className={cn(field, "min-w-0 flex-1")}
                 />
                 <Button size="sm" type="submit">
                   {t("incident.add")}

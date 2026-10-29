@@ -3,9 +3,10 @@ import { ArrowUp, File, Folder, FolderOpen, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { fileSize } from "../lib/files";
 import { relativeTime } from "../lib/format";
-import { Button, Card } from "./ui";
+import { Button, Card, field } from "./ui";
 
 /** Browse and edit text files on a server over SSH (plan.md 2.5). Saving keeps a dated backup there. */
 export function RemoteFiles({ serverId }: { serverId: string }) {
@@ -120,7 +121,7 @@ export function RemoteFiles({ serverId }: { serverId: string }) {
               onChange={(e) => setFile({ ...file, draft: e.target.value })}
               spellCheck={false}
               aria-label={file.path}
-              className="h-[calc(100vh-20rem)] min-h-64 w-full resize-y rounded-ui border border-border bg-bg p-2 font-mono text-[12px] outline-none focus:border-accent"
+              className={cn(field, "h-auto h-[calc(100vh-20rem)] min-h-64 w-full resize-y p-2 font-mono py-1.5")}
             />
           </div>
         )}

@@ -18,7 +18,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { nameOf, type OrgApi, type OrgView } from "../org/api";
-import { Button } from "../ui";
+import { Button, field } from "../ui";
 import { Call, type CallTransport, type MeetCall, type Peer } from "./call";
 
 // Only a meeting that opens its whiteboard downloads it (the first screen stays light). Its fonts
@@ -435,7 +435,7 @@ export function MeetRoom({
               }}
             >
               <input
-                className="h-8 w-full rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+                className={cn(field, "w-full")}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={t("meet.chat")}

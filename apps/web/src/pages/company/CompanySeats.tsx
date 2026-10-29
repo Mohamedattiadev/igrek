@@ -1,5 +1,5 @@
-import type { Seat, SeatBudget } from "@igrek/core";
-import { AlertTriangle } from "lucide-react";
+import { type Seat, type SeatBudget, seatAdvice } from "@igrek/core";
+import { AlertTriangle, Lightbulb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Badge, Card, StatusDot } from "../../components/ui";
 import { cn } from "../../lib/cn";
@@ -205,6 +205,34 @@ function Plans({ seats }: { seats: Seat[] }) {
   );
 }
 
+/** Who should have which account (seat-advice.ts): suggestions only, the admin decides. */
+function Advice({ seats }: { seats: Seat[] }) {
+  const { t } = useTranslation();
+  const items = seatAdvice(seats).map((a) =>
+    a.kind === "noAccount"
+      ? t("company.adviceNoAccount", { name: a.name })
+      : a.kind === "smaller"
+        ? t("company.adviceSmaller", { name: a.name, account: a.account, plan: a.plan, pct: a.pct })
+        : a.to
+          ? t("company.adviceLargerTo", { name: a.name, account: a.account, pct: a.pct, to: a.to })
+          : t("company.adviceLarger", { name: a.name, account: a.account, pct: a.pct }),
+  );
+  return (
+    <Card>
+      <h3 className="border-b border-border px-pad py-2 text-[13px] font-semibold">{t("company.adviceTitle")}</h3>
+      <ul className="divide-y divide-border text-[13px]">
+        {items.map((line) => (
+          <li key={line} className="flex items-start gap-2 px-pad py-2">
+            <Lightbulb size={14} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
+            {line}
+          </li>
+        ))}
+        {!items.length && <li className="px-pad py-3 text-fg-subtle">{t("company.adviceNone")}</li>}
+      </ul>
+    </Card>
+  );
+}
+
 /** Everyone's accounts, limits and week: the numbers, what to watch, the plans, then a card each. */
 export function SeatsOverview({
   seats,
@@ -246,6 +274,7 @@ export function SeatsOverview({
       <div className="grid gap-3 md:grid-cols-2">
         <Watch seats={list} newest={newest} budgets={budgets} />
         <Plans seats={list} />
+        <Advice seats={list} />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         {list.map((s) => (

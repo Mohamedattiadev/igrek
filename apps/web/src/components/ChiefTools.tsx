@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { Button, Dialog, field } from "./ui";
 
 /** Above the chief's chat: its notebook (what it remembers) and the Telegram bot that reaches it. */
@@ -60,7 +61,7 @@ function Notes({ onClose }: { onClose: () => void }) {
         value={text ?? ""}
         onChange={(e) => setText(e.target.value)}
         aria-label={t("chief.notes")}
-        className="h-80 w-full rounded-ui border border-border bg-bg p-2 font-mono text-[12px] outline-none focus:border-accent"
+        className={cn(field, "h-auto h-80 w-full p-2 font-mono py-1.5")}
       />
       {error && <p className="text-xs text-danger">{error}</p>}
       <div className="flex justify-end gap-2">

@@ -1,7 +1,7 @@
 import { AtSign, Hash, Inbox, Lock, Radio, SquareCheckBig, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Card } from "../components/ui";
+import { Badge, Card, Count, PageHeader } from "../components/ui";
 import { relativeTime } from "../lib/format";
 import { channelKey, directKey, type MemberClient } from "./client";
 import { PersonAvatar } from "./MemberMessage";
@@ -121,7 +121,7 @@ function Unread({ client, go }: { client: MemberClient; go: (to: string) => void
           <span className="min-w-0 flex-1 truncate font-medium">
             {x.name} {x.sub && <span className="text-[11.5px] font-normal text-fg-subtle">{x.sub}</span>}
           </span>
-          <span className="rounded-full bg-accent px-1.5 text-[10.5px] font-semibold text-white">{x.n}</span>
+          <Count n={x.n} />
         </button>
       ))}
     </Panel>
@@ -218,17 +218,17 @@ function TeamFeed({ client }: { client: MemberClient }) {
 export function MemberHome({ client, go }: { client: MemberClient; go: (to: string) => void }) {
   const { t } = useTranslation();
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6">
-      <h1 className="text-[20px] font-semibold tracking-tight">
-        {t("member.hello", { name: client.me()?.displayName ?? "" })}
-      </h1>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Assigned client={client} go={go} />
-        <Unread client={client} go={go} />
-        <Mentions client={client} go={go} />
-        <LiveNow client={client} />
+    <>
+      <PageHeader title={t("member.hello", { name: client.me()?.displayName ?? "" })} />
+      <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Assigned client={client} go={go} />
+          <Unread client={client} go={go} />
+          <Mentions client={client} go={go} />
+          <LiveNow client={client} />
+        </div>
+        <TeamFeed client={client} />
       </div>
-      <TeamFeed client={client} />
-    </div>
+    </>
   );
 }

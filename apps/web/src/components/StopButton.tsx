@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useStoppable } from "../lib/live";
-import { Button, Dialog } from "./ui";
+import { Button, Count, Dialog } from "./ui";
 
 /**
  * Emergency stop (plan.md Faz 0): always visible, halts everything that runs on its own. Red only
@@ -39,9 +39,7 @@ export function StopButton({ onStopped }: { onStopped: (message: string) => void
         }`}
       >
         <OctagonX size={14} strokeWidth={2} />
-        {running > 0 && (
-          <span className="rounded-full bg-danger px-1.5 text-[10.5px] font-semibold text-white">{running}</span>
-        )}
+        {running > 0 && <Count n={running} tone="danger" />}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("stop.title")}>
         <div className="p-5">

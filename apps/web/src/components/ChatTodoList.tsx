@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
+import { field } from "./ui";
 
 const OPEN_KEY = "igrek.chat.todosOpen";
 
@@ -123,7 +124,7 @@ export function ChatTodoList({
               }}
               placeholder={t("chatTodos.placeholder")}
               aria-label={t("chatTodos.placeholder")}
-              className="h-7 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+              className={cn(field, "h-7 px-1.5 text-[12px] min-w-0 flex-1")}
             />
             {left.length > 0 && (
               <button

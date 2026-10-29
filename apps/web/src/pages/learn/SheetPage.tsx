@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation, useParams } from "react-router";
 import { BackLink } from "../../components/BackLink";
 import { CodeBlock } from "../../components/CodeBlock";
-import { Badge, Button, Card, PageHeader, Segmented } from "../../components/ui";
+import { Badge, Button, Card, field, PageHeader, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { learnApi, textIn } from "../../lib/learn-api";
 import { useProjects } from "../../lib/live";
@@ -169,7 +169,7 @@ function ItemCard({
             rows={2}
             aria-label={editing === "note" ? t("learn.note") : t("learn.report")}
             placeholder={editing === "note" ? t("learn.noteHint") : t("learn.reportHint")}
-            className="w-full rounded-ui border border-border bg-bg px-2 py-1.5 text-[13px] outline-none focus:border-accent"
+            className={cn(field, "h-auto w-full py-1.5")}
           />
           <div className="flex gap-1.5">
             <Button size="sm" variant="primary" type="submit">
@@ -352,14 +352,14 @@ export function SheetPage() {
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder={t("learn.filter")}
                 aria-label={t("learn.filter")}
-                className="h-8 min-w-0 flex-1 rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+                className={cn(field, "min-w-0 flex-1")}
               />
               {sheet.detect && (
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
                   aria-label={t("learn.forProject")}
-                  className="h-8 max-w-[220px] rounded-ui border border-border bg-bg px-2 text-[13px]"
+                  className={cn(field, "max-w-[220px]")}
                 >
                   <option value="">{t("learn.forProject")}</option>
                   {projects.map((p) => (

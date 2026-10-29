@@ -2,10 +2,11 @@ import { changeCard, isManager, isOpen, isOverdue, loadOf, type OrgTeam } from "
 import { Crown, Plus, Trash2, UserMinus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card } from "../ui";
+import { cn } from "../../lib/cn";
+import { Badge, Button, Card, field } from "../ui";
 import { nameOf, type OrgApi, type OrgView } from "./api";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 
 /** A team's people with how much each holds now and finished this week: what its lead looks at. */
 function Workload({ view, team }: { view: OrgView; team: OrgTeam }) {
@@ -87,7 +88,7 @@ function TeamCard({ api, view, team, runs }: { api: OrgApi; view: OrgView; team:
         <div className="flex flex-wrap gap-2">
           {runs && (
             <select
-              className={field}
+              className={box}
               style={{ width: 200 }}
               value={team.leadId ?? ""}
               onChange={(e) => call("PATCH", `teams/${team.id}`, { leadId: e.target.value })}
@@ -102,7 +103,7 @@ function TeamCard({ api, view, team, runs }: { api: OrgApi; view: OrgView; team:
             </select>
           )}
           <select
-            className={field}
+            className={box}
             style={{ width: 200 }}
             value=""
             onChange={(e) => e.target.value && call("PUT", `teams/${team.id}/members/${e.target.value}`)}
@@ -208,14 +209,14 @@ function NewTeam({ api }: { api: OrgApi }) {
       }}
     >
       <input
-        className={field}
+        className={box}
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder={t("org.teamName")}
         aria-label={t("org.teamName")}
       />
       <input
-        className={field}
+        className={box}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder={t("org.teamDescription")}

@@ -32,7 +32,7 @@ import { Replay } from "../components/Replay";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { TeamText } from "../components/TeamText";
 import { Term } from "../components/Term";
-import { Badge, Button, Card, EmptyState } from "../components/ui";
+import { Badge, Button, Card, EmptyState, field } from "../components/ui";
 import { ActiveDot, ContextBar, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -265,7 +265,7 @@ function TeamActions({ session }: { session: SessionDetail }) {
             rows={3}
             placeholder={t("teamwork.suggestPlaceholder")}
             aria-label={t("teamwork.suggest")}
-            className="w-full rounded-ui border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+            className={cn(field, "h-auto w-full p-2 py-1.5")}
           />
           <Button
             size="sm"
@@ -291,7 +291,7 @@ function TeamActions({ session }: { session: SessionDetail }) {
             value={to}
             onChange={(e) => setTo(e.target.value)}
             aria-label={t("teamwork.handoffTo")}
-            className="h-8 rounded-ui border border-border bg-bg px-2 text-[13px]"
+            className={field}
           >
             <option value="">{t("teamwork.handoffTo")}</option>
             {others.map((m) => (

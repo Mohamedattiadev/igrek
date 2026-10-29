@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, mkdtempSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Accounts, lockDown } from "./accounts";
+import { Accounts, lockDown, withTier } from "./accounts";
 import { claudeAdapter } from "./adapters/claude";
 import { Bus } from "./bus";
 import { migrate } from "./db";
@@ -55,6 +55,24 @@ describe("accounts", () => {
     expect(accounts.forProject("claude", projectId)?.id).toBe(main.id);
     accounts.setProjectAccount(projectId, work.id);
     expect(accounts.forProject("claude", projectId)?.id).toBe(work.id);
+  });
+});
+
+describe("Max plan tier", () => {
+  test("5x and 20x come from the login file; without it the plan stays max", () => {
+    const dir = mkdtempSync(join(tmpdir(), "igrek-tier-"));
+    expect(withTier("max", dir)).toBe("max");
+    const login = (tier: string) =>
+      writeFileSync(join(dir, ".credentials.json"), JSON.stringify({ claudeAiOauth: { rateLimitTier: tier } }));
+    login("default_claude_max_20x");
+    expect(withTier("max", dir)).toBe("max 20x");
+    login("default_claude_max_5x");
+    expect(withTier("max", dir)).toBe("max 5x");
+    expect(withTier("pro", dir)).toBe("pro");
+    login("something_else");
+    expect(withTier("max", dir)).toBe("max");
+    writeFileSync(join(dir, ".credentials.json"), "not json");
+    expect(withTier("max", dir)).toBe("max");
   });
 });
 

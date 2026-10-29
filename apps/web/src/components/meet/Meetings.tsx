@@ -13,12 +13,13 @@ import {
 import { CalendarPlus, Download, Search, Sparkles, Upload, Video } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "../../lib/cn";
 import { dateTime } from "../../lib/format";
 import { nameOf, type OrgApi, type OrgView } from "../org/api";
-import { Badge, Button, Card, Segmented } from "../ui";
+import { Badge, Button, Card, field, Segmented } from "../ui";
 import { MeetRoom } from "./MeetRoom";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 const DAY = 86_400_000;
 const local = (at: number) => {
   const d = new Date(at - new Date(at).getTimezoneOffset() * 60_000);
@@ -86,14 +87,14 @@ function NewMeeting({
   return (
     <Card className="space-y-2 p-4">
       <input
-        className={field}
+        className={box}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder={t("meet.title")}
         aria-label={t("meet.title")}
       />
       <textarea
-        className="w-full rounded-ui border border-border bg-bg px-3 py-2 text-[13px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full py-1.5")}
         style={{ minHeight: 56 }}
         value={agenda}
         onChange={(e) => setAgenda(e.target.value)}
@@ -103,13 +104,13 @@ function NewMeeting({
       <div className="grid gap-2 sm:grid-cols-3">
         <input
           type="datetime-local"
-          className={field}
+          className={box}
           value={when}
           onChange={(e) => setWhen(e.target.value)}
           aria-label={t("meet.when")}
         />
         <select
-          className={field}
+          className={box}
           value={minutes}
           onChange={(e) => setMinutes(Number(e.target.value))}
           aria-label={t("meet.length")}
@@ -121,7 +122,7 @@ function NewMeeting({
           ))}
         </select>
         <select
-          className={field}
+          className={box}
           value={recurrence}
           onChange={(e) => setRecurrence(e.target.value as Recurrence)}
           aria-label={t("meet.repeat")}
@@ -150,7 +151,7 @@ function NewMeeting({
         ))}
       </div>
       <select
-        className={field}
+        className={box}
         value={project}
         onChange={(e) => setProject(e.target.value)}
         aria-label={t("org.project")}
@@ -203,7 +204,7 @@ function FindTime({ view, onPick }: { view: OrgView; onPick: (at: number, people
             </label>
           ))}
         <select
-          className={field}
+          className={box}
           style={{ width: 120 }}
           value={minutes}
           onChange={(e) => setMinutes(Number(e.target.value))}
@@ -267,7 +268,7 @@ function Booking({ api, view }: { api: OrgApi; view: OrgView }) {
   return (
     <Card className="space-y-2 p-4">
       <h3 className="text-[13.5px] font-semibold">{t("meet.booking")}</h3>
-      <select className={field} value={host} onChange={(e) => setHost(e.target.value)} aria-label={t("meet.bookWith")}>
+      <select className={box} value={host} onChange={(e) => setHost(e.target.value)} aria-label={t("meet.bookWith")}>
         <option value="">{t("meet.bookWith")}</option>
         {view.people
           .filter((p) => p.id !== view.me.id)
@@ -369,7 +370,7 @@ function MeetingNotes({ api, view, m }: { api: OrgApi; view: OrgView; m: OrgMeet
         </div>
       )}
       <input
-        className={field}
+        className={box}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t("meet.searchTranscript")}

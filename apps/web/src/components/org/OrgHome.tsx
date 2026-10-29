@@ -2,12 +2,13 @@ import { healthOf, isOpen, isOverdue, newCard, type OrgCard, type ProjectGlance,
 import { type Activity, ExternalLink, FileText, MousePointerClick, Radio, ShieldAlert, Sparkles } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
-import { Badge, Button, Card } from "../ui";
+import { Badge, Button, Card, field } from "../ui";
 import { nameOf, type OrgApi, type OrgView, teamName } from "./api";
 import { CardDetail, NewCard } from "./OrgCards";
 
-const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+const box = cn(field, "w-full");
 const RISK = { low: "success", medium: "warning", high: "danger" } as const;
 
 function Panel({
@@ -83,7 +84,7 @@ function PreviewNote({
     >
       <div className="flex gap-2">
         <input
-          className={field}
+          className={box}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder={t("org.previewUrl")}
@@ -102,7 +103,7 @@ function PreviewNote({
       </div>
       <textarea
         style={{ minHeight: 56 }}
-        className="w-full rounded-ui border border-border bg-bg px-3 py-2 text-[13px] outline-none focus:border-accent"
+        className={cn(field, "h-auto w-full py-1.5")}
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={t("org.notePlaceholder")}
@@ -226,7 +227,7 @@ function Summary({ api, view }: { api: OrgApi; view: OrgView }) {
     <Panel icon={Sparkles} title={t("org.summary")}>
       <div className="flex flex-wrap gap-2">
         <select
-          className={field}
+          className={box}
           style={{ width: 200 }}
           value={scope}
           onChange={(e) => setScope(e.target.value)}

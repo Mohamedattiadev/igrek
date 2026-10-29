@@ -7,7 +7,6 @@ import {
   BookOpen,
   Brain,
   CheckCircle2,
-  ChevronDown,
   Code,
   EyeOff,
   FolderOpen,
@@ -31,13 +30,13 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { NewSession } from "../components/NewSession";
 import { TeamPresence } from "../components/TeamPresence";
-import { Badge, Button, Card, EmptyState, Section, Segmented } from "../components/ui";
+import { Badge, Button, Card, EmptyState, field, Section, Segmented } from "../components/ui";
 import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
 import { api, request } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -111,78 +110,8 @@ const TAB_ICONS: Record<Tab, LucideIcon> = {
   setup: Settings2,
 };
 
-function TabIcon({ name }: { name: Tab }) {
-  const Icon = TAB_ICONS[name];
-  return <Icon size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />;
-}
-
 function tabLabel(t: (key: string) => string, name: Tab): string {
   return name === "code" ? t("code.tab") : t(`project.${name}`);
-}
-
-function MoreTabs({ tab, onPick }: { tab: Tab; onPick: (name: Tab) => void }) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  // Files is the Code tab without the developer parts; in this view the Code tab is right there.
-  const rest = TABS.filter((name) => !MAIN_TABS.includes(name) && name !== "files");
-  const current = rest.includes(tab) ? tab : undefined;
-  useEffect(() => {
-    if (!open) return;
-    const close = (event: MouseEvent) => {
-      if (!ref.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const esc = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
-    window.addEventListener("mousedown", close);
-    window.addEventListener("keydown", esc);
-    return () => {
-      window.removeEventListener("mousedown", close);
-      window.removeEventListener("keydown", esc);
-    };
-  }, [open]);
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          "-mb-px flex shrink-0 items-center gap-1 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] transition-colors",
-          current ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
-        )}
-      >
-        {current && <TabIcon name={current} />}
-        {current ? tabLabel(t, current) : t("project.more")}
-        <ChevronDown size={13} aria-hidden="true" className={cn("transition-transform", open && "rotate-180")} />
-      </button>
-      {open && (
-        <div
-          role="menu"
-          className="absolute start-0 top-full z-30 mt-1 w-56 rounded-ui border border-border bg-bg p-1 shadow-ui"
-        >
-          {rest.map((name) => (
-            <button
-              key={name}
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                onPick(name);
-              }}
-              className={cn(
-                "flex w-full items-center rounded-md px-2.5 py-1.5 text-start text-[13px] hover:bg-bg-hover",
-                tab === name ? "font-medium text-accent" : "text-fg",
-              )}
-            >
-              <TabIcon name={name} />
-              <span className="ms-2">{tabLabel(t, name)}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 /** Plain-language warnings about where the code stands vs. the remote (plan.md 1.2c). */
@@ -561,7 +490,7 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
             await api.setProjectAccount(project.id, e.target.value || null);
             onChange();
           }}
-          className="h-8 rounded-ui border border-border bg-bg px-2 text-[13px]"
+          className={field}
         >
           <option value="">{t("accounts.followActive")}</option>
           {accounts.map((account) => (
@@ -578,7 +507,7 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-label={t("project.rename")}
-            className="h-8 flex-1 rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+            className={cn(field, "flex-1")}
           />
           <Button
             disabled={!name.trim() || name === project.name}
@@ -665,7 +594,7 @@ export function ProjectPage() {
   }
   return (
     <>
-      <header className="shrink-0 border-b border-border px-4 pt-3 sm:px-6">
+      <header className="shrink-0 border-b border-border px-4 py-3 sm:px-6">
         <div className="flex flex-wrap items-center gap-2">
           <BackLink to="/" className="text-fg-subtle hover:text-fg" aria-label={t("nav.projects")}>
             <ArrowLeft size={16} className="rtl:rotate-180" />
@@ -677,31 +606,40 @@ export function ProjectPage() {
           <div className="flex-1" />
           {project && <NewSession projectId={project.id} />}
         </div>
-        <nav className="-mx-4 mt-2 flex flex-wrap gap-x-1 px-4 sm:-mx-6 sm:px-6">
-          {(simple ? SIMPLE_TABS : MAIN_TABS).map((name) => (
-            <button
-              key={name}
-              type="button"
-              onClick={() => setParams(name === "overview" ? {} : { tab: name })}
-              className={cn(
-                "-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] transition-colors",
-                tab === name ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
-              )}
-            >
-              <TabIcon name={name} />
-              {tabLabel(t, name)}
-              {name === "sessions" && project && <span className="ms-1.5 text-fg-subtle">{project.sessionCount}</span>}
-              {name === "memory" && project && (
-                <span
-                  className={cn("ms-1.5", project.memory.some((m) => m.conflict) ? "text-warning" : "text-fg-subtle")}
-                >
-                  {project.memory.length}
-                </span>
-              )}
-            </button>
-          ))}
-          {!simple && <MoreTabs tab={tab} onPick={(name) => setParams({ tab: name })} />}
-        </nav>
+        <div className="mt-2">
+          <Segmented
+            label={project?.name}
+            value={tab}
+            wrap
+            onChange={(name) => setParams(name === "overview" ? {} : { tab: name })}
+            options={(simple ? SIMPLE_TABS : MAIN_TABS).map((name) => ({
+              value: name,
+              label: tabLabel(t, name),
+              icon: TAB_ICONS[name],
+              count:
+                name === "sessions" && project ? (
+                  project.sessionCount
+                ) : name === "memory" && project ? (
+                  <span className={project.memory.some((m) => m.conflict) ? "text-warning" : undefined}>
+                    {project.memory.length}
+                  </span>
+                ) : undefined,
+            }))}
+            more={
+              simple
+                ? undefined
+                : {
+                    label: t("project.more"),
+                    // Files is the Code tab without the developer parts; in this view the Code tab is right there.
+                    options: TABS.filter((name) => !MAIN_TABS.includes(name) && name !== "files").map((name) => ({
+                      value: name,
+                      label: tabLabel(t, name),
+                      icon: TAB_ICONS[name],
+                    })),
+                  }
+            }
+          />
+        </div>
       </header>
       {project?.teamLinked && project.share === "off" && (
         <div className="flex flex-wrap items-center gap-2 border-b border-border bg-accent-soft px-6 py-2 text-xs">

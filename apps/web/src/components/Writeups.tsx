@@ -2,9 +2,10 @@ import { FileClock, Globe, Megaphone, Moon, ScrollText } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
+import { cn } from "../lib/cn";
 import { docsApi } from "../lib/ops-api";
 import { LazyMarkdown as Markdown } from "./LazyMarkdown";
-import { Button, CopyButton, Dialog } from "./ui";
+import { Button, CopyButton, Dialog, field } from "./ui";
 
 const post = <T,>(path: string, body: unknown) => request<T>(path, { method: "POST", body: JSON.stringify(body) });
 
@@ -211,7 +212,7 @@ export function DayEndButton() {
                 onChange={(e) => setText(e.target.value)}
                 rows={14}
                 aria-label={t("writeups.day")}
-                className="w-full rounded-ui border border-border bg-bg p-3 text-[13px] outline-none focus:border-accent"
+                className={cn(field, "h-auto w-full p-3 py-1.5")}
               />
               {note && <p className="text-xs text-fg-muted">{note}</p>}
               <div className="flex justify-end gap-2">
@@ -318,7 +319,7 @@ export function LaunchKitButton({ projectId, onSaved }: { projectId: string; onS
             onChange={(e) => setUrl(e.target.value)}
             placeholder={t("product.url")}
             aria-label={t("product.url")}
-            className="h-8 w-full rounded-ui border border-border bg-bg px-2.5 font-mono text-[13px] outline-none focus:border-accent"
+            className={cn(field, "w-full font-mono")}
           />
           {error && <p className="text-xs text-danger">{error}</p>}
           <div className="flex justify-end gap-2">
