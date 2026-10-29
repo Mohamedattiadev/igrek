@@ -66,6 +66,8 @@ export interface MemberComment {
   pinned?: boolean;
   /** When its pin last changed: the newest change wins, as on a computer. */
   updateAt?: number;
+  /** Its earlier texts, from edits and the deletion. */
+  previous?: { text: string; at: number }[];
 }
 
 export interface MemberChannel {
@@ -211,9 +213,16 @@ export const FOLDS: Record<string, Fold> = {
     const at = Number(v.at ?? 0);
     if ((c.updateAt ?? 0) <= at) Object.assign(c, { pinned: !!v.pinned, updateAt: at });
     if (c.authorId !== e.authorId) return;
-    if (v.deleted) Object.assign(c, { text: "", deleted: true, pinned: false });
-    else if (Number(v.editedAt ?? 0) > (c.editedAt ?? 0))
-      Object.assign(c, { text: String(v.text ?? ""), editedAt: Number(v.editedAt) });
+    // What it said before stays, for whoever may see changes (plan.md 20.9).
+    const before = { text: c.text, at: c.editedAt ?? c.at };
+    if (v.deleted && !c.deleted)
+      Object.assign(c, { text: "", deleted: true, pinned: false, previous: [...(c.previous ?? []), before] });
+    else if (!v.deleted && Number(v.editedAt ?? 0) > (c.editedAt ?? 0))
+      Object.assign(c, {
+        text: String(v.text ?? ""),
+        editedAt: Number(v.editedAt),
+        previous: [...(c.previous ?? []), before],
+      });
   },
   seen: (p, v, e) => {
     const name = channelName(String(v.channelId ?? ""));

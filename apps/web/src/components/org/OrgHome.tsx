@@ -111,9 +111,20 @@ function PreviewNote({
       <p className="text-[11.5px] text-fg-subtle">
         {team ? t("org.noteGoesTo", { team: teamName(view, team) }) : t("org.noteNoTeam")}
       </p>
-      <Button size="sm" type="submit" variant="primary" disabled={!text.trim()}>
-        {t("org.leaveNote")}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" type="submit" variant="primary" disabled={!text.trim()}>
+          {t("org.leaveNote")}
+        </Button>
+        {api.testers && (
+          <Button
+            size="sm"
+            disabled={!url}
+            onClick={() => void api.testers?.(project.key, url, text.trim() || t("org.testerTask"))}
+          >
+            {t("org.testWithTesters")}
+          </Button>
+        )}
+      </div>
     </form>
   );
 }
@@ -271,9 +282,20 @@ function Approvals({ api, view }: { api: OrgApi; view: OrgView }) {
       (c.status === "open" && !!c.fromTeam && (everything || (!!c.team && myTeams.includes(c.team)))),
   );
   const card = open ? view.state.cards[open] : undefined;
+  const extra = everything ? (view.approvals ?? []) : [];
   return (
     <Panel icon={ShieldAlert} title={t("org.approvals")}>
-      {list.length === 0 && <p className="text-[12.5px] text-fg-subtle">{t("org.approvalsNone")}</p>}
+      {list.length === 0 && !extra.length && <p className="text-[12.5px] text-fg-subtle">{t("org.approvalsNone")}</p>}
+      {extra.map((x) => (
+        <a
+          key={x.id}
+          href={x.link}
+          className="flex w-full items-center gap-2 rounded-ui px-2 py-1 text-start text-[13px] hover:bg-bg-hover"
+        >
+          <span className="min-w-0 flex-1 truncate">{x.title}</span>
+          <Badge tone={x.kind === "budget" ? "danger" : "accent"}>{t(`org.approval_${x.kind}`)}</Badge>
+        </a>
+      ))}
       {list.map((c) => (
         <button
           key={c.id}

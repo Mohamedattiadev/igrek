@@ -1,7 +1,9 @@
 import type { ProjectGlance, TeamMember, TimelineItem } from "@igrek/core";
 import type { OrgApi, OrgView } from "../components/org/api";
 import { OrgPage, type OrgTab } from "../components/org/OrgPage";
+import { overBudget } from "../pages/company/CompanyBudgets";
 import type { MemberClient } from "./client";
+import { seatsOf } from "./MemberCompany";
 
 const WEEK = 7 * 86_400_000;
 const OPEN = ["open", "accepted", "doing", "review"];
@@ -52,7 +54,7 @@ function history(client: MemberClient): TimelineItem[] {
         project: p.key,
       })),
     ...[...p.comments.values()]
-      .filter((c) => c.targetKind === "channel" && !c.bot && !c.deleted)
+      .filter((c) => c.targetKind === "channel" && !c.bot)
       .map((c) => ({
         id: `message:${c.id}`,
         at: c.at,
@@ -61,6 +63,7 @@ function history(client: MemberClient): TimelineItem[] {
         text: c.text,
         project: p.key,
         link: `channel:${c.targetId}`,
+        ...(c.previous ? { previous: c.previous } : {}),
       })),
   ]);
 }
@@ -80,6 +83,9 @@ function orgView(client: MemberClient): OrgView | undefined {
     projects: glances(client),
     live: client.working().map((w) => ({ userId: w.userId, project: w.project, title: w.title ?? "", tool: w.tool })),
     history: history(client),
+    approvals: seatsOf(client)
+      .filter((s) => client.budgets[s.memberId] && overBudget(s, client.budgets[s.memberId]))
+      .map((s) => ({ id: `budget-${s.memberId}`, title: s.name, kind: "budget" as const, link: "#/company" })),
   };
 }
 
@@ -103,6 +109,7 @@ export function MemberOrg({
     openProject: (key) => go(`project/${key}`),
     call: { send: (msg) => client.callSend(msg), subscribe: (fn) => client.onCall(fn) },
     guestLink: (room) => client.guestLink(room),
+    ...(client.sfu ? { sfu: (room: string) => client.sfuToken(room) } : {}),
     hubUrl: location.origin,
   };
   return <OrgPage api={api} tab={tab} meeting={meeting} onTab={(next: OrgTab) => go(`org/${next}`)} />;

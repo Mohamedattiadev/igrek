@@ -10,6 +10,7 @@ import { MemberClient, type MemberStore } from "../../../web/src/member/client";
 import { Bus } from "../bus";
 import { migrate } from "../db";
 import { Org } from "../org";
+import { Telegram } from "../telegram";
 import { Sync } from "./client";
 
 // The company (plan.md 20.2-20.7) across a real hub: the general manager's Igrek (which runs the
@@ -259,5 +260,112 @@ describe("the company across a hub", () => {
       Object.values(kerim.org.state.posts).some((p) => p.channel === `bot:${ids.kerim}` && p.say?.key === "meetInvite"),
     );
     await until(() => Object.values(browser.org.posts).some((p) => p.say?.key === "meetBooked"));
+  }, 20_000);
+
+  test("from the phone: '@asistan ...' on Telegram reaches the bot, and its answer goes back (plan.md 20.11)", async () => {
+    const sent: string[] = [];
+    const fake = (async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? "{}")) as { text?: string };
+      if (body.text) sent.push(body.text);
+      return new Response(JSON.stringify({ ok: true, result: {} }));
+    }) as unknown as typeof fetch;
+    const phone = new Telegram(
+      mkdtempSync(join(dir, "tg-")),
+      {} as never,
+      {
+        send: () => undefined,
+        answer: () => undefined,
+        listen: () => () => undefined,
+        events: () => [],
+        threadName: () => "",
+      },
+      () => [],
+      fake,
+    );
+    Object.assign(phone as unknown as { token: string; saved: { chatId: number } }, {
+      token: "x",
+      saved: { chatId: 42 },
+    });
+    phone.toCompany = (text) => gm.org.fromPhone(text);
+    gm.org.onTell = (text) => phone.tell(text);
+    gm.org.language = () => "tr";
+    await phone.handle({
+      update_id: 1,
+      message: { chat: { id: 42 }, text: "@asistan yarın Ali fatura ekranını bitirsin" },
+    });
+    await until(() =>
+      Object.values(kerim.org.state.cards).some((c) => c.title.toLowerCase().includes("fatura ekranını")),
+    );
+    const card = Object.values(kerim.org.state.cards).find((c) => c.title.toLowerCase().includes("fatura ekranını"));
+    expect(card?.assignee).toBe(ids.ali);
+    await until(() => sent.some((t) => t.includes("Fatura ekranını") || t.includes("fatura ekranını")));
+    // Anything else still goes to the chief.
+    expect(await gm.org.fromPhone("hello chief")).toBe(false);
+  }, 20_000);
+
+  test("'who fixed last month's server problem?' to the bot: answered from the history, with the date", async () => {
+    const at = Date.now() - 40 * 86_400_000;
+    gm.org.history = async () => [
+      { id: "s1", at, kind: "session", who: ids.kerim as string, text: "Sunucu çöktü: disk doldu, logları temizledim" },
+    ];
+    await gm.org.post({ channel: `bot:${ids.hoca}`, text: "@asistan geçen ayki sunucu sorununu kim çözmüştü?" });
+    await until(() => Object.values(gm.org.state.posts).some((p) => p.say?.key === "answerHistory"));
+    const said = Object.values(gm.org.state.posts).find((p) => p.say?.key === "answerHistory");
+    expect(String(said?.say?.vars?.list)).toContain(new Date(at).toISOString().slice(0, 10));
+    expect(String(said?.say?.vars?.list)).toContain("disk doldu");
+  }, 20_000);
+
+  test("a card for a team bot: its Igrek starts the job, and the card follows the run (plan.md 20.3)", async () => {
+    const started: string[] = [];
+    // Kerim's Igrek reconnected in an earlier test: past its replay, cards are news again.
+    await until(() => (kerim.org as never as { live: boolean }).live);
+    kerim.org.teamBots = {
+      list: () => [{ handle: "john", name: "John" }],
+      start: async (handle, card) => {
+        started.push(`${handle}:${card.title}`);
+        return "run-1";
+      },
+    };
+    await kerim.org.announceBots();
+    await until(() => (browser.org.bots[ids.kerim as string] ?? []).some((b) => b.handle === "john"));
+    const asked = (await gm.org.act("org-card", {
+      title: "Sepete kupon",
+      assignee: "bot:john",
+      status: "accepted",
+      priority: "normal",
+      origin: "manual",
+      requestedBy: ids.hoca,
+      history: [],
+    })) as { id: string };
+    await until(() => kerim.org.state.cards[asked.id]?.status === "doing");
+    expect(started).toEqual(["john:Sepete kupon"]);
+    await kerim.org.runChanged("run-1", "ready");
+    await until(() => browser.org.cards[asked.id]?.status === "review");
+  }, 20_000);
+
+  test("(b) a note from the preview, fixed: whoever left it gets a picture of the page now", async () => {
+    gm.org.shoot = async () => "data:image/jpeg;base64,/9j/4AAQ";
+    const note = (await gm.org.act("org-card", {
+      title: "Öde butonu küçük",
+      origin: "preview",
+      note: { url: "http://localhost:5173/checkout" },
+      assignee: ids.kerim,
+      status: "accepted",
+      priority: "normal",
+      requestedBy: ids.hoca,
+      history: [],
+    })) as { id: string };
+    await until(() => !!kerim.org.state.cards[note.id]);
+    const card = kerim.org.state.cards[note.id];
+    if (!card) throw new Error("no card");
+    await kerim.org.act(
+      "org-card",
+      changeCard(card, { status: "done" }, ids.kerim as string, "done") as unknown as Record<string, unknown>,
+    );
+    await until(() => gm.org.state.cards[note.id]?.status === "done");
+    await gm.org.tick();
+    await until(() =>
+      Object.values(browser.org.posts).some((p) => p.card === note.id && p.image?.startsWith("data:image/jpeg")),
+    );
   }, 20_000);
 });

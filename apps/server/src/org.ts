@@ -1,5 +1,6 @@
 import type { Database } from "bun:sqlite";
 import {
+  aboutFuture,
   answerFromCards,
   audienceOf,
   type BotSay,
@@ -18,9 +19,14 @@ import {
   type OrgPost,
   type OrgState,
   type OrgStructure,
+  orgItems,
   pickAssignee,
+  roomOfMeeting,
+  search,
   type TeamMember,
+  type TimelineItem,
   understand,
+  upcoming,
 } from "@igrek/core";
 import { bundledResources } from "@igrek/i18n";
 import type { Bus } from "./bus";
@@ -114,7 +120,10 @@ export class Org {
       this.notice(post);
       void this.botHears(post);
     }
-    if (this.live && card) this.cardNotice(card);
+    if (this.live && card) {
+      this.cardNotice(card);
+      void this.botCard(card).catch(() => undefined);
+    }
     this.changed();
   }
 
@@ -180,6 +189,8 @@ export class Org {
       if (post.bot) this.notice(post);
       await this.botHears(post);
     }
+    const card = kind === "org-card" ? this.state.cards[id] : undefined;
+    if (card && this.live) await this.botCard(card);
     return full;
   }
 
@@ -220,7 +231,7 @@ export class Org {
     return !!me && this.state.bot.enabled && this.state.bot.host === me;
   }
 
-  private say(channel: string, say: BotSay, card?: string) {
+  private say(channel: string, say: BotSay, card?: string, image?: string) {
     return this.act("org-post", {
       channel,
       text: "",
@@ -229,6 +240,7 @@ export class Org {
       mentions: [],
       teamMentions: [],
       ...(card ? { card } : {}),
+      ...(image ? { image } : {}),
     });
   }
 
@@ -269,18 +281,97 @@ export class Org {
     } else if (u.kind === "meet") {
       await this.book(u, post.by, reply);
     } else if (u.kind === "question") {
-      const cards = answerFromCards(this.structure, this.state, u);
-      await this.say(reply, {
-        key: cards.length ? "answer" : "answerNone",
-        vars: {
-          count: cards.length,
-          list: cards
-            .slice(0, 8)
-            .map((c) => `${c.title} (${c.status})`)
-            .join("; "),
-        },
-      });
+      await this.answer(u, reply);
     } else await this.give(u, post.by, reply);
+  }
+
+  /**
+   * This computer's team bots (plan.md 19.2), set by the server at startup: their list, and a way to
+   * give one a card's job (it returns the run's id, or nothing when the bot cannot take it here).
+   */
+  teamBots?: {
+    list: () => { handle: string; name: string }[];
+    start: (handle: string, card: OrgCard) => Promise<string | undefined>;
+  };
+  /** Runs started for cards, so the card follows the run. */
+  private runs = new Map<string, string>();
+  private lastBotList = "";
+
+  /** Tells the company which bots this Igrek runs, when that changed. */
+  async announceBots(): Promise<void> {
+    const me = this.deps.me()?.id;
+    const list = this.teamBots?.list() ?? [];
+    const text = JSON.stringify(list);
+    if (!me || text === this.lastBotList) return;
+    this.lastBotList = text;
+    await this.act("org-botlist", { id: `bots-${me}`.slice(0, 40), owner: me, bots: list });
+  }
+
+  /** A card given to one of this computer's bots, not started yet: its job begins here. */
+  private async botCard(card: OrgCard): Promise<void> {
+    const handle = card.assignee?.startsWith("bot:") ? card.assignee.slice(4) : undefined;
+    if (
+      !handle ||
+      card.status !== "accepted" ||
+      card.told?.bot ||
+      !this.teamBots?.list().some((b) => b.handle === handle)
+    )
+      return;
+    const runId = await this.teamBots.start(handle, card).catch(() => undefined);
+    if (!runId) return;
+    this.runs.set(runId, card.id);
+    await this.act("org-card", {
+      ...card,
+      status: "doing",
+      told: { ...card.told, bot: Date.now() },
+      updatedAt: Math.max(Date.now(), card.updatedAt + 1),
+      history: [...card.history, { at: Date.now(), by: this.deps.me()?.id ?? "", what: `@${handle} started` }],
+      base: card.updatedAt,
+    } as unknown as Record<string, unknown>);
+  }
+
+  /** A bot's run moved: ready for review or finished, its card follows (merging stays a person's yes). */
+  async runChanged(runId: string, status: string): Promise<void> {
+    const card = this.state.cards[this.runs.get(runId) ?? ""];
+    const next = status === "ready" ? "review" : status === "merged" || status === "done" ? "done" : undefined;
+    if (!card || !next || card.status === next) return;
+    await this.act("org-card", {
+      ...card,
+      status: next,
+      updatedAt: Math.max(Date.now(), card.updatedAt + 1),
+      history: [...card.history, { at: Date.now(), by: this.deps.me()?.id ?? "", what: `run ${status}` }],
+      base: card.updatedAt,
+    } as unknown as Record<string, unknown>);
+  }
+
+  /** A small picture of a page (JPEG, data: address), set by the server at startup when a browser is there. */
+  shoot?: (url: string) => Promise<string | undefined>;
+
+  /** Everything this computer may read, for questions to the bot (history.ts); set by the server at startup. */
+  history?: () => Promise<TimelineItem[]>;
+
+  /**
+   * A question: the cards answer what a team or a person did; anything else is looked up in the
+   * whole history and in what is coming, and answered with dates (plan.md 20.9).
+   */
+  private async answer(u: Extract<ReturnType<typeof understand>, { kind: "question" }>, reply: string): Promise<void> {
+    const cards = answerFromCards(this.structure, this.state, u);
+    if (cards.length && (u.team || u.person)) {
+      const list = cards
+        .slice(0, 8)
+        .map((c) => `${c.title} (${c.status})`)
+        .join("; ");
+      await this.say(reply, { key: "answer", vars: { count: cards.length, list } });
+      return;
+    }
+    const items = [...((await this.history?.()) ?? []), ...orgItems(this.state)];
+    const found = aboutFuture(u.text) ? upcoming(this.state, u.text) : search(items, u.text).map((f) => f.item);
+    const name = (id: string) => this.deps.people().find((p) => p.id === id)?.displayName ?? id;
+    const list = found
+      .slice(0, 6)
+      .map((x) => `${new Date(x.at).toISOString().slice(0, 10)} ${name(x.who)}: ${x.text.slice(0, 120)}`)
+      .join("; ");
+    await this.say(reply, { key: found.length ? "answerHistory" : "answerNone", vars: { count: found.length, list } });
   }
 
   /** "30 minutes with Kerim this week": the first time both are free becomes a meeting with an invite. */
@@ -382,7 +473,12 @@ export class Org {
     for (const f of followUps(this.structure, this.state, now)) {
       const card = this.state.cards[f.card];
       if (!card) continue;
-      for (const to of f.to) await this.say(`bot:${to}`, f.say, card.id);
+      // A note from a preview, fixed: whoever left it sees how the page looks now (plan.md 20.7 b).
+      const image =
+        f.stage === "done" && card.origin === "preview" && card.note?.url
+          ? await this.shoot?.(card.note.url)
+          : undefined;
+      for (const to of f.to) await this.say(`bot:${to}`, f.say, card.id, image);
       await this.act("org-card", {
         ...card,
         told: { ...card.told, [f.stage]: now },
@@ -433,17 +529,17 @@ export class Org {
   private toldMeetings = new Set<string>();
 
   /** My meetings: ten minutes before and at the start, on the desktop and the phone (plan.md 20.8). */
-  meetingTick(now = Date.now()): void {
+  async meetingTick(now = Date.now()): Promise<void> {
     const me = this.deps.me()?.id;
     if (!me || !this.live) return;
     const teams = this.structure.teams.filter((t) => t.members.includes(me)).map((t) => t.id);
     for (const n of meetingNotices(Object.values(this.state.meetings), me, teams, now)) {
       if (this.toldMeetings.has(n.id)) continue;
       this.toldMeetings.add(n.id);
-      const text = botText(
-        { key: n.kind === "soon" ? "meetSoon" : "meetStarted", vars: { title: n.meeting.title } },
-        this.language(),
-      );
+      // Late: only someone who is not in the call is told it started without them.
+      if (n.kind === "late" && (await this.inCall(n.meeting.key, me))) continue;
+      const key = { soon: "meetSoon", started: "meetStarted", late: "meetLate" }[n.kind];
+      const text = botText({ key, vars: { title: n.meeting.title } }, this.language());
       this.deps.bus.publish({
         type: "alert",
         kind: "org",
@@ -454,10 +550,18 @@ export class Org {
     }
   }
 
+  /** Whether someone is in a meeting's call now (the hub knows who is in its room, not what is said). */
+  private async inCall(key: string, who: string): Promise<boolean> {
+    const room = await roomOfMeeting(key);
+    const { people } = await this.deps.hub<{ people: string[] }>(`/api/rooms/${room}`).catch(() => ({ people: [who] }));
+    return people.includes(who);
+  }
+
   /** Starts the bot's minute (and the meeting reminders); the returned function stops it. */
   start(): () => void {
     const timer = setInterval(() => {
-      this.meetingTick();
+      void this.meetingTick().catch(() => undefined);
+      void this.announceBots().catch(() => undefined);
       void this.tick().catch(() => undefined);
     }, MINUTE / 2);
     return () => clearInterval(timer);

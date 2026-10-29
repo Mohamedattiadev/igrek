@@ -47,6 +47,12 @@ const problems = [
   rssMb > LIMITS.rssMb && `memory ${Math.round(rssMb)} MB > ${LIMITS.rssMb}`,
   ...slow.map(([route, ms]) => `${route} ${ms} ms > ${LIMITS.routeMs}`),
   pages && pages.warm > PAGE_LIMIT_MS && `page switch ${pages.warm} ms > ${PAGE_LIMIT_MS}`,
+  pages?.webkit &&
+    pages.webkit.warm > PAGE_LIMIT_MS &&
+    `page switch in WebKitGTK ${pages.webkit.warm} ms > ${PAGE_LIMIT_MS}`,
+  pages &&
+    pages.typing.slowestKeyMs > PAGE_LIMIT_MS &&
+    `a key took ${pages.typing.slowestKeyMs} ms to show while typing`,
 ].filter(Boolean);
 if (problems.length) {
   console.error(`x ${problems.join("\nx ")}`);

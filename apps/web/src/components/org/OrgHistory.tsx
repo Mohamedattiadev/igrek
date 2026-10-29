@@ -40,7 +40,12 @@ function Ask({ api, view, items }: { api: OrgApi; view: OrgView; items: Timeline
   const ask = async () => {
     const q = question.trim();
     if (!q) return;
-    const sources = aboutFuture(q) ? upcoming(view.state, q) : search(items, q).map((f) => f.item);
+    // In Igrek the question is matched by meaning too (its local model); here by words and dates.
+    const sources = api.ask
+      ? await api.ask(q).catch(() => search(items, q).map((f) => f.item))
+      : aboutFuture(q)
+        ? upcoming(view.state, q)
+        : search(items, q).map((f) => f.item);
     setAnswer({ sources });
     if (!api.summarize || !sources.length) return;
     setBusy(true);

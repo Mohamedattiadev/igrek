@@ -16,6 +16,7 @@ import {
   type OrgState,
   type OrgStructure,
   projectKey,
+  roomOfMeeting,
   type SeatBudget,
   type TeamKey,
   unwrapTeamKey,
@@ -293,10 +294,19 @@ export class MemberClient {
     return true;
   }
 
-  /** The company's teams and its general manager(s), from the hub. */
+  /** The company's teams and its general manager(s), from the hub; and whether it has a router for big calls. */
   async loadStructure(): Promise<void> {
     this.structure = await this.request<OrgStructure>("/api/org").catch(() => this.structure);
+    this.sfu = !!(await this.request<{ url?: string }>("/api/sfu").catch(() => ({}) as { url?: string })).url;
     this.changed();
+  }
+
+  /** Whether the hub has a router (LiveKit) for calls of more than five. */
+  sfu = false;
+
+  /** The right to join a big call's room on the router. */
+  sfuToken(room: string): Promise<{ url: string; token: string }> {
+    return this.request("/api/sfu-token", { method: "POST", body: JSON.stringify({ room }) });
   }
 
   private async loadMembers(): Promise<void> {
@@ -527,7 +537,15 @@ export class MemberClient {
     for (const n of meetingNotices(Object.values(this.org.meetings), me, teams)) {
       if (this.toldMeetings.has(n.id)) continue;
       this.toldMeetings.add(n.id);
-      this.onNotice({ title: n.meeting.title, body: `meet:${n.kind}`, open: `org:meet:${n.meeting.id}` });
+      const tell = () =>
+        this.onNotice({ title: n.meeting.title, body: `meet:${n.kind}`, open: `org:meet:${n.meeting.id}` });
+      // Late: only someone who is not in the call is told it started without them.
+      if (n.kind !== "late") tell();
+      else
+        void roomOfMeeting(n.meeting.key)
+          .then((room) => this.request<{ people: string[] }>(`/api/rooms/${room}`))
+          .then((r) => !r.people.includes(me) && tell())
+          .catch(() => undefined);
     }
   }
 

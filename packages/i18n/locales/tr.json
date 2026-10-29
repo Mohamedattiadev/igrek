@@ -5910,7 +5910,12 @@
     "weekSent": "Gönderildi",
     "weekText": "{{team}} bu hafta. Biten: {{done}}. Süren: {{doing}}. Geciken: {{late}}.",
     "tab_meetings": "Toplantılar",
-    "tab_history": "Geçmiş"
+    "tab_history": "Geçmiş",
+    "approval_merge": "birleştirmeye hazır",
+    "approval_budget": "bütçeyi aştı",
+    "bots": "Botlar",
+    "testWithTesters": "Test kullanıcıları denesin",
+    "testerTask": "Sayfayı yeni bir müşteri gibi kullan; zor ya da bozuk olanı söyle"
   },
   "orgBot": {
     "whichTeam": "Kimin işi: {{teams}}? Takımın adıyla cevap ver.",
@@ -5935,7 +5940,9 @@
     "meetStarted": "\"{{title}}\" başladı.",
     "meetNoTime": "O sürede {{who}} ile ortak boş saat yok; Toplantılar > Boş saat bul'dan seçebilirsin.",
     "meetBooked": "{{who}} ile {{due}} için {{count}} dakika ayırdım; davet edildi, hatırlatılacak.",
-    "meetInvite": "Davetlisin: \"{{title}}\", {{due}}."
+    "meetInvite": "Davetlisin: \"{{title}}\", {{due}}.",
+    "answerHistory": "{{count}} kayıt buldum: {{list}}",
+    "meetLate": "\"{{title}}\" 5 dakika önce başladı; seni bekliyorlar."
   },
   "meet": {
     "title": "Toplantılar",
@@ -6000,7 +6007,9 @@
     "notice_soon": "10 dakika sonra başlıyor",
     "notice_started": "Başladı",
     "close": "Kapat",
-    "dueBadge": "son tarih"
+    "dueBadge": "son tarih",
+    "notice_late": "5 dakika önce başladı; seni bekliyorlar",
+    "quality": "Hat: {{upKbps}} kbit/s giden, {{downKbps}} kbit/s gelen, {{rttMs}} ms gidiş-dönüş"
   },
   "history": {
     "ask": "Geçmişe sor",

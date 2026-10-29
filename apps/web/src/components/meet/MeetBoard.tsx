@@ -3,7 +3,7 @@ import { Excalidraw } from "@excalidraw/excalidraw";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import type { Call, ChannelMessage, Peer } from "./call";
+import type { ChannelMessage, MeetCall, Peer } from "./call";
 
 /**
  * The meeting's whiteboard (plan.md 20.8): Excalidraw (MIT), loaded only when a meeting opens it.
@@ -16,7 +16,7 @@ export default function MeetBoard({
   dark,
   onScene,
 }: {
-  call: Call;
+  call: MeetCall;
   initial?: string;
   dark: boolean;
   /** The board as it is now, for saving with the meeting when it ends. */

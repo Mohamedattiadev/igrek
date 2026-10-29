@@ -18,6 +18,8 @@ export interface OrgView {
   live: { userId: string; project: string; title: string; tool: string }[];
   /** The projects' part of the timeline (sessions, commits, decisions, messages); the company's part comes from state. */
   history: TimelineItem[];
+  /** More that waits for a yes: runs ready to merge (Igrek) and people past their budget. */
+  approvals?: { id: string; title: string; kind: "merge" | "budget"; link?: string }[];
 }
 
 /** How the pages write: the same calls in Igrek and in the browser. */
@@ -39,12 +41,18 @@ export interface OrgApi {
   openProject?: (key: string) => void;
   /** Meetings (plan.md 20.8): how a call reaches the hub. */
   call?: CallTransport;
+  /** A big call's right to join the team's router (LiveKit), when one is set up. */
+  sfu?: (room: string) => Promise<{ url: string; token: string }>;
   /** A one-time link for someone outside the team. */
   guestLink?: (room: string) => Promise<string>;
   /** The hub's web page, where a guest's link opens. */
   hubUrl?: string;
   /** Speech to text on this computer (Whisper); only in Igrek. */
   transcribe?: (audio: Blob) => Promise<string>;
+  /** Questions to the history by words and by meaning (a local model); only in Igrek. */
+  ask?: (question: string) => Promise<TimelineItem[]>;
+  /** Test users (personas) try a project's preview; only in Igrek, which runs the browser for them. */
+  testers?: (projectKey: string, url: string, task: string) => Promise<unknown>;
   /** A meeting's decision into the project's memory; only in Igrek. */
   addDecision?: (projectKey: string, text: string) => Promise<unknown>;
 }

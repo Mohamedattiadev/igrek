@@ -39,8 +39,8 @@ export function projectHistory(db: Database, projects: { id: string; key: string
     .all(ids, LIMIT) as { id: string; project_id: string; text: string; author_id: string | null; at: number }[];
   const messages = db
     .query(
-      `SELECT id, project_id, target_id, author_id, text, at FROM comments
-       WHERE target_kind = 'channel' AND deleted = 0 AND bot = 0 AND project_id IN (SELECT value FROM json_each(?))
+      `SELECT id, project_id, target_id, author_id, text, at, previous FROM comments
+       WHERE target_kind = 'channel' AND bot = 0 AND project_id IN (SELECT value FROM json_each(?))
        ORDER BY at DESC LIMIT ?`,
     )
     .all(ids, LIMIT) as {
@@ -50,6 +50,7 @@ export function projectHistory(db: Database, projects: { id: string; key: string
     author_id: string | null;
     text: string;
     at: number;
+    previous: string | null;
   }[];
   const project = (id: string) => keyOf.get(id) ?? "";
   return [
@@ -86,6 +87,7 @@ export function projectHistory(db: Database, projects: { id: string; key: string
       text: m.text,
       project: project(m.project_id),
       link: `channel:${m.target_id}`,
+      ...(m.previous ? { previous: JSON.parse(m.previous) as { text: string; at: number }[] } : {}),
     })),
   ];
 }

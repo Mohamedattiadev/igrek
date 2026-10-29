@@ -5910,7 +5910,12 @@
     "weekSent": "Sent",
     "weekText": "{{team}} this week. Done: {{done}}. In progress: {{doing}}. Late: {{late}}.",
     "tab_meetings": "Meetings",
-    "tab_history": "History"
+    "tab_history": "History",
+    "approval_merge": "ready to merge",
+    "approval_budget": "past budget",
+    "bots": "Bots",
+    "testWithTesters": "Have test users try it",
+    "testerTask": "Use the page as a new customer would and say what is hard or broken"
   },
   "orgBot": {
     "whichTeam": "Whose is it: {{teams}}? Answer with the team's name.",
@@ -5935,7 +5940,9 @@
     "meetStarted": "\"{{title}}\" has started.",
     "meetNoTime": "No common free time with {{who}} in that time; pick one under Meetings > Find a time.",
     "meetBooked": "Booked {{count}} minutes with {{who}} on {{due}}; they are invited and will be reminded.",
-    "meetInvite": "You are invited: \"{{title}}\", {{due}}."
+    "meetInvite": "You are invited: \"{{title}}\", {{due}}.",
+    "answerHistory": "Found {{count}}: {{list}}",
+    "meetLate": "\"{{title}}\" started 5 minutes ago; they are waiting for you."
   },
   "meet": {
     "title": "Meetings",
@@ -6000,7 +6007,9 @@
     "notice_soon": "Starts in 10 minutes",
     "notice_started": "Has started",
     "close": "Close",
-    "dueBadge": "due"
+    "dueBadge": "due",
+    "notice_late": "Started 5 minutes ago; they are waiting for you",
+    "quality": "Line: {{upKbps}} kbit/s up, {{downKbps}} kbit/s down, {{rttMs}} ms round trip"
   },
   "history": {
     "ask": "Ask the history",

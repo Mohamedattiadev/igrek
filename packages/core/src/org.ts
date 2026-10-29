@@ -86,6 +86,8 @@ export interface OrgPost {
   say?: { key: string; vars?: Record<string, string | number> };
   /** The card a bot message or a comment is about. */
   card?: string;
+  /** A small picture with it (the bot's "fixed, here is how it looks now"), as a data: address. */
+  image?: string;
   editedAt?: number;
   deleted?: boolean;
   /** Earlier texts, for whoever may see changes (plan.md 20.9). */
@@ -125,6 +127,8 @@ export interface OrgState {
   meetings: Record<string, OrgMeeting>;
   /** How calls find each other across networks: STUN and TURN servers, and a router for big calls. */
   meet: OrgMeetConfig;
+  /** The team bots (plan.md 19.2) each person's Igrek runs, so anyone can give them a card. */
+  bots: Record<string, { handle: string; name: string }[]>;
 }
 
 export interface OrgMeetConfig {
@@ -150,6 +154,7 @@ export function emptyOrg(): OrgState {
     bot: { ...DEFAULT_BOT },
     meetings: {},
     meet: DEFAULT_MEET,
+    bots: {},
   };
 }
 
@@ -252,6 +257,9 @@ function cleanPost(v: Record<string, unknown>, author: string, at: number): OrgP
     ...(v.bot ? { bot: true } : {}),
     ...(cleanSay(v.say) ? { say: cleanSay(v.say) } : {}),
     ...(str(v.card, 40) ? { card: str(v.card, 40) } : {}),
+    ...(typeof v.image === "string" && /^data:image\/(jpeg|png);base64,/.test(v.image) && v.image.length < 400_000
+      ? { image: v.image }
+      : {}),
   };
 }
 
@@ -312,6 +320,12 @@ function foldSettings(state: OrgState, kind: string, v: Record<string, unknown>)
         })),
       ...(str(v.sfu, 200)?.startsWith("wss://") ? { sfu: str(v.sfu, 200) } : {}),
     };
+  } else if (kind === "org-botlist") {
+    const list = Array.isArray(v.bots) ? (v.bots as Record<string, unknown>[]) : [];
+    state.bots[str(v.owner, 40) ?? ""] = list
+      .filter((b) => typeof b.handle === "string")
+      .slice(0, 50)
+      .map((b) => ({ handle: String(b.handle).slice(0, 32), name: str(b.name, 60) ?? String(b.handle) }));
   } else if (kind === "org-bot") {
     state.bot = {
       name: str(v.name, 40)?.trim() || DEFAULT_BOT.name,

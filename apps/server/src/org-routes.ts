@@ -1,7 +1,8 @@
 import type { Database } from "bun:sqlite";
-import type { Presence, ProjectGlance, TeamMember } from "@igrek/core";
+import { aboutFuture, orgItems, type Presence, type ProjectGlance, type TeamMember, upcoming } from "@igrek/core";
 import type { Hono } from "hono";
 import { projectHistory } from "./history";
+import type { HistorySearch } from "./history-search";
 import type { Org } from "./org";
 
 type TaskRow = { project_id: string; status: string; updated_at: number };
@@ -84,6 +85,10 @@ export function registerOrgRoutes(
     hub: <T>(path: string, init?: RequestInit) => Promise<T>;
     summarize: (question: string) => Promise<string>;
     call: (msg: { op: string; room: string; to?: string; data?: string; name?: string }) => boolean;
+    /** History questions by words and meaning (history-search.ts). */
+    ask?: HistorySearch;
+    /** Runs ready to merge and people past their budget, for the manager's "waiting for a yes". */
+    approvals?: () => { id: string; title: string; kind: "merge" | "budget"; link?: string }[];
   },
 ): void {
   const { org } = deps;
@@ -101,6 +106,7 @@ export function registerOrgRoutes(
       waiting: org.waiting(),
       projects: glances(deps.db, projects, org, nameOf),
       history: projectHistory(deps.db, projects, deps.me()?.id ?? ""),
+      approvals: deps.approvals?.() ?? [],
       live: deps
         .presence()
         .map((p) => ({ userId: p.userId, project: keys.get(p.projectId) ?? "", title: p.title ?? "", tool: p.tool })),
@@ -153,6 +159,16 @@ export function registerOrgRoutes(
       ? c.json({ ok: true })
       : c.json({ error: "Not connected to the team hub" }, 503);
   });
+  // Big calls (plan.md 20.8): whether the hub has a router, and the right to join a room on it.
+  app.get("/api/org/sfu", async (c) => c.json(await deps.hub<{ url?: string }>("/api/sfu").catch(() => ({}))));
+  app.post("/api/org/sfu-token", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { room?: string };
+    try {
+      return c.json(await deps.hub("/api/sfu-token", { method: "POST", body: JSON.stringify({ room: body.room }) }));
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
   app.post("/api/org/guest-link", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { room?: string };
     try {
@@ -165,6 +181,15 @@ export function registerOrgRoutes(
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
+  });
+  // Questions to the history, by words and by meaning (history-search.ts), from what this computer may read.
+  app.post("/api/org/ask", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { question?: string };
+    const question = String(body.question ?? "").trim();
+    if (!question || !deps.ask) return c.json({ error: "Ask something" }, 400);
+    const projects = (await deps.projects()).map((p) => ({ id: p.projectId, key: p.key }));
+    const items = [...projectHistory(deps.db, projects, deps.me()?.id ?? ""), ...orgItems(org.state)];
+    return c.json(aboutFuture(question) ? upcoming(org.state, question) : await deps.ask.find(items, question));
   });
   app.post("/api/org/summary", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { facts?: string; ask?: string };

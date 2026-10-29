@@ -1,3 +1,4 @@
+import type { TimelineItem } from "@igrek/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import type { CallTransport } from "../components/meet/call";
@@ -29,6 +30,16 @@ const post = <T,>(path: string, body: unknown) => request<T>(path, { method: "PO
 export function Org() {
   const [view, setView] = useState<OrgView>();
   const [hubUrl, setHubUrl] = useState<string>();
+  const [sfu, setSfu] = useState(false);
+  useEffect(() => {
+    let current = true;
+    void request<{ url?: string }>("/api/org/sfu")
+      .then((r) => current && setSfu(!!r.url))
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+  }, []);
   useEffect(() => {
     let current = true;
     void server
@@ -69,12 +80,20 @@ export function Org() {
       },
       call: callTransport,
       guestLink: (room) => post<{ token: string }>("/api/org/guest-link", { room }).then((r) => r.token),
+      ...(sfu ? { sfu: (room: string) => post<{ url: string; token: string }>("/api/org/sfu-token", { room }) } : {}),
       hubUrl,
       transcribe: (audio) => transcribe(audio, i18n.language.split("-")[0] ?? "en"),
+      ask: (question) => post<TimelineItem[]>("/api/org/ask", { question }),
+      testers: async (key, url, task) => {
+        const id = await projectId(key);
+        const profiles = (await server.testerProfiles()).slice(0, 3).map((p) => p.id);
+        const run = await server.startTesterRun({ url, task, profileIds: profiles, ...(id ? { projectId: id } : {}) });
+        void navigate(`/test-runs/${run.id}`);
+      },
       addDecision: (key, text) =>
         projectId(key).then((id) => (id ? server.addMemory(id, "decision", text) : undefined)),
     }),
-    [view, reload, navigate, hubUrl],
+    [view, reload, navigate, hubUrl, sfu],
   );
   return (
     <div className="flex h-full flex-col overflow-y-auto">

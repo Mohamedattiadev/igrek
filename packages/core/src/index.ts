@@ -11,6 +11,7 @@ export * from "./insight";
 export * from "./knowledge";
 export * from "./lessons";
 export * from "./library";
+export * from "./meeting-notes";
 export * from "./meetings";
 export * from "./ops";
 export * from "./org";

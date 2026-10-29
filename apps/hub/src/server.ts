@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { join, normalize, resolve, sep } from "node:path";
 import type { ServerWebSocket } from "bun";
 import { type Context, Hono } from "hono";
-import { Calls } from "./calls";
+import { Calls, type SfuConfig, sfuToken } from "./calls";
 import { type Hub, type HubUser, type ProjectRole, ROLES, type Role } from "./hub";
 import { mailText, type SendMail } from "./mail";
 import { Teams } from "./teams";
@@ -53,6 +53,8 @@ export function createHubServer(
     mailFrom?: string;
     /** The built web app: the hub serves its web member page (plan.md 4.3) from here. */
     webDir?: string;
+    /** A LiveKit router for big calls (plan.md 20.8), when its owner runs one. */
+    sfu?: SfuConfig;
   } = {},
 ) {
   const app = new Hono<HubEnv>();
@@ -278,6 +280,26 @@ export function createHubServer(
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
+  });
+
+  // Big calls go through the router, when there is one; the hub only hands out the right to join.
+  app.get("/api/sfu", (c) => c.json(options.sfu ? { url: options.sfu.url } : {}));
+  app.post("/api/sfu-token", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { room?: string };
+    const room = String(body.room ?? "");
+    if (!options.sfu) return c.json({ error: "No router is set up for big calls" }, 404);
+    if (!/^[0-9a-f]{64}$/.test(room)) return c.json({ error: "Unknown room" }, 400);
+    const user = c.get("auth").user;
+    return c.json({
+      url: options.sfu.url,
+      token: sfuToken(options.sfu, room, { id: user.id, name: user.displayName }),
+    });
+  });
+  app.get("/api/rooms/:room", (c) => {
+    const room = c.req.param("room");
+    return /^[0-9a-f]{64}$/.test(room)
+      ? c.json({ people: calls.people(room) })
+      : c.json({ error: "Unknown room" }, 400);
   });
 
   // ---- the company: teams and the general manager (plan.md 20.2) -------------------------
@@ -576,8 +598,11 @@ export function createHubServer(
     const root = resolve(options.webDir);
     // The page decrypts the team's work, so nothing but its own files may run or be reached.
     // Pictures and voice messages are decrypted into blob: addresses in the page itself.
-    const csp =
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+    // Big calls talk to the team's own router too (plan.md 20.8), and to nothing else.
+    const router = options.sfu
+      ? ` ${new URL(options.sfu.url).origin.replace(/^http/, "ws")} ${new URL(options.sfu.url.replace(/^ws/, "http")).origin}`
+      : "";
+    const csp = `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'${router}; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`;
     app.get("*", (c) => {
       const path = normalize(join(root, decodeURIComponent(c.req.path)));
       // Its own files, and the whiteboard's fonts (meetings, plan.md 20.8).

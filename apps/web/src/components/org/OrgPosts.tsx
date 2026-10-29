@@ -92,6 +92,7 @@ function PostItem({ api, view, post }: { api?: OrgApi; view: OrgView; post: OrgP
             {post.say ? <BotText say={post.say} view={view} /> : post.text}
           </p>
         )}
+        {post.image && <img src={post.image} alt="" className="mt-1.5 max-w-sm rounded-ui border border-border" />}
         {post.announce && post.by === view.me.id && <Readers view={view} post={post} />}
       </div>
       {mine && !post.deleted && api && (

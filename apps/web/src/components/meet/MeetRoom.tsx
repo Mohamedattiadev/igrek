@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { nameOf, type OrgApi, type OrgView } from "../org/api";
 import { Button } from "../ui";
-import { Call, type Peer } from "./call";
+import { Call, type CallTransport, type MeetCall, type Peer } from "./call";
 
 // Only a meeting that opens its whiteboard downloads it (the first screen stays light). Its fonts
 // come from this page's own server (vite.excalidraw.ts), never a CDN; set before it loads.
@@ -75,7 +75,7 @@ export function Tile({
  * while everyone in the call has agreed. Lines are kept with who said them.
  */
 function useScribe(
-  call: Call | undefined,
+  call: MeetCall | undefined,
   on: boolean,
   transcribe: OrgApi["transcribe"],
   onLine: (who: string, at: number, text: string) => void,
@@ -119,7 +119,13 @@ function useScribe(
               .catch(() => undefined);
         };
         rec.onstop = piece;
-        rec.start();
+        try {
+          rec.start();
+        } catch {
+          // The track is not ready yet (just joined, a camera switch): try again in a moment.
+          setTimeout(piece, 1000);
+          return;
+        }
         recorders.push(rec);
         setTimeout(() => rec.state === "recording" && rec.stop(), 30_000);
       };
@@ -148,7 +154,7 @@ function Controls({
 }: {
   api: OrgApi;
   meeting: OrgMeeting;
-  call?: Call;
+  call?: MeetCall;
   panel?: "chat" | "board";
   setPanel: (fn: (p?: "chat" | "board") => "chat" | "board" | undefined) => void;
   scribing: boolean;
@@ -271,6 +277,12 @@ function Controls({
   );
 }
 
+/** Everyone invited: the people named and the members of the teams asked. */
+function invited(m: OrgMeeting, view: OrgView): number {
+  const teams = view.structure.teams.filter((t) => m.teams.includes(t.id)).flatMap((t) => t.members);
+  return new Set([...m.attendees, ...teams]).size;
+}
+
 /** The call itself: everyone's picture or initial, the buttons, the chat, the board. */
 export function MeetRoom({
   api,
@@ -286,7 +298,7 @@ export function MeetRoom({
   dark: boolean;
 }) {
   const { t } = useTranslation();
-  const [call, setCall] = useState<Call>();
+  const [call, setCall] = useState<MeetCall>();
   const [, redraw] = useState(0);
   const [error, setError] = useState<string>();
   const [panel, setPanel] = useState<"chat" | "board">();
@@ -295,23 +307,29 @@ export function MeetRoom({
   const [scribing, setScribing] = useState(false);
   const board = useRef<string>(meeting.board ?? "");
   const me = view.me.id;
+  // More than five people with a router set up: through the router (sfu.ts); otherwise directly.
+  const big = !!api.sfu && invited(meeting, view) > 5;
   useEffect(() => {
     if (!api.call || !Call.supported()) return;
-    const c = new Call(
-      api.call,
-      { user: me, name: view.me.displayName || view.me.username },
-      view.state.meet.iceServers,
-    );
-    c.onPeersChanged = () => redraw((n) => n + 1);
+    const who = { user: me, name: view.me.displayName || view.me.username };
     let alive = true;
-    c.join(meeting.key, false)
-      .then(() => alive && setCall(c))
-      .catch((err: Error) => setError(err.message));
+    let made: MeetCall | undefined;
+    const start = async () => {
+      const c: MeetCall =
+        big && api.sfu
+          ? new (await import("./sfu")).SfuCall(api.sfu, who)
+          : new Call(api.call as CallTransport, who, view.state.meet.iceServers);
+      made = c;
+      c.onPeersChanged = () => redraw((n) => n + 1);
+      await c.join(meeting.key, false);
+      if (alive) setCall(c);
+    };
+    start().catch((err: Error) => setError(err.message));
     return () => {
       alive = false;
-      c.leave();
+      made?.leave();
     };
-  }, [api.call, meeting.key, me, view.me.displayName, view.me.username, view.state.meet.iceServers]);
+  }, [api.call, api.sfu, big, meeting.key, me, view.me.displayName, view.me.username, view.state.meet.iceServers]);
   const inCall = [me, ...[...(call?.peers.values() ?? [])].map((p) => p.user)].filter(Boolean);
   const everyoneAgreed = inCall.every((u) => meeting.consent[u]);
   useScribe(
@@ -453,6 +471,9 @@ export function MeetRoom({
         </p>
       )}
       {scribing && <p className="text-center text-[12px] text-danger">{t("meet.recording")}</p>}
+      {call && call.peers.size > 0 && (
+        <p className="text-center text-[11.5px] text-fg-subtle">{t("meet.quality", call.quality)}</p>
+      )}
     </div>
   );
 }

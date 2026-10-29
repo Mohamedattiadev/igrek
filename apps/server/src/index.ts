@@ -8,6 +8,7 @@ import {
   HELP_TOPICS,
   historyEvents,
   lessonLines,
+  type SeatBudget,
   type ServerMessage,
 } from "@igrek/core";
 import { reportUiHint } from "@igrek/genui";
@@ -40,7 +41,7 @@ import { registerBotRoutes } from "./bot-routes";
 import { Bots } from "./bots";
 import { Bridges } from "./bridges";
 import { Briefings } from "./briefing";
-import { Budgets } from "./budgets";
+import { Budgets, overBudget } from "./budgets";
 import { Bus, StopRegistry } from "./bus";
 import { Calendar } from "./calendar";
 import { ChatFiles } from "./chat-files";
@@ -66,7 +67,7 @@ import { registerDocsRoutes } from "./docs-routes";
 import { Embedder } from "./embedder";
 import { Enhancer } from "./enhance";
 import { registerEnhanceRoutes } from "./enhance-routes";
-import { setAiGateway } from "./env";
+import { findBrowser, setAiGateway } from "./env";
 import { registerEnvRoutes } from "./env-routes";
 import { EnvFiles } from "./envfiles";
 import { Environments } from "./environments";
@@ -83,6 +84,8 @@ import { Flows } from "./flows";
 import { startGateway } from "./gateway";
 import { Handoffs, registerHandoffRoutes } from "./handoff-routes";
 import { HeavyWork } from "./heavy";
+import { projectHistory } from "./history";
+import { HistorySearch } from "./history-search";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
 import { registerI18nRoutes } from "./i18n-routes";
@@ -316,6 +319,8 @@ const embedder = new Embedder(join(config.dataDir, "models", "multilingual-e5-sm
 );
 const library = new Library(sqlite, bus, join(config.dataDir, "library"), embedder);
 library.resume();
+/** People past their budget, for the company page's approvals; filled in once budgets are open. */
+let overBudgets: () => { id: string; title: string; kind: "budget"; link: string }[] = () => [];
 // Heavy background work runs one at a time, when the person is not clicking or typing (plan.md 19.10).
 const heavy = new HeavyWork();
 summarizer.heavy = heavy;
@@ -610,6 +615,25 @@ const org = new Org({
   publish: (kind, id, value) => sync.publishOrg(kind, id, value),
 });
 sync.org = org;
+org.shoot = async (url) => {
+  const { chromium } = await import("playwright-core");
+  const browser = await chromium.launch({ executablePath: findBrowser() }).catch(() => undefined);
+  if (!browser) return undefined;
+  try {
+    const page = await browser.newPage({ viewport: { width: 1024, height: 640 } });
+    await page.goto(url, { waitUntil: "networkidle", timeout: 15_000 }).catch(() => undefined);
+    const shot = await page.screenshot({ type: "jpeg", quality: 60 });
+    return `data:image/jpeg;base64,${Buffer.from(shot).toString("base64")}`;
+  } finally {
+    await browser.close();
+  }
+};
+org.history = async () =>
+  projectHistory(
+    sqlite,
+    (await sync.projectKeys()).map((p) => ({ id: p.projectId, key: p.key })),
+    sync.identity().id ?? "",
+  );
 org.start();
 // A site down: the servers team and the general manager hear it from the bot (plan.md 20.5).
 bus.subscribe((m) => {
@@ -621,6 +645,22 @@ const launcher = new Launcher(sqlite, bus, stops, services, (id) => {
   return row && !row.path.startsWith("team:") ? row.path : undefined;
 });
 const bots = new Bots(sqlite, bus, flows, chat, (id) => !!personas.get(id));
+// The company's cards can go to these bots too (plan.md 20.3): their list goes out, their jobs start here.
+org.teamBots = {
+  list: () => bots.list().map((b) => ({ handle: b.handle, name: b.name })),
+  start: async (handle, card) => {
+    const bot = bots.list().find((b) => b.handle === handle);
+    const local = card.project ? (await sync.projectKeys()).find((p) => p.key === card.project)?.projectId : undefined;
+    const projectId = local ?? bot?.projectId;
+    if (!bot || !projectId) return undefined;
+    return bots.start(bot.id, { projectId, request: [card.title, card.detail].filter(Boolean).join("\n\n") }).id;
+  },
+};
+bus.subscribe((m) => {
+  if (m.type !== "flows-changed" || !m.runId) return;
+  const run = flows.get(m.runId);
+  if (run) void org.runChanged(run.id, run.status).catch(() => undefined);
+});
 // A card given to a persona that is a team bot is that bot's job; a bot may be a schedule's worker.
 board.startByBot = (task) => {
   const bot = task.assignee?.kind === "persona" ? bots.forPersona(task.projectId, task.assignee.id) : undefined;
@@ -777,6 +817,14 @@ const app = createApp({
       hub: (path, init) => sync.hub(path, init),
       summarize: async (question) => (await assist.quickAsk({ question })).answer,
       call: (msg) => sync.call(msg),
+      ask: new HistorySearch(embedder),
+      approvals: () => [
+        ...flows
+          .list()
+          .filter((r) => r.status === "ready" || r.status === "needs_you")
+          .map((r) => ({ id: r.id, title: r.request.slice(0, 120), kind: "merge" as const, link: `/runs/${r.id}` })),
+        ...overBudgets(),
+      ],
     });
     registerLaunchRoutes(hono, launcher);
     registerSuggestionRoutes(hono, sqlite, (id) => store.projectRow(id)?.path);
@@ -1171,6 +1219,12 @@ const app = createApp({
     registerLessonRoutes(hono, { lessons, personas, store, scan: scanLessons });
     registerAssistRoutes(hono, assist, privateValues);
     const budgets = new Budgets(sqlite, bus);
+    overBudgets = () => {
+      const all = budgets.all();
+      return companyOf(sync, seats)
+        .filter((s) => all[s.memberId] && overBudget(s, all[s.memberId] as SeatBudget))
+        .map((s) => ({ id: `budget-${s.memberId}`, title: s.name, kind: "budget" as const, link: "/company" }));
+    };
     sync.budgets = () => budgets.all();
     registerTeamRoutes(hono, sync, store, {
       language: () => readSettings(db).language,

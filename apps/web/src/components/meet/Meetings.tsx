@@ -2,10 +2,11 @@ import {
   freeSlots,
   fromIcs,
   isOpen,
-  newCard,
+  meetingFollowUp,
   newMeetingKey,
   type OrgMeeting,
   occurrences,
+  parseNotes,
   type Recurrence,
   toIcs,
 } from "@igrek/core";
@@ -287,42 +288,13 @@ function Booking({ api, view }: { api: OrgApi; view: OrgView }) {
   );
 }
 
-/** Summary, decisions and actions in the answer's three parts, as the summarizer is asked to write them. */
-function parseNotes(text: string): { summary: string; decisions: string[]; actions: string[] } {
-  const part = (name: string) => text.split(new RegExp(`^#+\\s*${name}\\s*$`, "im"))[1]?.split(/^#+\s/m)[0] ?? "";
-  const lines = (s: string) =>
-    s
-      .split("\n")
-      .map((l) => l.replace(/^[-*\d.)\s]+/, "").trim())
-      .filter(Boolean);
-  return {
-    summary: part("Summary").trim() || text.trim(),
-    decisions: lines(part("Decisions")),
-    actions: lines(part("Actions")),
-  };
-}
-
 /** Actions become cards for the people named in them; decisions go to the teams' channels and the project. */
 async function sendOn(api: OrgApi, view: OrgView, m: OrgMeeting): Promise<OrgMeeting["actions"]> {
-  const actions: OrgMeeting["actions"] = [];
-  for (const a of m.actions) {
-    if (a.card) {
-      actions.push(a);
-      continue;
-    }
-    const who = view.people.find((p) => a.text.toLowerCase().startsWith((p.displayName || p.username).toLowerCase()));
-    const to = who ? { assignee: who.id } : m.teams[0] ? { team: m.teams[0] } : {};
-    const card = newCard(
-      { title: a.text.slice(0, 200), origin: "meeting", ...to, ...(m.project ? { project: m.project } : {}) },
-      view.me.id,
-    );
-    await api.act("org-card", card as unknown as Record<string, unknown>);
-    actions.push({ text: a.text, ...(who ? { who: who.id } : {}), card: card.id });
-  }
-  const notes = `${m.title}\n${m.summary ?? ""}\n${m.decisions.map((d) => `- ${d}`).join("\n")}`;
-  for (const team of m.teams) await api.post({ channel: `team:${team}`, text: notes });
-  if (m.project) for (const d of m.decisions) await api.addDecision?.(m.project, d);
-  return actions;
+  const plan = meetingFollowUp(m, view.people, view.me.id);
+  for (const card of plan.cards) await api.act("org-card", card as unknown as Record<string, unknown>);
+  for (const post of plan.posts) await api.post(post);
+  for (const d of plan.decisions) await api.addDecision?.(d.project, d.text);
+  return plan.actions;
 }
 
 /** After the meeting: what was said, the summary, the decisions and the actions, and where they go. */

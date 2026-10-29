@@ -8,7 +8,7 @@ import type { MemberClient } from "./client";
 import { PersonAvatar } from "./MemberMessage";
 
 /** Each teammate with their Igrek's last report; someone without one shows with an empty week. */
-function seatsOf(client: MemberClient): Seat[] {
+export function seatsOf(client: MemberClient): Seat[] {
   return [...client.members.values()].map((m) => {
     const r = client.seats.get(m.id);
     return {

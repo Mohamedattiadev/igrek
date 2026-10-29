@@ -29,8 +29,10 @@ describe("meeting rooms on the hub (plan.md 20.8)", () => {
     calls.handle(b, { op: "signal", room, to: "a", data: "sealed" });
     expect(a.got.at(-1)).toEqual({ op: "signal", room, from: "b", user: "u-b", data: "sealed" });
     expect(b.got.some((m) => m.op === "signal")).toBe(false);
+    expect(calls.people(room).sort()).toEqual(["u-a", "u-b"]);
     calls.gone(b);
     expect(a.got.at(-1)).toEqual({ op: "left", room, device: "b" });
+    expect(calls.people(room)).toEqual(["u-a"]);
   });
 
   test("a guest's link opens its one room for a while, and only that room", async () => {
@@ -51,5 +53,22 @@ describe("meeting rooms on the hub (plan.md 20.8)", () => {
     expect(guest.got[0]).toMatchObject({ op: "peers", room });
     hub.db.query("UPDATE guest_links SET expires = 0").run();
     expect(calls.guestRoom(token)).toBeUndefined();
+  });
+});
+
+describe("big calls through the team's router", () => {
+  test("a LiveKit token for one room, signed with the router's secret", async () => {
+    const { sfuFromEnv, sfuToken } = await import("./calls");
+    expect(sfuFromEnv({})).toBeUndefined();
+    const config = sfuFromEnv({ HUB_SFU_URL: "wss://sfu.example", HUB_SFU_KEY: "k", HUB_SFU_SECRET: "s" });
+    if (!config) throw new Error("no config");
+    const token = sfuToken(config, "a".repeat(64), { id: "u1", name: "Ayse" }, 1_800_000_000_000);
+    const [header, payload, signature] = token.split(".");
+    const { createHmac } = await import("node:crypto");
+    expect(signature).toBe(createHmac("sha256", "s").update(`${header}.${payload}`).digest("base64url"));
+    const claims = JSON.parse(Buffer.from(payload ?? "", "base64url").toString());
+    expect(claims).toMatchObject({ iss: "k", name: "Ayse", video: { room: "a".repeat(64), roomJoin: true } });
+    expect(claims.sub).toMatch(/^u1:/);
+    expect(claims.exp - claims.nbf).toBeLessThanOrEqual(6 * 3600 + 10);
   });
 });

@@ -17,6 +17,67 @@ const browserPath = [process.env.IGREK_E2E_BROWSER, "/usr/bin/chromium", "/usr/b
   (p): p is string => !!p && existsSync(p),
 );
 
+/**
+ * The same in WebKitGTK, the desktop window's engine on Linux, when its Python bindings are there
+ * (scripts/perf-webkit.py); undefined otherwise.
+ */
+async function webkit(
+  url: string,
+  median: (xs: number[]) => number,
+): Promise<{ cold: number; warm: number } | undefined> {
+  const proc = Bun.spawn(["python3", resolve(import.meta.dir, "perf-webkit.py"), url, JSON.stringify(PAGES)], {
+    stdout: "pipe",
+    stderr: "ignore",
+    env: { ...process.env, WEBKIT_DISABLE_COMPOSITING_MODE: "1", WEBKIT_DISABLE_DMABUF_RENDERER: "1" },
+  });
+  const out = (await new Response(proc.stdout).text()).trim().split("\n").at(-1) ?? "";
+  await proc.exited;
+  try {
+    const r = JSON.parse(out) as { cold: number[]; warm: Record<string, number> };
+    return { cold: median(r.cold), warm: median(Object.values(r.warm)) };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Typing: 120 keys at a quick typist's pace into the first page's start box, watching for the page
+ * being stuck (long tasks over 50 ms) and the slowest key from press to the next frame.
+ */
+async function typingLag(page: import("playwright-core").Page): Promise<{ longTasks: number; slowestKeyMs: number }> {
+  await page.goto(page.url().replace(/\/[^/]*$/, "/"));
+  await page.waitForLoadState("networkidle");
+  // The start box: what a person types first.
+  const box = page.locator("main input[type=text], main input:not([type]), main textarea").first();
+  if (!(await box.count())) return { longTasks: -1, slowestKeyMs: -1 };
+  await box.click();
+  await page.evaluate(() => {
+    const w = window as unknown as { igrekLong: number; igrekKeys: number[] };
+    w.igrekLong = 0;
+    w.igrekKeys = [];
+    new PerformanceObserver((list) => {
+      w.igrekLong += list.getEntries().length;
+    }).observe({ type: "longtask" });
+    addEventListener(
+      "keydown",
+      () => {
+        const t0 = performance.now();
+        requestAnimationFrame(() => w.igrekKeys.push(performance.now() - t0));
+      },
+      true,
+    );
+  });
+  await page.keyboard.type(
+    "Ödeme sayfasına kupon alanı ekle, sepet toplamını güncelle ve testlerini yaz. ".repeat(2).slice(0, 120),
+    { delay: 30 },
+  );
+  await page.waitForTimeout(500);
+  return page.evaluate(() => {
+    const w = window as unknown as { igrekLong: number; igrekKeys: number[] };
+    return { longTasks: w.igrekLong, slowestKeyMs: Math.round(Math.max(0, ...w.igrekKeys)) };
+  });
+}
+
 /** Median time of a page switch, first visits and visits back, or undefined when there is no browser or build. */
 export async function measurePages(): Promise<
   { cold: number; warm: number; pages: Record<string, number> } | undefined
@@ -64,7 +125,8 @@ export async function measurePages(): Promise<
       const s = xs.filter((x) => x >= 0).sort((a, b) => a - b);
       return Math.round(s[Math.floor(s.length / 2)] ?? -1);
     };
-    return { cold: median(cold), warm: median(warm), pages };
+    const typing = await typingLag(page);
+    return { cold: median(cold), warm: median(warm), pages, typing, webkit: await webkit(server.url, median) };
   } finally {
     await browser.close();
     await server.stop();

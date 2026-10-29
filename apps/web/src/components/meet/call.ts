@@ -54,21 +54,32 @@ type Signal =
 const MAX_PEERS = 5;
 
 /** How a connection is doing: share of packets lost coming in, and the round trip. */
-async function lineOf(pc: RTCPeerConnection): Promise<{ weak: boolean; rtt: number }> {
+async function lineOf(pc: RTCPeerConnection): Promise<{ weak: boolean; rtt: number; sent: number; received: number }> {
   const stats = await pc.getStats();
   let lost = 0;
   let total = 0;
   let rtt = 0;
+  let sent = 0;
+  let received = 0;
   stats.forEach(
-    (r: { type: string; packetsLost?: number; packetsReceived?: number; currentRoundTripTime?: number }) => {
+    (r: {
+      type: string;
+      packetsLost?: number;
+      packetsReceived?: number;
+      currentRoundTripTime?: number;
+      bytesSent?: number;
+      bytesReceived?: number;
+    }) => {
       if (r.type === "inbound-rtp") {
         lost += r.packetsLost ?? 0;
         total += (r.packetsReceived ?? 0) + (r.packetsLost ?? 0);
+        received += r.bytesReceived ?? 0;
       }
+      if (r.type === "outbound-rtp") sent += r.bytesSent ?? 0;
       if (r.type === "candidate-pair" && r.currentRoundTripTime) rtt = r.currentRoundTripTime;
     },
   );
-  return { weak: (total > 50 && lost / total > 0.08) || rtt > 0.6, rtt };
+  return { weak: (total > 50 && lost / total > 0.08) || rtt > 0.6, rtt, sent, received };
 }
 
 /** Less picture on a weak line (150 kbit/s), none on a very slow one; full again when it recovers. */
@@ -306,9 +317,19 @@ export class Call {
   }
 
   /** Every few seconds: a line losing packets or slow gets less picture, then none; sound stays. */
+  /** What the call uses now, measured every few seconds (plan.md 20.10): kbit/s up and down, round trip. */
+  quality = { upKbps: 0, downKbps: 0, rttMs: 0 };
+  private bytes = { sent: 0, received: 0, at: 0 };
+
   private async checkLines(): Promise<void> {
+    let sent = 0;
+    let received = 0;
+    let worst = 0;
     for (const [device, pc] of this.pcs) {
-      const { weak, rtt } = await lineOf(pc);
+      const { weak, rtt, ...line } = await lineOf(pc);
+      sent += line.sent;
+      received += line.received;
+      worst = Math.max(worst, rtt);
       const peer = this.peers.get(device);
       if (peer && peer.weak !== weak) {
         peer.weak = weak;
@@ -316,6 +337,16 @@ export class Call {
       }
       for (const s of pc.getSenders()) if (s.track?.kind === "video") await tune(s, weak, rtt);
     }
+    const now = performance.now();
+    const seconds = (now - this.bytes.at) / 1000;
+    if (this.bytes.at && seconds > 0)
+      this.quality = {
+        upKbps: Math.max(0, Math.round(((sent - this.bytes.sent) * 8) / 1000 / seconds)),
+        downKbps: Math.max(0, Math.round(((received - this.bytes.received) * 8) / 1000 / seconds)),
+        rttMs: Math.round(worst * 1000),
+      };
+    this.bytes = { sent, received, at: now };
+    this.onPeersChanged();
   }
 
   private drop(device: string): void {
@@ -334,3 +365,27 @@ export class Call {
     this.stop?.();
   }
 }
+
+/** A call either way: direct (Call) or through a router (SfuCall, loaded only for big calls). */
+export type MeetCall = Pick<
+  Call,
+  | "room"
+  | "local"
+  | "peers"
+  | "chat"
+  | "hand"
+  | "muted"
+  | "camera"
+  | "sharing"
+  | "quality"
+  | "onPeersChanged"
+  | "onMessage"
+  | "join"
+  | "leave"
+  | "say"
+  | "raiseHand"
+  | "toggleMute"
+  | "toggleCamera"
+  | "shareScreen"
+  | "broadcast"
+>;

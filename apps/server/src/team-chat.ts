@@ -385,7 +385,8 @@ export class Chat {
   edit(messageId: string, text: string): boolean {
     const { changes } = this.db
       .query(
-        `UPDATE comments SET text = ?, edited_at = ?, update_at = ?, update_sent = 0
+        `UPDATE comments SET previous = json_insert(COALESCE(previous, '[]'), '$[#]', json_object('text', text, 'at', COALESCE(edited_at, at))),
+           text = ?, edited_at = ?, update_at = ?, update_sent = 0
          WHERE id = ? AND author_id IS NULL AND deleted = 0 AND bot = 0`,
       )
       .run(text.slice(0, 8000), Date.now(), Date.now(), messageId);
@@ -397,7 +398,8 @@ export class Chat {
   remove(messageId: string): boolean {
     const { changes } = this.db
       .query(
-        "UPDATE comments SET text = '', deleted = 1, pinned = 0, update_at = ?, update_sent = 0 WHERE id = ? AND author_id IS NULL",
+        `UPDATE comments SET previous = json_insert(COALESCE(previous, '[]'), '$[#]', json_object('text', text, 'at', COALESCE(edited_at, at))),
+           text = '', deleted = 1, pinned = 0, update_at = ?, update_sent = 0 WHERE id = ? AND author_id IS NULL`,
       )
       .run(Date.now(), messageId);
     if (changes) this.changed(messageId);
@@ -529,10 +531,17 @@ export class Chat {
           .query("UPDATE comments SET pinned = ?, update_at = ?, update_sent = 1 WHERE id = ?")
           .run(value.pinned ? 1 : 0, at, id);
       if (row.author_id !== author.id) return;
-      if (value.deleted) this.db.query("UPDATE comments SET text = '', deleted = 1, pinned = 0 WHERE id = ?").run(id);
+      if (value.deleted)
+        this.db
+          .query(
+            `UPDATE comments SET previous = json_insert(COALESCE(previous, '[]'), '$[#]', json_object('text', text, 'at', COALESCE(edited_at, at))), text = '', deleted = 1, pinned = 0 WHERE id = ? AND deleted = 0`,
+          )
+          .run(id);
       else if (Number(value.editedAt ?? 0) > (row.edited_at ?? 0))
         this.db
-          .query("UPDATE comments SET text = ?, edited_at = ? WHERE id = ? AND deleted = 0")
+          .query(
+            `UPDATE comments SET previous = json_insert(COALESCE(previous, '[]'), '$[#]', json_object('text', text, 'at', COALESCE(edited_at, at))), text = ?, edited_at = ? WHERE id = ? AND deleted = 0`,
+          )
           .run(String(value.text ?? "").slice(0, 8000), Number(value.editedAt), id);
     })();
     this.changed(id);

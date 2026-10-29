@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 
 /**
  * The hub's part in meetings (plan.md 20.8): it only puts people in touch. A call's room is a hash
@@ -83,8 +83,49 @@ export class Calls {
     for (const p of inRoom) if (p !== ws && (!msg.to || p.data.device === msg.to)) p.send(text);
   }
 
+  /** Who is in a room now (by hub id): for telling a late invitee the call has started. */
+  people(room: string): string[] {
+    return [...new Set([...(this.rooms.get(room) ?? [])].map((p) => p.data.user.id))];
+  }
+
   /** A socket closed: out of every room it was in. */
   gone(ws: CallSocket): void {
     for (const room of [...(ws.data.rooms ?? [])]) this.leave(ws, room);
   }
+}
+
+/** A LiveKit router for calls of more than five (plan.md 20.8), when the hub's owner runs one. */
+export interface SfuConfig {
+  url: string;
+  key: string;
+  secret: string;
+}
+
+const b64url = (data: string | Buffer) => Buffer.from(data).toString("base64url");
+
+/**
+ * A LiveKit access token (a JWT signed with the router's secret) for one person in one call's room.
+ * The router passes sound and picture on; it cannot read them, as they are encrypted with the
+ * meeting's own key in the browsers (LiveKit's end-to-end encryption).
+ */
+export function sfuToken(config: SfuConfig, room: string, who: { id: string; name: string }, now = Date.now()): string {
+  const header = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const payload = b64url(
+    JSON.stringify({
+      iss: config.key,
+      sub: `${who.id}:${randomBytes(3).toString("hex")}`,
+      name: who.name,
+      nbf: Math.floor(now / 1000) - 10,
+      exp: Math.floor(now / 1000) + 6 * 3600,
+      video: { room, roomJoin: true, canPublish: true, canSubscribe: true, canPublishData: true },
+    }),
+  );
+  const signature = createHmac("sha256", config.secret).update(`${header}.${payload}`).digest("base64url");
+  return `${header}.${payload}.${signature}`;
+}
+
+/** The router's settings from the hub's environment (HUB_SFU_URL, HUB_SFU_KEY, HUB_SFU_SECRET), if set. */
+export function sfuFromEnv(env: Record<string, string | undefined> = process.env): SfuConfig | undefined {
+  const { HUB_SFU_URL: url, HUB_SFU_KEY: key, HUB_SFU_SECRET: secret } = env;
+  return url && key && secret ? { url, key, secret } : undefined;
 }

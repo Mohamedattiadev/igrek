@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { backupKey, runBackup, s3FromEnv } from "./backup";
+import { sfuFromEnv } from "./calls";
 import { Hub } from "./hub";
 import { mailFromEnv, smtpSender } from "./mail";
 import { createHubServer } from "./server";
@@ -16,6 +17,7 @@ const handler = createHubServer(hub, {
   mail: mail ? smtpSender(mail) : undefined,
   mailFrom: mail?.from,
   webDir: process.env.HUB_WEB_DIR,
+  sfu: sfuFromEnv(),
 });
 const server = Bun.serve({
   hostname: process.env.HUB_HOST ?? "0.0.0.0",

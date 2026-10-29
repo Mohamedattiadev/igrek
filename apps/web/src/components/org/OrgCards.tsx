@@ -133,6 +133,17 @@ function AssignOptions({ view }: { view: OrgView }) {
           </option>
         ))}
       </optgroup>
+      {Object.values(view.state.bots).flat().length > 0 && (
+        <optgroup label={t("org.bots")}>
+          {Object.values(view.state.bots)
+            .flat()
+            .map((b) => (
+              <option key={b.handle} value={`bot:${b.handle}`}>
+                @{b.handle} ({b.name})
+              </option>
+            ))}
+        </optgroup>
+      )}
       <optgroup label={t("org.people")}>
         {view.people
           .filter((p) => p.role !== "viewer")

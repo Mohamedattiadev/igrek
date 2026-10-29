@@ -1110,6 +1110,9 @@ export const migrations: string[] = [
      value TEXT NOT NULL,
      at INTEGER NOT NULL
    );`,
+  // A chat message's earlier texts (plan.md 20.9: nothing is lost): each edit or deletion keeps
+  // what was there before, as a JSON list of {text, at}, for whoever may see changes.
+  `ALTER TABLE comments ADD COLUMN previous TEXT;`,
 ];
 
 export function migrate(sqlite: Database): number {

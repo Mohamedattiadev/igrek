@@ -5,6 +5,7 @@ import { Badge, Card, Segmented } from "../components/ui";
 import { relativeTime } from "../lib/format";
 import type { MemberClient } from "./client";
 import { BoardView } from "./MemberBoard";
+import { MemberComments } from "./MemberComments";
 import { LiveNow } from "./MemberHome";
 import { PersonAvatar } from "./MemberMessage";
 import { SessionList, SessionView, sessionTitle } from "./MemberSessions";
@@ -107,18 +108,32 @@ function Overview({
   );
 }
 
-function Decisions({ project }: { project: MemberProject }) {
+/** The project's decisions; each can be commented on, as in Igrek (plan.md 20.3: comments on decisions). */
+function Decisions({ client, project }: { client: MemberClient; project: MemberProject }) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState<string>();
   const items = [...project.memory.values()]
     .filter((m) => m.status !== "rejected")
     .sort((a, b) => b.updatedAt - a.updatedAt);
+  const count = (id: string) =>
+    [...project.comments.values()].filter((c) => c.targetKind === "memory" && c.targetId === id).length;
   return (
     <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-bg">
       {items.map((m) => (
-        <li key={m.id} className="flex items-start gap-2 px-4 py-2.5 text-[13px]">
-          <Badge>{t(`memory.${m.section}`, { defaultValue: m.section })}</Badge>
-          <span className="min-w-0 flex-1">{m.text}</span>
-          <span className="shrink-0 text-[11px] text-fg-subtle">{m.author}</span>
+        <li key={m.id} className="space-y-2 px-4 py-2.5 text-[13px]">
+          <div className="flex items-start gap-2">
+            <Badge>{t(`memory.${m.section}`, { defaultValue: m.section })}</Badge>
+            <span className="min-w-0 flex-1">{m.text}</span>
+            <span className="shrink-0 text-[11px] text-fg-subtle">{m.author}</span>
+            <button
+              type="button"
+              className="shrink-0 text-[12px] text-accent hover:underline"
+              onClick={() => setOpen((o) => (o === m.id ? undefined : m.id))}
+            >
+              {t("member.comments")} {count(m.id) > 0 && `(${count(m.id)})`}
+            </button>
+          </div>
+          {open === m.id && <MemberComments client={client} project={project} kind="memory" id={m.id} />}
         </li>
       ))}
       {items.length === 0 && <li className="px-4 py-6 text-center text-xs text-fg-subtle">{t("member.nothingYet")}</li>}
@@ -170,7 +185,7 @@ export function MemberProjectPage({
           {current === "overview" && <Overview client={client} project={project} onSession={setSession} />}
           {current === "sessions" && <SessionList project={project} onOpen={setSession} />}
           {current === "board" && <BoardView client={client} project={project} />}
-          {current === "decisions" && <Decisions project={project} />}
+          {current === "decisions" && <Decisions client={client} project={project} />}
         </>
       )}
     </div>

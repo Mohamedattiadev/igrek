@@ -4,11 +4,13 @@ import {
   foldOrg,
   freeSlots,
   fromIcs,
+  meetingFollowUp,
   meetingNotices,
   mergeMeeting,
   newMeetingKey,
   type OrgMeeting,
   occurrences,
+  parseNotes,
   roomOfMeeting,
   toIcs,
 } from "@igrek/core";
@@ -107,6 +109,9 @@ describe("the calendar (plan.md 20.8)", () => {
     const m = meeting({ replies: { kerim: "no" } });
     expect(meetingNotices([m], "gm", [], MON - 9 * 60_000).map((n) => n.kind)).toEqual(["soon"]);
     expect(meetingNotices([m], "gm", [], MON + 60_000).map((n) => n.kind)).toEqual(["started"]);
+    // Five minutes in: "late", for the caller to tell only whoever is not in the call.
+    expect(meetingNotices([m], "gm", [], MON + 6 * 60_000).map((n) => n.kind)).toEqual(["late"]);
+    expect(meetingNotices([m], "gm", [], MON + 4 * 60_000)).toEqual([]);
     expect(meetingNotices([m], "kerim", [], MON - 9 * 60_000)).toEqual([]);
     expect(meetingNotices([m], "ali", [], MON - 9 * 60_000)).toEqual([]);
   });
@@ -117,5 +122,37 @@ describe("the calendar (plan.md 20.8)", () => {
     const room = await roomOfMeeting(key);
     expect(room).toMatch(/^[0-9a-f]{64}$/);
     expect(room).not.toContain(key.slice(0, 8));
+  });
+
+  test("after the meeting: the summary's parts, actions to the people named, decisions to the team and the project", () => {
+    const notes = parseNotes(
+      "# Summary\nPayment page reviewed.\n# Decisions\n- Stripe first\n- Coupons in v2\n# Actions\n1. Kerim: finish the coupon field\n2. Write the release notes",
+    );
+    expect(notes).toEqual({
+      summary: "Payment page reviewed.",
+      decisions: ["Stripe first", "Coupons in v2"],
+      actions: ["Kerim: finish the coupon field", "Write the release notes"],
+    });
+    const m = meeting({
+      teams: ["be"],
+      project: "p1",
+      summary: notes.summary,
+      decisions: notes.decisions,
+      actions: notes.actions.map((text) => ({ text })),
+    });
+    const plan = meetingFollowUp(m, [{ id: "kerim", username: "kerim", displayName: "Kerim" }], "gm");
+    expect(plan.cards.map((c) => [c.title, c.assignee ?? c.team, c.origin, c.project])).toEqual([
+      ["Kerim: finish the coupon field", "kerim", "meeting", "p1"],
+      ["Write the release notes", "be", "meeting", "p1"],
+    ]);
+    expect(plan.posts).toEqual([
+      { channel: "team:be", text: "Standup\nPayment page reviewed.\n- Stripe first\n- Coupons in v2" },
+    ]);
+    expect(plan.decisions).toEqual([
+      { project: "p1", text: "Stripe first" },
+      { project: "p1", text: "Coupons in v2" },
+    ]);
+    // Sent once: actions with a card are not made again.
+    expect(meetingFollowUp({ ...m, actions: plan.actions }, [], "gm").cards).toEqual([]);
   });
 });

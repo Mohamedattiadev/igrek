@@ -240,6 +240,13 @@ export function fromIcs(
   return out.slice(0, 500);
 }
 
+/** Before it: "soon"; its first minutes: "started"; five minutes in: "late" (told only to whoever is not in the call). */
+function noticeKind(at: number, now: number): "soon" | "started" | "late" | undefined {
+  if (at > now) return "soon";
+  if (now - at < 3 * 60_000) return "started";
+  return now - at >= 5 * 60_000 ? "late" : undefined;
+}
+
 /**
  * What to tell someone about their meetings now: ten minutes before, and when it starts. The
  * caller remembers what it already said ("<meeting>:<time>:<kind>"), so each goes once.
@@ -249,14 +256,14 @@ export function meetingNotices(
   me: string,
   myTeams: string[],
   now = Date.now(),
-): { id: string; kind: "soon" | "started"; meeting: OrgMeeting; at: number }[] {
-  const out: { id: string; kind: "soon" | "started"; meeting: OrgMeeting; at: number }[] = [];
+): { id: string; kind: "soon" | "started" | "late"; meeting: OrgMeeting; at: number }[] {
+  const out: { id: string; kind: "soon" | "started" | "late"; meeting: OrgMeeting; at: number }[] = [];
   for (const m of meetings) {
     const mine = m.attendees.includes(me) || m.by === me || m.teams.some((t) => myTeams.includes(t));
     if (!mine || m.replies[me] === "no") continue;
-    for (const at of occurrences(m, now - 3 * 60_000, now + 10 * 60_000 + 1)) {
-      const kind = at > now ? "soon" : "started";
-      out.push({ id: `${m.id}:${at}:${kind}`, kind, meeting: m, at });
+    for (const at of occurrences(m, now - 10 * 60_000, now + 10 * 60_000 + 1)) {
+      const kind = noticeKind(at, now);
+      if (kind) out.push({ id: `${m.id}:${at}:${kind}`, kind, meeting: m, at });
     }
   }
   return out;

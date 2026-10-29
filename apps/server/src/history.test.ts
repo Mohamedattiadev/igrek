@@ -70,4 +70,44 @@ describe("asking the history (plan.md 20.9)", () => {
     const out = projectHistory(db, [{ id: "p", key: "k" }], "me");
     expect(out.map((i) => i.text)).toEqual(["open work"]);
   });
+
+  test("an edited and then deleted message keeps what it said, for the timeline", async () => {
+    const { Chat } = await import("./team-chat");
+    const { Bus } = await import("./bus");
+    const db = new Database(":memory:");
+    migrate(db);
+    db.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p', 'shop', '/s', 1)").run();
+    const chat = new Chat(db, new Bus());
+    const id = chat.post({ projectId: "p", channel: "p:general", text: "deploy at 5", author: "me", mentions: [] });
+    chat.edit(id, "deploy at 6");
+    chat.remove(id);
+    const item = projectHistory(db, [{ id: "p", key: "k" }], "me").find((i) => i.id === `message:${id}`);
+    expect(item?.text).toBe("");
+    expect(item?.previous?.map((p) => p.text)).toEqual(["deploy at 5", "deploy at 6"]);
+  });
+});
+
+describe("by meaning too (plan.md 20.9)", () => {
+  test("a question finds what means the same in other words, with a stand-in model", async () => {
+    const { HistorySearch, fuse } = await import("./history-search");
+    // A tiny model: texts about money point one way, about servers another.
+    const vector = (t: string) => {
+      const money = /ödeme|fatura|para|payment|invoice/i.test(t) ? 1 : 0;
+      const server = /sunucu|server|disk|log/i.test(t) ? 1 : 0;
+      const n = Math.hypot(money, server) || 1;
+      return new Float32Array([money / n, server / n]);
+    };
+    const ask = new HistorySearch({
+      status: () => ({}) as never,
+      ready: () => true,
+      embed: async (texts) => texts.map(vector),
+    });
+    const items: TimelineItem[] = [
+      { id: "a", at: NOW - DAY, kind: "session", who: "k", text: "disk doldu, logları temizledim" },
+      { id: "b", at: NOW - DAY, kind: "card", who: "a", text: "fatura PDF'i" },
+    ];
+    const found = await ask.find(items, "sunucu neden durdu?", NOW);
+    expect(found[0]?.id).toBe("a");
+    expect(fuse([[items[0] as TimelineItem], [items[1] as TimelineItem, items[0] as TimelineItem]])[0]?.id).toBe("a");
+  });
 });
