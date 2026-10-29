@@ -1479,6 +1479,30 @@ Bugün: hub'da tek bir "takım" var (herkes aynı yerde), roller şirket çapın
 
 **Bitti sayılır:** Genel müdür tarayıcıdan girip bütün projeleri ve takımları tek ekranda görüyor, özet isteyip bir projeyi deneyebiliyor, not ve yorum bırakıp bir takıma iş atıyor; takımlar birbirine iş açıp konuşuyor; müdür bir bota yazınca işler kendiliğinden doğru kişilere gidip takip ediliyor; görüntülü toplantılar hafif, tahtalı ve kendiliğinden notlu; her şeyin geçmişine ve geleceğine soru sorulabiliyor; senkron ölçülerek güvende; bütün senaryolar denenmiş.
 
+#### 20.12 Kullanıcının ekran turu (29 Ekim 2026): sürüm bunlar bitince
+Kullanıcı: "bunlari da hallet elindeki ilebirlikte surum cikarma hepsini bitene kadar ilk once bi plan.md ya yaz eksiklerle berabare hepsini haledlim"
+- [ ] Şirket, kişi kartı: "19 ney anlasilmiyor" — *sayının ne olduğu yazılsın ("19 oturum, bu hafta")*
+- [ ] Yardımcı: "bu acilan chatbotun yeri cok ux degil" — *sağ üstten sarkan kutu yerine ekranın sağında tam boy bir panel; sayfa görünür kalır*
+- [ ] Şirket, Genel bakış: "halen cok ideal degil cok bosluklar var bazi kartlar cok buyuk daha rahat ve iyi gorunsun" — *sayılar tek satırda küçük, kişi kartları sıkı (hesaplar tek satırda, limit çubukları ince), boşluklar az*
+- [ ] Şirket, Paylaşım: "bu paylasim sayfasinin ui;ina da sanki cok sey lazim" — *her proje bir satır: ne paylaşıldığı, kimlerin gördüğü, son paylaşım; üstte özet (kaç proje kapalı/özet/tam); toplu değiştirme*
+- [ ] Takım sayfası: "takimin ui da cok sey istiyor daha duzenli olsun diye" — *kişiler, pano ve bugün düzenli bölümler; boş alanlar az; kim ne üzerinde çalışıyor görünür*
+- [ ] Bana atanan: "bu da cok basit oldu ... ayni sey gostersin bi de sag tarafta sabit kart o seyin ne oldugu aciklamasi kim verdigi sure varsa ne kadar fln filen hover ettigimde bi atanmis isin uzerine onu gostersin" — *liste aynı; sağda sabit bir ayrıntı kartı: başlık, açıklama, kim verdi, ne zaman, son tarih ve kalan süre, durum, proje; üzerine gelince ya da seçince dolar*
+- [ ] Takım akışı: "icinde scroll yapinca ... duzelt" — *kaydırınca soldaki kanal listesinin arka planı yarıda bitiyordu*
+- [ ] Limitler sayfası: "limitler sayfasinn ui da cok sey istiyro" — *hesaplar yan yana dolu, Igrek'in kendi işleri ve 14 gün grafiği düzenli, boş alan az*
+- [ ] Toplantı ve takvim: "toplanti ayarlama ve calenderi hic bulamadim onu nereden yapacagim" — *kenar çubuğunda Takım altında "Toplantılar" (toplantı kur, takvim, randevu); Takım ve Şirket yönetiminden de bağlantı*
+- [ ] Projeler (ana sayfa): "projeler halen cok karisik normal bi kullanci icin bunu nasil duzelttebilir" — *Basit görünümde önce projeler; takım satırları, günün özeti, bulunan klasörler aşağıda ve katlanmış*
+- [ ] Oturum sayfası: "bir oturum uzeirne basip acinca da cok karisik", "isim gorunmuyor cok dugme var", "sag taraftaki kartlarin bazilarin bi faydasi yok", "cok fazla scroll ediyorum ... terkara oynat kalsin" — *başlıkta oturumun adı tam görünür; tek ana düğme (Sohbette devam et), gerisi "Diğer" menüsünde; sağda yalnız işe yarayan kartlar; konuşma son birkaç mesajla açılır, gerisi "hepsini göster" ile; Tekrar oynat kalır*
+- [ ] Oturuma bot: "her oturum da bi bot sectioni olabilir ortak bi bot yapilir bu oturuma ozel bot yaparim ... ati'nin yardimsi olarak gibi bi sey adlandiriim" — *oturum sayfasında bir "Yardımcı bot" bölümü: takımın botlarından biri ya da bu oturuma özel yeni bir bot (adını kişi koyar, örn. "Ati'nin yardımcısı"); bot oturumun özetini ve kararlarını bilerek çalışır*
+- [ ] Şef ve geçmiş: "yanlislikla biri projelere deil de direk sefe girse chati gorse direk orada devam eder bunu onlemek lazim ene onemli kisik projeler oldugunu belirmek lazim" — *şef sayfasının üstünde projelerin asıl yer olduğu söylenir; şefe yazılan proje işi o projenin sohbetine gitmeyi önerir*
+- [ ] Gelen kutusu: "bu sayfaya da o sag taraftaki hover ile calisan kartin fikri de eklenebilir" — *sağda sabit ayrıntı kartı, Bana atanan'daki gibi*
+- [ ] Arka planda çalışan işler: "bak dugmesine basarim sonra baska bi sayfaya girer bi daha ddonuyorum eski bak dugmesi oluyor", "bildirimlerde ... neyin arka planda calisitingi gostermesi lazim", "butun benzer dugmeler mesela expertlerin dugmeleri" — *uzun süren her iş (sunucu bakışları, uzman ve toplantı işleri, özetler, raporlar) sunucuda bir iş olarak kaydedilir; sayfaya dönünce düğme hâlâ "çalışıyor" der ve sonucu gösterir; üst çubukta çalışan işlerin listesi*
+- [ ] Sunucu komutları: "bi komuta bastim asagia gitmem lazim sonuca bakmak icin bu sacmalik" — *sonuç tıklanan yerin yanında açılır (yan panel), aşağı kaydırmak gerekmez*
+- [ ] Araçlar: "bunu da araclara eklense" (Zamanlanmış), "ben araclari hic kullanmadim kullanamadim yani onu daha kolay bi hale getirmek lazim ai destekli butun araclar" — *Zamanlanmış işler Araçlar'da; Araçlar'ın girişi bir kutu: ne yapmak istediğini yaz, Igrek doğru aracı açar; her araçta ne işe yaradığı ve ilk adım*
+- [ ] Gündem: "gundem sayfasi onemli onu simdi ilk kez goruyorm" — *gündemden önemli olanlar ana sayfada bir satır; kenar çubuğunda kendi adıyla*
+- [ ] Promptlar, Öğren, Fikirler, Kütüphane: "promptlar araclara eklenmez mi sence ? ogrenmede ?", "fikirler ise tek basina ama onu daha iyi bi hale getirmek lazim", "kutuphanede daha iyi bi yerde ... cok sik goruleck degil ama gene onemli" — *Promptlar Araçlar'a; Öğren kendi yerinde; Fikirler daha iyi (durum, proje, karta çevirme); Kütüphane, Ders defteri ve Gündem "Bilgi" altında birlikte*
+- [x] Kenar çubuğunda "Daha fazla" ikişerli ızgara: "boyle ui olmaz" — *yapıldı (0613264): tek sıra*
+
+
 ---
 
 ---
