@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { type Browser, type BrowserContext, chromium, type Page } from "playwright-core";
 import { NAV_ITEMS } from "../../apps/web/src/components/nav";
@@ -179,6 +179,37 @@ describe.skipIf(!ready)("the app in a browser", () => {
       }
       expect(errors).toEqual([]);
     }, 120_000);
+
+  // Every page against the WCAG A and AA rules (axe-core, as the preview audit uses): a check for
+  // screen reader and keyboard users that runs every time, until people who use them try it.
+  for (const scheme of SCHEMES)
+    test(`every page passes the accessibility rules in the ${scheme} theme`, async () => {
+      const axe = readFileSync(
+        Bun.resolveSync("axe-core/axe.min.js", join(import.meta.dir, "../../apps/server")),
+        "utf8",
+      );
+      const found: string[] = [];
+      for (const path of [...PAGES, `/p/${project}`, `/p/${project}?tab=board`]) {
+        const opened = await open(scheme, path);
+        await opened.page.locator("nav svg").first().waitFor();
+        await opened.page.addScriptTag({ content: axe });
+        const violations = await opened.page.evaluate(
+          async () =>
+            (
+              await (
+                window as unknown as {
+                  axe: {
+                    run: (d: Document, o: unknown) => Promise<{ violations: { id: string; nodes: unknown[] }[] }>;
+                  };
+                }
+              ).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"] } })
+            ).violations,
+        );
+        found.push(...violations.map((v) => `${path}: ${v.id} (${v.nodes.length})`));
+        await opened.ctx.close();
+      }
+      expect(found).toEqual([]);
+    }, 180_000);
 
   for (const scheme of SCHEMES)
     test(`the logo reads on the ${scheme} sidebar`, async () => {

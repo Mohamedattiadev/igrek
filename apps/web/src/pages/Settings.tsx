@@ -21,7 +21,7 @@ import {
 } from "../components/MaintenancePanels";
 import { NavColors } from "../components/NavColors";
 import { PrivatePanel } from "../components/PrivatePanel";
-import { Badge, Button, Card, PageHeader, Section, Segmented, useModelTip } from "../components/ui";
+import { Badge, Button, Card, CopyButton, PageHeader, Section, Segmented, useModelTip } from "../components/ui";
 import { api } from "../lib/api";
 import { inDesktopApp } from "../lib/desktop";
 import { useInstallApp } from "../lib/install";
@@ -149,13 +149,43 @@ function InstallApp() {
   );
 }
 
+/**
+ * Ctrl+Space from anywhere: the desktop app takes it itself, except on Wayland, where Hyprland or
+ * Sway must bind it; then the exact line for their config, with this copy's path, to copy.
+ */
+function ShortcutLine() {
+  const { t } = useTranslation();
+  const [line, setLine] = useState<string>();
+  useEffect(() => {
+    api
+      .system()
+      .then((s) => setLine(s.quickAskBind))
+      .catch(() => undefined);
+  }, []);
+  if (!line) return <p className="text-[12.5px] text-fg-muted">{t("desktop.shortcutOn")}</p>;
+  return (
+    <div className="space-y-2">
+      <p className="text-[12.5px] text-fg-muted">{t("desktop.shortcutWayland")}</p>
+      <div className="flex items-center gap-2">
+        <code className="min-w-0 flex-1 truncate rounded-ui bg-bg-muted px-2 py-1.5 font-mono text-[12px]">{line}</code>
+        <CopyButton text={line} />
+      </div>
+    </div>
+  );
+}
+
 /** In the desktop app: whether it starts with the computer. In a browser: how to get a window of its own. */
 function AppSection() {
   const { t } = useTranslation();
   return inDesktopApp ? (
-    <Section title={t("desktop.autostart")} hint={t("desktop.autostartHint")}>
-      <AutostartPanel />
-    </Section>
+    <>
+      <Section title={t("desktop.autostart")} hint={t("desktop.autostartHint")}>
+        <AutostartPanel />
+      </Section>
+      <Section title={t("desktop.shortcut")} hint={t("desktop.shortcutHint")}>
+        <ShortcutLine />
+      </Section>
+    </>
   ) : (
     <Section title={t("install.title")} hint={t("install.hint")}>
       <InstallApp />

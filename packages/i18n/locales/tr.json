@@ -4829,7 +4829,11 @@
     "updateProgressNoSize": "{{done}} MB indi",
     "updateNoticeTitle": "Igrek'in yeni sürümü",
     "updateNotice": "Igrek {{version}} hazır. Ayarlar > Güncellemeler'den kurabilirsin.",
-    "preparing": "Igrek ilk açılış için hazırlanıyor: yaklaşık 35 MB'ın {{mb}} MB'ı indirildi"
+    "preparing": "Igrek ilk açılış için hazırlanıyor: yaklaşık 35 MB'ın {{mb}} MB'ı indirildi",
+    "shortcut": "Her yerden hızlı soru",
+    "shortcutHint": "Ctrl+Space, başka bir programdayken de Igrek'e hızlı bir soru açar.",
+    "shortcutOn": "Açık: Igrek, Ctrl+Space'i bütün sistem için alır. Başka bir program zaten kullanıyorsa (bazı klavye yöntemleri kullanır) Igrek'in içinde yine çalışır.",
+    "shortcutWayland": "Wayland'de bir program bütün sistem için kısayol alamaz. Bu satırı pencere yöneticinin ayarına ekle (Hyprland: hyprland.conf, Sway: config); sonra Ctrl+Space her yerde çalışır:"
   },
   "packs": {
     "catalog": "Igrek kataloğu",

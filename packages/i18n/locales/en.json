@@ -4829,7 +4829,11 @@
     "updateProgressNoSize": "{{done}} MB downloaded",
     "updateNoticeTitle": "A new version of Igrek",
     "updateNotice": "Igrek {{version}} is ready. Install it in Settings > Updates.",
-    "preparing": "Getting Igrek ready for its first start: {{mb}} of about 35 MB downloaded"
+    "preparing": "Getting Igrek ready for its first start: {{mb}} of about 35 MB downloaded",
+    "shortcut": "Quick question from anywhere",
+    "shortcutHint": "Ctrl+Space opens a quick question to Igrek, also when you are in another program.",
+    "shortcutOn": "On: Igrek takes Ctrl+Space for the whole system. If another program already uses it (some input methods do), it still works inside Igrek.",
+    "shortcutWayland": "On Wayland a program cannot take a shortcut for the whole system. Add this line to your compositor's config (Hyprland: hyprland.conf, Sway: config), then Ctrl+Space works everywhere:"
   },
   "packs": {
     "catalog": "Igrek's catalog",

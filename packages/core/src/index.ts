@@ -171,6 +171,8 @@ export interface SystemStatus {
   dataDir: string;
   uptimeSeconds: number;
   tools: ToolCheck[];
+  /** Where the system gives apps no global shortcuts (Wayland): the line that binds Ctrl+Space itself. */
+  quickAskBind?: string;
 }
 
 export type AiTool = "claude" | "codex" | "gemini" | "pi" | "opencode";

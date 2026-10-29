@@ -1203,7 +1203,7 @@ god-eye/
 - [x] Telefonda Dosyalar sayfası tek panel; telefonda turda menü butonu adımı — *telefonda yerler bir seçim kutusu, açılan dosya listeyi kaplar ve "Dosyalara dön" ile geri gelinir; turda menü butonunu tanıtan adım sadece telefonda görünür*
 - [x] Öğrenme merkezi başlıklarının Türkçesi (yol haritası ve kâğıt başlıkları şu an tek dil) — *başlık tek bir ad ("Docker") ya da en/tr çifti olabilir; 21 başlığa Türkçe eklendi ("Linux sunucu", "Önbellekleme"); sunucu başlığı okurun dilinde gönderir, Türkçe arama Türkçe başlığı da bulur*
 - [x] Erişilebilirlik taraması (axe ile kontrast ve etiketler; sabit İngilizce aria-label'lar) — *axe-core 4.13 ile 22 sayfa, açık ve koyu tema, masaüstü (1366) ve telefon (390) tarandı: seçili menü yazısının kontrastı, klavyeyle odaklanamayan kayan kod blokları ve tablo, grafikte iç içe etkileşim ve 3 sabit İngilizce etiket düzeltildi; tarama artık 0 ihlal veriyor. Ekran okuyucuyla elle deneme yapılmadı*
-- [ ] Gerçek bir acemiyle ve ekran okuyucu kullanan biriyle deneme
+- [ ] Gerçek bir acemiyle ve ekran okuyucu kullanan biriyle deneme — *kısmen (30 Ekim 2026): her sayfa (açık ve koyu tema) her e2e çalışmasında axe-core ile WCAG A ve AA kurallarına göre taranıyor, ihlal yok (58 sayfa yüklemesi, 1170 geçen kural). Kalan: gerçek bir acemi ve ekran okuyucu kullanan biri; bunu insanlar yapar*
 
 #### 16.6 Sohbet, "Neden?" ve taşınabilirlik (Ekim 2026)
 - [x] Sohbet kutusunda sadece yazı, resim, prompt'lar, uzmanlar ve gönder; uzman, onay modu, model ve ayrıntı tek "Ayarlar" düğmesinde — *mod "Bana sor" değilse düğmenin üstünde yazar ("Ayarlar · Otomatik"); uzman seçimi sadece ilk mesajdan önce*
@@ -1539,7 +1539,7 @@ Kullanıcı: "bunlari da hallet elindeki ilebirlikte surum cikarma hepsini biten
 ## 10. Sonraki Planlar (şimdilik değil)
 
 - [ ] 📱 Telefondan erişim (Tailscale + mobil arayüz)
-- [ ] Tauri masaüstü uygulaması + işletim sistemi genelinde `Ctrl+Space` — *Karar (Ekim 2026): yapılacak, Faz 17'ye taşındı*
+- [x] Tauri masaüstü uygulaması + işletim sistemi genelinde `Ctrl+Space` — *Karar (Ekim 2026): yapılacak, Faz 17'ye taşındı* — *yapıldı: masaüstü uygulaması yayında (apps/desktop); Ctrl+Space bütün sistemde hızlı soru açar (tauri-plugin-global-shortcut), Igrek penceresi odaktayken kendi kısayolu çalışır; Wayland'de (Hyprland, Sway) Ayarlar > Görünüm, pencere yöneticisinin ayarına eklenecek hazır satırı bu kopyanın yoluyla gösterir (30 Ekim 2026)*
 - [x] Persona ve iş akışı marketi (paylaşılabilir paketler) — *Uzmanlar > Paketler: Igrek'in incelenmiş kataloğu (`market/index.json`), dosyadan ya da https adresinden açma, önce önizleme, seçilenleri ekleme; kendi uzmanların ve paket akışlarından paket yapma. Kurallar: paketten gelen uzman salt okunur ve web'e kapalı başlar, var olan uzman değişmez, kabuk komutlu akış alınmaz, akışlar repoya değil Igrek'in klasörüne yazılır*
 - [x] Herkese açık yayın: web sitesi, kurulum betiği, dokümantasyon sitesi — *Ekim 2026: `site/` (tanıtım ve belgeler, TR ve EN; GitHub Pages'e sadece elle, Actions'tan yayınlanır), `scripts/install.sh` ve `install.ps1` (Docker'sız kur ve güncelle), LICENSE "Igrek Use License", CONTRIBUTING.md, SECURITY.md, issue şablonları; site AI eğitimi tarayıcılarını robots.txt ile dışarıda tutar. 20 Ekim 2026: repo public, site yayında (mohamedattiadev.github.io/igrek), main dalına zorla push ve silme kapalı, gizli güvenlik bildirimi açık*
 - [ ] Cursor ve diğer IDE adaptörleri

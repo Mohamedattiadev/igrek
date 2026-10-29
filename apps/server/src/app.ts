@@ -143,6 +143,7 @@ export function createApp({
       dataDir: config.dataDir,
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
       tools: await checkTools(c.req.query("fresh") === "1"),
+      ...withQuickAskBind(process.env),
     };
     return c.json(status);
   });
@@ -191,4 +192,17 @@ export function createApp({
   }
 
   return app;
+}
+
+/**
+ * On Wayland an app cannot take Ctrl+Space for the whole system; Hyprland and Sway can run Igrek's
+ * `--quick-ask` from their own config. The line to add, with this copy's path, when it applies.
+ */
+export function withQuickAskBind(env: Record<string, string | undefined>): { quickAskBind?: string } {
+  const app = env.APPIMAGE;
+  if (!app || (env.XDG_SESSION_TYPE !== "wayland" && !env.WAYLAND_DISPLAY)) return {};
+  const desktop = (env.XDG_CURRENT_DESKTOP ?? "").toLowerCase();
+  if (desktop.includes("hyprland")) return { quickAskBind: `bind = CTRL, SPACE, exec, ${app} --quick-ask` };
+  if (desktop.includes("sway")) return { quickAskBind: `bindsym ctrl+space exec ${app} --quick-ask` };
+  return {};
 }
