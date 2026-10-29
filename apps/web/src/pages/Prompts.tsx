@@ -87,7 +87,8 @@ function LibraryItem({
 }
 
 /** Saved prompts (plan.md 2.7), most used first, and a library of ready-made ones to start from. */
-export function PromptsPage() {
+/** `embedded`: inside the Tools page, under its own title, with the "new" button in the content. */
+export function PromptsPage({ embedded }: { embedded?: boolean } = {}) {
   const { t } = useTranslation();
   const { isPending } = usePendingDeletes();
   const [prompts, setPrompts] = useState<SavedPrompt[]>([]);
@@ -127,15 +128,22 @@ export function PromptsPage() {
 
   return (
     <>
-      <PageHeader
-        title={t("prompts.title")}
-        actions={
+      {!embedded && (
+        <PageHeader
+          title={t("prompts.title")}
+          actions={
+            <Button size="sm" variant="primary" icon={Plus} onClick={() => setEditing({})}>
+              {t("prompts.new")}
+            </Button>
+          }
+        />
+      )}
+      <div className={embedded ? "space-y-6" : "mx-auto w-full max-w-4xl space-y-6 p-6"}>
+        {embedded && (
           <Button size="sm" variant="primary" icon={Plus} onClick={() => setEditing({})}>
             {t("prompts.new")}
           </Button>
-        }
-      />
-      <div className="mx-auto w-full max-w-4xl space-y-6 p-6">
+        )}
         <section className="space-y-3">
           <h2 className="text-[14px] font-semibold">{t("prompts.mine")}</h2>
           {visible.length === 0 ? (

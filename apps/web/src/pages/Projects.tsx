@@ -18,6 +18,7 @@ import { Link, useNavigate } from "react-router";
 import { AddProjectForm } from "../components/AddProjectForm";
 import { HandoffsPanel } from "../components/Handoff";
 import { LoadError } from "../components/LoadError";
+import { NewsGlance } from "../components/NewsGlance";
 import { StartBox } from "../components/StartBox";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { TeamWelcome } from "../components/TeamWelcome";
@@ -604,61 +605,74 @@ export function ProjectsPage() {
           }
         />
       ) : (
-        <div className="p-6">
-          <div className="mb-4 space-y-3">
-            <TeamWelcome team={!!people.status?.configured} />
-            {projects && visible.length > 0 && <StartBox />}
-            {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
-              <Segmented
-                label={t("projects.status")}
-                value={statusView}
-                onChange={setStatusView}
-                options={(["active", "paused", "archived"] as const).map((s) => ({
-                  value: s,
-                  label: `${t(`projects.status_${s}`)} (${statusCount(s)})`,
-                  tip: t(`projects.statusTip_${s}`),
-                }))}
-              />
-            )}
-          </div>
-          {projects && visible.length === 0 && (
-            <Card className="flex flex-wrap items-center gap-3 p-pad">
-              <FolderKanban size={18} className="text-fg-subtle" aria-hidden="true" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[13.5px] font-medium">{t("projects.noneAdded")}</p>
-                <p className="text-[12.5px] text-fg-muted">{t("projects.noneAddedBody")}</p>
+        // Projects first: the box to start something, then the projects; the team's latest words and
+        // the news sit in a column beside them, the day's summary and found folders below, closed
+        // (a user found the page too busy for someone new).
+        <div className="grid gap-5 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="min-w-0">
+            <div className="mb-4 space-y-3">
+              {projects && visible.length > 0 && <StartBox />}
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-[13.5px] font-semibold">{t("projects.yours", { count: shown.length })}</h2>
+                <span className="flex-1" />
+                {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
+                  <Segmented
+                    label={t("projects.status")}
+                    value={statusView}
+                    onChange={setStatusView}
+                    options={(["active", "paused", "archived"] as const).map((s) => ({
+                      value: s,
+                      label: t(`projects.status_${s}`),
+                      count: statusCount(s),
+                      tip: t(`projects.statusTip_${s}`),
+                    }))}
+                  />
+                )}
               </div>
-              <AddProject />
-            </Card>
-          )}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
-            {projects
-              ? shown.map((project) => <ProjectCard key={project.id} project={project} people={people} />)
-              : [0, 1, 2, 3].map((i) => <Card key={i} className="h-40 animate-pulse bg-bg-subtle" />)}
-          </div>
-          {found.length > 0 && (
-            <div className="mt-5 space-y-2">
-              <button
-                type="button"
-                onClick={() => setShowHidden((v) => !v)}
-                aria-expanded={showHidden}
-                className="text-xs text-fg-subtle hover:text-fg"
-              >
-                {showHidden ? t("projects.foundHide") : t("projects.foundShow", { count: found.length })}
-              </button>
-              {showHidden && <FoundList projects={found} onChange={reload} />}
             </div>
-          )}
-          {/* About the day, not about one project: below the projects, closed until opened. */}
-          <div className="mt-6">
-            <DaySection>
-              {/* Loaded when the section is opened: it starts closed, so the first screen stays light. */}
-              <Suspense fallback={null}>
-                <DayCards projects={projects ?? []} onChange={reload} />
-              </Suspense>
-              <SummariesOff />
-            </DaySection>
+            {projects && visible.length === 0 && (
+              <Card className="flex flex-wrap items-center gap-3 p-pad">
+                <FolderKanban size={18} className="text-fg-subtle" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-medium">{t("projects.noneAdded")}</p>
+                  <p className="text-[12.5px] text-fg-muted">{t("projects.noneAddedBody")}</p>
+                </div>
+                <AddProject />
+              </Card>
+            )}
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+              {projects
+                ? shown.map((project) => <ProjectCard key={project.id} project={project} people={people} />)
+                : [0, 1, 2, 3].map((i) => <Card key={i} className="h-40 animate-pulse bg-bg-subtle" />)}
+            </div>
+            {found.length > 0 && (
+              <div className="mt-5 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowHidden((v) => !v)}
+                  aria-expanded={showHidden}
+                  className="text-xs text-fg-subtle hover:text-fg"
+                >
+                  {showHidden ? t("projects.foundHide") : t("projects.foundShow", { count: found.length })}
+                </button>
+                {showHidden && <FoundList projects={found} onChange={reload} />}
+              </div>
+            )}
+            {/* About the day, not about one project: below the projects, closed until opened. */}
+            <div className="mt-6">
+              <DaySection>
+                {/* Loaded when the section is opened: it starts closed, so the first screen stays light. */}
+                <Suspense fallback={null}>
+                  <DayCards projects={projects ?? []} onChange={reload} />
+                </Suspense>
+                <SummariesOff />
+              </DaySection>
+            </div>
           </div>
+          <aside className="min-w-0 space-y-4">
+            <TeamWelcome team={!!people.status?.configured} />
+            <NewsGlance />
+          </aside>
         </div>
       )}
     </>

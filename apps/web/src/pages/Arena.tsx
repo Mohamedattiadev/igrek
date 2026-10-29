@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Badge, Button, Card, EmptyState, field, RUN_TONE } from "../components/ui";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
@@ -180,7 +181,7 @@ export function ArenaTab() {
   const [data, setData] = useState<{ matches: ArenaMatch[]; stats: ArenaStat[]; models: string[] }>();
   const [form, setForm] = useState({ projectId: "", request: "", a: "sonnet", b: "opus" });
   const [error, setError] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("Arena.ArenaTab");
   const load = useCallback(
     () =>
       void arenaApi

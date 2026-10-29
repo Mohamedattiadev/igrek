@@ -23,11 +23,14 @@ export function OrgPage({
   tab,
   onTab,
   meeting,
+  only,
 }: {
   api: OrgApi;
   tab?: string;
   onTab: (tab: OrgTab) => void;
   meeting?: string;
+  /** One part as a page of its own (Meetings in the strip): its name as the title, no tabs. */
+  only?: OrgTab;
 }) {
   const { t } = useTranslation();
   const view = api.view;
@@ -42,11 +45,11 @@ export function OrgPage({
     isManager(view.structure, view.me) ||
     view.me.role === "admin" ||
     view.structure.teams.some((x) => x.leadId === view.me.id);
-  const current = TABS.find((x) => x === tab) ?? (manages ? "home" : "cards");
+  const current = only ?? TABS.find((x) => x === tab) ?? (manages ? "home" : "cards");
   return (
     <>
       <PageHeader
-        title={t("org.title")}
+        title={only ? t(`org.tab_${only}`) : t("org.title")}
         actions={
           view.waiting > 0 && (
             <span className="inline-flex items-center gap-1.5 text-[12px] text-warning">
@@ -55,14 +58,16 @@ export function OrgPage({
           )
         }
       />
-      <TabBar>
-        <Segmented
-          label={t("org.title")}
-          value={current}
-          onChange={onTab}
-          options={TABS.filter((x) => x !== "home" || manages).map((x) => ({ value: x, label: t(`org.tab_${x}`) }))}
-        />
-      </TabBar>
+      {!only && (
+        <TabBar>
+          <Segmented
+            label={t("org.title")}
+            value={current}
+            onChange={onTab}
+            options={TABS.filter((x) => x !== "home" || manages).map((x) => ({ value: x, label: t(`org.tab_${x}`) }))}
+          />
+        </TabBar>
+      )}
       <div className="mx-auto w-full max-w-6xl space-y-4 p-4 md:p-6">
         {current === "home" && <OrgHome api={api} view={view} />}
         {current === "cards" && <OrgCards api={api} view={view} />}

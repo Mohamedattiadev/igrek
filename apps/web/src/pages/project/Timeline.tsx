@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card } from "../../components/ui";
 import { api } from "../../lib/api";
+import { useBusyState } from "../../lib/background";
 import i18n from "../../lib/i18n";
 import { useLiveData } from "../../lib/live";
 import { SessionRow } from "./SessionRow";
@@ -115,7 +116,18 @@ function mondayOfThisWeek(): string {
 /** Daily and weekly plain-language reports. */
 export function ReportsCard({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
-  const [busy, setBusy] = useState<"day" | "week">();
+  // In the background store: writing a report goes on, and shows, after leaving the page.
+  const [day, setDay] = useBusyState("ReportsCard.day", t("project.today"));
+  const [week, setWeek] = useBusyState("ReportsCard.week", t("project.week"));
+  const busy = day ? "day" : week ? "week" : undefined;
+  const setBusy = (period?: "day" | "week") => {
+    if (period === "day") setDay(true);
+    else if (period === "week") setWeek(true);
+    else {
+      setDay(false);
+      setWeek(false);
+    }
+  };
   const [error, setError] = useState<string>();
   const { data, reload } = useLiveData(
     () => api.digests(projectId),

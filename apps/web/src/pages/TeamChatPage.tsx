@@ -29,6 +29,7 @@ import { Markdown } from "../components/Markdown";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { Button, EmptyState, field } from "../components/ui";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { useCoalesced, useServerEvent } from "../lib/live";
 
@@ -214,7 +215,7 @@ function ChannelHeader({
 }) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("TeamChatPage.ChannelHeader");
   return (
     <>
       <header className="flex h-12 shrink-0 items-center gap-3 overflow-hidden border-b border-border px-4">
@@ -534,7 +535,8 @@ export function TeamChatPage() {
         />
       </div>
       {timeline && (
-        <div className="flex min-w-0 flex-1 flex-col">
+        // min-h-0: the list scrolls inside, not the whole page (the channel list's background ended halfway).
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <ChannelSelect channels={channels ?? []} value="timeline" onPick={open} onTimeline={() => undefined} />
           <TeamTimeline />
         </div>

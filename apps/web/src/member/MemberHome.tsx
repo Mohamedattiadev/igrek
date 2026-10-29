@@ -1,7 +1,6 @@
 import { AtSign, Hash, Inbox, Lock, Radio, SquareCheckBig, Users } from "lucide-react";
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Card, Count, PageHeader } from "../components/ui";
+import { Badge, Count, PageHeader, Panel } from "../components/ui";
 import { relativeTime } from "../lib/format";
 import { channelKey, directKey, type MemberClient } from "./client";
 import { PersonAvatar } from "./MemberMessage";
@@ -9,17 +8,6 @@ import { dayOf, sessionTitle } from "./MemberSessions";
 import { channelName, channelsOf, type MemberProject, type MemberTask } from "./model";
 
 const WEEK = 7 * 86_400_000;
-
-function Panel({ icon: Icon, title, children }: { icon: typeof Inbox; title: string; children: ReactNode }) {
-  return (
-    <Card className="space-y-2 p-4">
-      <h2 className="flex items-center gap-2 text-[13.5px] font-semibold">
-        <Icon size={15} className="text-accent" aria-hidden="true" /> {title}
-      </h2>
-      {children}
-    </Card>
-  );
-}
 
 const Empty = ({ text }: { text: string }) => <p className="text-[12.5px] text-fg-subtle">{text}</p>;
 

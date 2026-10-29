@@ -1,5 +1,5 @@
 import type { ProjectListItem, StartedItem } from "@igrek/core";
-import { Bot, Folder } from "lucide-react";
+import { ArrowRight, Bot, Folder, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -141,6 +141,23 @@ export function ChiefPage() {
         </ul>
       </nav>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {/* Someone landing here first would carry on their project's work in the chief's chat; the
+            work belongs in the project, where its chats, board and memory are (a user's worry). */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-accent-soft px-4 py-2 text-[12.5px]">
+          <Info size={14} className="shrink-0 text-accent" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            {thread === GENERAL
+              ? t("chief.notHere")
+              : t("chief.notHereProject", { name: projects.find((p) => p.id === thread)?.name ?? "" })}
+          </span>
+          <Link
+            to={thread === GENERAL ? "/" : `/p/${thread}`}
+            className="inline-flex shrink-0 items-center gap-1 font-medium text-accent hover:underline"
+          >
+            {thread === GENERAL ? t("chief.toProjects") : t("chief.toProject")}
+            <ArrowRight size={13} className="rtl:rotate-180" aria-hidden="true" />
+          </Link>
+        </div>
         {chatId ? (
           <ChiefChat
             key={chatId}

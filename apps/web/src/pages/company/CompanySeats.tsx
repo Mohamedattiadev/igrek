@@ -13,29 +13,35 @@ import { BudgetLine, overBudget, planPrice } from "./CompanyBudgets";
 
 const FULL = 0.9;
 
+/** A limit as a thin bar with its share, small enough for two on one line. */
 function Meter({ label, value }: { label: string; value?: number }) {
   if (value === undefined) return null;
   const pct = Math.round(value * 100);
   const tone = value >= 0.95 ? "bg-danger" : value >= 0.8 ? "bg-warning" : "bg-success";
   return (
-    <div className="space-y-1">
-      <p className="flex justify-between text-[12px] text-fg-muted">
-        <span>{label}</span>
-        <span className={cn("font-medium", value >= 0.8 ? "text-fg" : "text-fg-muted")}>{pct}%</span>
-      </p>
-      <div className="h-2 overflow-hidden rounded-full bg-bg-muted">
-        <div className={cn("h-full rounded-full", tone)} style={{ width: `${Math.max(3, pct)}%` }} />
-      </div>
-    </div>
+    <span className="flex w-32 items-center gap-1.5 text-[11.5px] text-fg-muted" data-tip={`${label}: ${pct}%`}>
+      <span className="w-9 shrink-0 truncate">{label}</span>
+      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-muted">
+        <span className={cn("block h-full rounded-full", tone)} style={{ width: `${Math.max(3, pct)}%` }} />
+      </span>
+      <span className={cn("w-8 shrink-0 text-end tabular-nums", value >= 0.8 && "font-medium text-fg")}>{pct}%</span>
+    </span>
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+/** The week's numbers in one strip, not four tall cards (a user found them too big and too empty). */
+function Stats({ items }: { items: { label: string; value: string; hint?: string }[] }) {
   return (
-    <Card className="p-pad">
-      <p className="text-[11.5px] font-medium uppercase tracking-wide text-fg-subtle">{label}</p>
-      <p className="mt-1 text-[22px] font-semibold tracking-tight">{value}</p>
-      {hint && <p className="text-[12px] text-fg-muted">{hint}</p>}
+    <Card className="grid grid-cols-2 divide-border sm:grid-cols-4 sm:divide-x">
+      {items.map((x) => (
+        <div key={x.label} className="px-pad py-2.5">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-fg-subtle">{x.label}</p>
+          <p className="flex items-baseline gap-2">
+            <span className="text-[18px] font-semibold tracking-tight">{x.value}</span>
+            {x.hint && <span className="truncate text-[11.5px] text-fg-muted">{x.hint}</span>}
+          </p>
+        </div>
+      ))}
     </Card>
   );
 }
@@ -43,7 +49,10 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 const nearFull = (s: Seat) => s.accounts.some((a) => (a.fiveHour ?? 0) >= FULL || (a.week ?? 0) >= FULL);
 const topModel = (s: Seat) => Object.entries(s.week.models).sort((a, b) => b[1] - a[1])[0]?.[0];
 
-/** One person as a card (plan.md 19.8): who, their accounts with big limit bars, their week. */
+/**
+ * One person (plan.md 19.8): who, each account on one line with its two limits, and their week in
+ * words ("19 sessions, 2.4M tokens"): a lone big "19" said nothing about what it counted.
+ */
 function SeatCard({
   seat,
   newest,
@@ -61,20 +70,20 @@ function SeatCard({
   const model = topModel(seat);
   const old = newest && seat.version && seat.version !== newest;
   return (
-    <Card className="space-y-4 p-pad">
-      <div className="flex items-center gap-3">
-        <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-muted text-[15px] font-semibold">
+    <Card className="space-y-2.5 p-pad">
+      <div className="flex items-center gap-2.5">
+        <span className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-bg-muted text-[13px] font-semibold">
           {seat.name.slice(0, 1).toUpperCase()}
           <span className="absolute -end-0.5 -bottom-0.5">
             <StatusDot tone={seat.online ? "success" : "neutral"} />
           </span>
         </span>
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-[15px] font-semibold">
+          <p className="flex items-center gap-2 text-[13.5px] font-semibold">
             <span className="truncate">{seat.name}</span>
             {seat.role === "admin" && <Badge>{t("company.admin")}</Badge>}
           </p>
-          <p className="text-[12px] text-fg-subtle">
+          <p className="text-[11.5px] text-fg-subtle">
             {seat.online
               ? t("company.online")
               : seat.lastSeen
@@ -82,20 +91,25 @@ function SeatCard({
                 : t("company.neverSeen")}
           </p>
         </div>
-        <div className="text-end">
-          <p className="text-[18px] font-semibold">{seat.week.sessions}</p>
-          <p className="text-[11px] text-fg-subtle">{t("company.thisWeek")}</p>
-        </div>
+        <p className="text-end text-[12px] text-fg-muted">
+          <span className="font-medium text-fg">{t("company.sessions", { count: seat.week.sessions })}</span>
+          {" · "}
+          {t("company.tokens", { tokens: compactNumber(seat.week.input + seat.week.output) })}
+          <span className="block text-[11px] text-fg-subtle">
+            {t("company.thisWeek")}
+            {model && ` · ${modelName(model)}`}
+          </span>
+        </p>
       </div>
       {seat.at === 0 ? (
         <p className="text-[12.5px] text-fg-subtle">{t("company.noReport")}</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-border rounded-ui border border-border">
           {seat.accounts.map((a) => (
-            <li key={`${a.provider}:${a.label}`} className="space-y-2 rounded-ui bg-bg-subtle p-3">
-              <p className="flex flex-wrap items-center gap-1.5 text-[13px]">
+            <li key={`${a.provider}:${a.label}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2.5 py-1.5">
+              <p className="flex min-w-0 flex-1 items-center gap-1.5 text-[12.5px]">
                 <span className="font-medium">{a.provider === "claude" ? "Claude" : "Codex"}</span>
-                <span className="text-fg-muted">· {a.label}</span>
+                <span className="truncate text-fg-muted">· {a.label}</span>
                 {a.plan && <Badge>{a.plan}</Badge>}
                 {a.active && <Badge tone="accent">{t("company.inUse")}</Badge>}
                 {!a.loggedIn && <Badge tone="warning">{t("company.loggedOut")}</Badge>}
@@ -106,10 +120,8 @@ function SeatCard({
           ))}
         </ul>
       )}
-      <p className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border pt-3 text-[12px] text-fg-muted">
-        <span>{t("company.sessions", { count: seat.week.sessions })}</span>
-        <span>{t("company.tokens", { tokens: compactNumber(seat.week.input + seat.week.output) })}</span>
-        {model && <span>{modelName(model)}</span>}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-fg-muted">
+        <BudgetLine seat={seat} budget={budget} admin={admin} onSave={onBudget} />
         <span className="flex-1" />
         {seat.version && (
           <span className={cn(old && "text-warning")}>
@@ -117,8 +129,7 @@ function SeatCard({
             {old && ` · ${t("company.oldVersion")}`}
           </span>
         )}
-      </p>
-      <BudgetLine seat={seat} budget={budget} admin={admin} onSave={onBudget} />
+      </div>
     </Card>
   );
 }
@@ -255,28 +266,30 @@ export function SeatsOverview({
   const full = list.filter(nearFull);
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat
-          label={t("company.people")}
-          value={String(list.length)}
-          hint={t("company.onlineNow", { count: list.filter((s) => s.online).length })}
-        />
-        <Stat label={t("company.weekSessions")} value={compactNumber(list.reduce((n, s) => n + s.week.sessions, 0))} />
-        <Stat label={t("company.weekTokens")} value={compactNumber(tokens)} />
-        <Stat label={t("company.nearFull")} value={String(full.length)} hint={t("company.nearFullHint")} />
-      </div>
+      <Stats
+        items={[
+          {
+            label: t("company.people"),
+            value: String(list.length),
+            hint: t("company.onlineNow", { count: list.filter((s) => s.online).length }),
+          },
+          { label: t("company.weekSessions"), value: compactNumber(list.reduce((n, s) => n + s.week.sessions, 0)) },
+          { label: t("company.weekTokens"), value: compactNumber(tokens) },
+          { label: t("company.nearFull"), value: String(full.length), hint: t("company.nearFullHint") },
+        ]}
+      />
       {full.length > 0 && (
         <p className="flex items-center gap-2 rounded-ui border border-warning bg-warning-soft px-3 py-2 text-[13px]">
           <AlertTriangle size={15} className="shrink-0 text-warning" aria-hidden="true" />
           {t("company.fullWarning", { names: full.map((s) => s.name).join(", ") })}
         </p>
       )}
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-3">
         <Watch seats={list} newest={newest} budgets={budgets} />
         <Plans seats={list} />
         <Advice seats={list} />
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2">
         {list.map((s) => (
           <SeatCard
             key={s.memberId}

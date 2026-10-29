@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Moon, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { duration } from "../pages/tools/Time";
@@ -23,7 +24,7 @@ export function RecapCard() {
   const [days, setDays] = useState<string[]>([]);
   const [data, setData] = useState<{ recap: DayRecap | null; stats: DayRecap["stats"] }>();
   const [open, setOpen] = useState(() => new Date().getHours() >= 17);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("RecapCard.RecapCard");
   const [error, setError] = useState<string>();
   const load = useCallback(() => {
     request<{ recap: DayRecap | null; stats: DayRecap["stats"] }>(`/api/recap?day=${day}`)

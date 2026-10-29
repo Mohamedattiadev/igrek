@@ -60,8 +60,14 @@ export function Helper() {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  // Opened from elsewhere, with a question to ask at once when one comes (the Tools page's box).
+  const askRef = useRef<(question: string) => Promise<void>>(undefined);
   useEffect(() => {
-    const openIt = () => setOpen(true);
+    const openIt = (e: Event) => {
+      setOpen(true);
+      const question = (e as CustomEvent<{ question?: string }>).detail?.question;
+      if (question) void askRef.current?.(question);
+    };
     window.addEventListener("igrek:helper", openIt);
     return () => window.removeEventListener("igrek:helper", openIt);
   }, []);
@@ -247,6 +253,7 @@ export function Helper() {
 
   // On chat and terminal pages the corner holds the send button; sit higher there, and on a phone
   // stay out of the way altogether (the helper is still on every other page).
+  askRef.current = ask;
   const starters = ["continue", "newChat", "where", "tour"] as const;
 
   let panel: ReactNode = null;
@@ -256,8 +263,9 @@ export function Helper() {
         role="dialog"
         aria-label={t("helper.title")}
         className={cn(
-          // Under the top bar, where its button is: nothing on the page is covered until it is opened.
-          "fixed end-3 top-12 z-50 flex h-[min(540px,calc(100vh-5rem))] w-[min(380px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-xl border border-border bg-bg shadow-ui",
+          // A panel down the whole right side: a box hanging from the
+          // corner over the page felt out of place (a user); the page stays readable beside it.
+          "fixed inset-y-0 end-0 z-40 flex w-full max-w-sm flex-col overflow-hidden border-s border-border bg-bg shadow-ui",
         )}
       >
         <header className="flex items-center gap-2 border-b border-border bg-bg-subtle px-3 py-2.5">

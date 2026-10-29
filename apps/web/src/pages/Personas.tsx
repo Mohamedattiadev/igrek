@@ -7,6 +7,7 @@ import { BotsTab } from "../components/BotsTab";
 import { PacksTab } from "../components/PacksTab";
 import { Badge, Button, Card, Dialog, EmptyState, field, PageHeader, Segmented, TabBar } from "../components/ui";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
@@ -92,7 +93,7 @@ function NewMeeting({
   const [projectId, setProjectId] = useState(initial?.projectId ?? "");
   const [team, setTeam] = useState<string[]>([]);
   const [touched, setTouched] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("Personas.NewMeeting");
   const [error, setError] = useState<string>();
   const [adding, setAdding] = useState(false);
 

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api, type FixId } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { Button, CopyButton, Dialog } from "./ui";
 
 /**
@@ -28,7 +29,7 @@ export function FixButton({
   const navigate = useNavigate();
   const [plan, setPlan] = useState<{ command: string; cwd: string }>();
   const [error, setError] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState(`FixButton.${fix}.${projectId ?? ""}`, label);
   const open = () => {
     setError(undefined);
     api

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { api, type ServerFinding } from "../../lib/api";
+import { useBackground } from "../../lib/background";
 import { relativeTime } from "../../lib/format";
 import { ConfirmRun } from "./ConfirmRun";
 
@@ -16,19 +17,15 @@ const ICON = { high: "text-danger", medium: "text-warning", low: "text-fg-subtle
  */
 export function ServerSecurity({ server }: { server: ServerInfo }) {
   const { t } = useTranslation();
-  const [scan, setScan] = useState<{ findings: ServerFinding[]; unread: string[]; at: number }>();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
+  // Kept outside the page (lib/background.ts): leaving and coming back shows it still running, then its result.
+  const task = useBackground<{ findings: ServerFinding[]; unread: string[]; at: number }>(
+    `ServerSecurity.serverSecurity:${server.id}`,
+  );
+  const scan = task.result;
+  const busy = task.running;
+  const error = task.error;
   const [fixing, setFixing] = useState<ServerFinding>();
-  const run = () => {
-    setBusy(true);
-    setError(undefined);
-    void api
-      .serverSecurity(server.id)
-      .then(setScan)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setBusy(false));
-  };
+  const run = () => void task.run(() => api.serverSecurity(server.id));
   return (
     <div className="space-y-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-pad">

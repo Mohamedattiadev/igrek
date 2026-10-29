@@ -1,10 +1,12 @@
 import type { Idea, IdeaReview, IdeaStatus, ProjectListItem } from "@igrek/core";
-import { Briefcase, Lightbulb, ListFilter, Plus, Trash2 } from "lucide-react";
+import { Briefcase, Lightbulb, ListFilter, MessageSquare, Plus, SquarePlus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, EmptyState, PageHeader, Segmented } from "../components/ui";
+import { useNavigate } from "react-router";
+import { Badge, Button, Card, EmptyState, field, PageHeader, Segmented } from "../components/ui";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { deferDelete, usePendingDeletes } from "../lib/undo";
 
@@ -129,7 +131,18 @@ export function IdeasPage() {
   };
   const name = (id: string | null) => projects.find((p) => p.id === id)?.name;
   const { isPending } = usePendingDeletes();
-  const shown = ideas.filter((i) => i.status === filter && !isPending(`idea-${i.id}`));
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+  const shown = ideas.filter(
+    (i) =>
+      i.status === filter &&
+      !isPending(`idea-${i.id}`) &&
+      (!query.trim() || i.text.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())),
+  );
+  const toChat = async (idea: Idea, projectId: string) => {
+    const chat = await api.startChat({ projectId });
+    void navigate(`/c/${chat.id}?draft=${encodeURIComponent(idea.text)}`);
+  };
 
   return (
     <>
@@ -167,16 +180,25 @@ export function IdeasPage() {
         }
       />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <Segmented
-          label={t("ideas.title")}
-          value={filter}
-          onChange={setFilter}
-          options={STATUSES.map((status) => ({
-            value: status,
-            label: t(`ideas.${status}`),
-            count: ideas.filter((i) => i.status === status).length,
-          }))}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <Segmented
+            label={t("ideas.title")}
+            value={filter}
+            onChange={setFilter}
+            options={STATUSES.map((status) => ({
+              value: status,
+              label: t(`ideas.${status}`),
+              count: ideas.filter((i) => i.status === status).length,
+            }))}
+          />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("ideas.find")}
+            aria-label={t("ideas.find")}
+            className={cn(field, "min-w-48 flex-1")}
+          />
+        </div>
         {error && <p className="text-xs text-danger">{error}</p>}
         {notice && <p className="text-xs text-success">{notice}</p>}
         {review && (
@@ -203,10 +225,21 @@ export function IdeasPage() {
                     <span className="shrink-0 text-[11px] text-fg-subtle">{relativeTime(idea.createdAt)}</span>
                   </div>
                   {idea.triage && <p className="text-xs text-fg-muted">{idea.triage.note}</p>}
+                  {/* Where it belongs, then what to do with it: a chat, a card, or its state. */}
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {(idea.projectId || idea.triage) && (
-                      <Badge tone="accent">{name(idea.projectId) ?? t("ideas.noProject")}</Badge>
-                    )}
+                    <select
+                      value={idea.projectId ?? ""}
+                      onChange={(e) => void api.updateIdea(idea.id, { projectId: e.target.value || null }).then(load)}
+                      aria-label={t("ideas.project")}
+                      className={cn(field, "h-7 max-w-48 px-1.5 text-[12px]")}
+                    >
+                      <option value="">{t("ideas.noProject")}</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
                     {idea.triage && (
                       <>
                         <Badge>{t(`ideas.kind_${idea.triage.kind}`)}</Badge>
@@ -215,26 +248,46 @@ export function IdeasPage() {
                       </>
                     )}
                     <div className="flex-1" />
-                    {idea.status === "accepted" && idea.projectId && (
+                    {idea.projectId && (
                       <Button
                         size="sm"
                         variant="ghost"
+                        icon={MessageSquare}
+                        onClick={() => void toChat(idea, idea.projectId as string)}
+                      >
+                        {t("ideas.toChat")}
+                      </Button>
+                    )}
+                    {idea.projectId && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={SquarePlus}
                         onClick={async () => {
                           await api.addCard(idea.projectId as string, {
                             title: idea.text,
                             origin: t("ideas.fromIdea"),
                           });
+                          if (idea.status === "new") await api.updateIdea(idea.id, { status: "accepted" });
                           setNotice(t("ideas.onBoard", { project: name(idea.projectId) ?? "" }));
+                          load();
                         }}
                       >
                         {t("ideas.toBoard")}
                       </Button>
                     )}
-                    {STATUSES.filter((s) => s !== idea.status).map((status) => (
-                      <Button key={status} size="sm" variant="ghost" onClick={() => setStatus(idea, status)}>
-                        {t(`ideas.${status}`)}
-                      </Button>
-                    ))}
+                    <select
+                      value={idea.status}
+                      onChange={(e) => void setStatus(idea, e.target.value as IdeaStatus)}
+                      aria-label={t("ideas.status")}
+                      className={cn(field, "h-7 px-1.5 text-[12px]")}
+                    >
+                      {STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {t(`ideas.${status}`)}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
                       aria-label={t("memory.delete")}

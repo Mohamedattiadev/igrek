@@ -32,6 +32,7 @@ import { BackLink } from "../components/BackLink";
 import { FixButton } from "../components/FixButton";
 import { Badge, Button, Card, field, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
@@ -108,7 +109,7 @@ export function TestersTab() {
   const [local, setLocal] = useState(true);
   const [audience, setAudience] = useState("");
   const [drafting, setDrafting] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("Testers.TestersTab");
   const [error, setError] = useState<string>();
   const loadRuns = () => {
     api

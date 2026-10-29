@@ -10,7 +10,9 @@ import type {
   TeamUser,
 } from "@igrek/core";
 import {
+  BarChart3,
   Building2,
+  CalendarDays,
   Copy,
   Download,
   Eraser,
@@ -27,6 +29,8 @@ import {
   RefreshCw,
   ShieldCheck,
   Smartphone,
+  SquareCheckBig,
+  Sun,
   Trash2,
   UserRound,
   Users,
@@ -35,7 +39,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { TeamAvatar } from "../components/TeamAvatar";
+import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { TeamBoard } from "../components/TeamBoard";
 import {
   Badge,
@@ -45,6 +49,7 @@ import {
   EmptyState,
   field,
   PageHeader,
+  Panel,
   Section,
   Segmented,
   StatusDot,
@@ -434,6 +439,8 @@ export function Sharing() {
   const { t } = useTranslation();
   const [preview, setPreview] = useState<{ name: string; data: SharePreview }>();
   const [projects, setProjects] = useState<ProjectListItem[]>();
+  const [query, setQuery] = useState("");
+  const members = useTeamPeople().status?.members.length ?? 0;
   const load = () => {
     api
       .projects()
@@ -442,55 +449,81 @@ export function Sharing() {
   };
   useEffect(load, []);
   if (!projects) return null;
+  const shown = projects
+    .filter((p) => !p.hidden && (!query.trim() || p.name.toLowerCase().includes(query.trim().toLowerCase())))
+    .sort((a, b) => Number(b.share !== "off") - Number(a.share !== "off") || a.name.localeCompare(b.name));
+  const count = (level: ShareLevel) => projects.filter((p) => !p.hidden && p.share === level).length;
+  const all = (level: ShareLevel) =>
+    void Promise.all(shown.filter((p) => p.share !== level).map((p) => api.setShare(p.id, level))).then(load);
   return (
-    <div className="space-y-2">
-      {/* One card per project: what the team sees, said in words, with the three choices side by side. */}
-      {projects
-        .filter((p) => !p.hidden)
-        .sort((a, b) => Number(b.share !== "off") - Number(a.share !== "off") || a.name.localeCompare(b.name))
-        .map((p) => (
-          <div key={p.id} className="space-y-2 rounded-ui border border-border p-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13.5px] font-medium">{p.name}</span>
-                <span className="block truncate font-mono text-[11px] text-fg-subtle">{p.path}</span>
+    <div className="space-y-3">
+      {/* What each choice means, said once; then one line per project (a user found three cards a
+          project too much to read). */}
+      <div className="grid gap-2 sm:grid-cols-3">
+        {SHARES.map((level) => (
+          <div key={level} className="rounded-ui border border-border bg-bg-subtle px-3 py-2">
+            <p className="flex items-baseline justify-between text-[13px] font-medium">
+              {t(`team.share_${level}`)}
+              <span className="text-[12px] font-normal text-fg-subtle">
+                {t("team.shareCount", { count: count(level) })}
               </span>
-              {p.teamLinked && <Badge tone="accent">{t("team.alsoShared")}</Badge>}
-              {p.share !== "off" && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  icon={Eye}
-                  onClick={() => void api.sharePreview(p.id).then((r) => setPreview({ name: p.name, data: r }))}
-                  data-tip={t("team.previewTip")}
-                >
-                  {t("team.preview")}
-                </Button>
-              )}
-            </div>
-            <fieldset className="grid gap-2 sm:grid-cols-3" aria-label={p.name}>
-              {SHARES.map((level) => (
-                <label
-                  key={level}
-                  className={cn(
-                    "cursor-pointer rounded-ui border px-3 py-2 focus-within:ring-2 focus-within:ring-accent",
-                    p.share === level ? "border-accent bg-accent-soft" : "border-border hover:border-border-strong",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name={`share-${p.id}`}
-                    className="sr-only"
-                    checked={p.share === level}
-                    onChange={() => void api.setShare(p.id, level).then(load)}
-                  />
-                  <span className="block text-[13px] font-medium">{t(`team.share_${level}`)}</span>
-                  <span className="block text-[11.5px] leading-snug text-fg-muted">{t(`team.sees_${level}`)}</span>
-                </label>
-              ))}
-            </fieldset>
+            </p>
+            <p className="text-[11.5px] leading-snug text-fg-muted">{t(`team.sees_${level}`)}</p>
           </div>
         ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("team.shareFind")}
+          aria-label={t("team.shareFind")}
+          className={cn(field, "min-w-48 flex-1")}
+        />
+        <span className="text-[12px] text-fg-subtle">{t("team.shareAll")}</span>
+        {SHARES.map((level) => (
+          <Button key={level} size="sm" onClick={() => all(level)}>
+            {t(`team.share_${level}`)}
+          </Button>
+        ))}
+      </div>
+      {shown.length > 0 && (
+        <ul className="divide-y divide-border rounded-ui border border-border">
+          {shown.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2">
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2 text-[13px] font-medium">
+                  <span className="truncate">{p.name}</span>
+                  {p.teamLinked && <Badge tone="accent">{t("team.alsoShared")}</Badge>}
+                </span>
+                <span className="block truncate font-mono text-[11px] text-fg-subtle">{p.path}</span>
+              </span>
+              <span className="w-40 text-[12px] text-fg-muted">
+                {p.share === "off" ? t("team.seenByNobody") : t("team.seenByTeam", { count: members })}
+              </span>
+              <Segmented
+                label={p.name}
+                value={p.share}
+                onChange={(level) => void api.setShare(p.id, level).then(load)}
+                options={SHARES.map((level) => ({
+                  value: level,
+                  label: t(`team.share_${level}`),
+                  tip: t(`team.sees_${level}`),
+                }))}
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={Eye}
+                disabled={p.share === "off"}
+                onClick={() => void api.sharePreview(p.id).then((r) => setPreview({ name: p.name, data: r }))}
+                data-tip={t("team.previewTip")}
+                aria-label={t("team.preview")}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="pt-1 text-[11px] leading-relaxed text-fg-subtle">{t("team.secretsNever")}</p>
       <Dialog open={!!preview} onClose={() => setPreview(undefined)} label={t("team.preview")} wide>
         {preview && (
@@ -1014,48 +1047,45 @@ export function TeamPage() {
             }}
           />
         ) : (
-          <div className="mx-auto max-w-5xl px-6">
-            <Section title={t("chatTeam.title")} hint={t("chatTeam.hint")}>
-              <Link
-                to="/chat"
-                className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-2 text-[13px] font-medium hover:border-accent"
-              >
-                <MessagesSquare size={15} className="text-accent" aria-hidden="true" />
-                {t("teamChat.open")}
-              </Link>
-            </Section>
-            <Section title={t("team.members")} hint={t("team.membersHint")}>
-              {status.members.length ? (
-                <Members status={status} presence={presence} />
-              ) : (
-                <EmptyState icon={Users} title={t("team.noMembers")} body={t("team.noMembersBody")} />
-              )}
-            </Section>
-            <Section title={t("teamBoard.title")} hint={t("teamBoard.hint")}>
+          // The day's team on one screen: where to go, who is here, what happened today, then the
+          // board; titled cards, no wide column of hints (a user found the page loose and empty).
+          <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
+            <nav className="flex flex-wrap gap-2" aria-label={t("nav.team")}>
+              {(
+                [
+                  ["/chat", MessagesSquare, t("teamChat.open")],
+                  ["/meetings", CalendarDays, t("nav.meetings")],
+                  ["/mine", SquareCheckBig, t("nav.mine")],
+                  ["/company", Building2, t("team.toCompany")],
+                  ["/me", UserRound, t("team.toProfile")],
+                ] as const
+              ).map(([to, Icon, label]) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className="inline-flex items-center gap-2 rounded-ui border border-border bg-bg px-3 py-1.5 text-[13px] font-medium hover:border-accent"
+                >
+                  <Icon size={15} className="text-accent" aria-hidden="true" />
+                  {label}
+                </Link>
+              ))}
+            </nav>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Panel icon={Users} title={t("team.members")}>
+                {status.members.length ? (
+                  <Members status={status} presence={presence} />
+                ) : (
+                  <EmptyState icon={Users} title={t("team.noMembers")} body={t("team.noMembersBody")} />
+                )}
+              </Panel>
+              <Panel icon={Sun} title={t("person.today")}>
+                <TodayInTeam />
+              </Panel>
+            </div>
+            <Panel icon={BarChart3} title={t("teamBoard.title")}>
+              <p className="text-[12px] text-fg-subtle">{t("teamBoard.hint")}</p>
               <TeamBoard />
-            </Section>
-            <Section title={t("person.today")} hint={t("person.todayHint")}>
-              <TodayInTeam />
-            </Section>
-            {/* Running the team and one's own account have their own pages now. */}
-            <Section title={t("team.manageTitle")} hint={t("team.manageHint")}>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  to="/company"
-                  className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-2 text-[13px] font-medium hover:border-accent"
-                >
-                  <Building2 size={15} className="text-accent" aria-hidden="true" />
-                  {t("team.toCompany")}
-                </Link>
-                <Link
-                  to="/me"
-                  className="inline-flex items-center gap-2 rounded-ui border border-border px-3 py-2 text-[13px] font-medium hover:border-accent"
-                >
-                  <UserRound size={15} className="text-accent" aria-hidden="true" />
-                  {t("team.toProfile")}
-                </Link>
-              </div>
-            </Section>
+            </Panel>
           </div>
         )}
       </div>

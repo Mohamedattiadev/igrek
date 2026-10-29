@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, ChevronDown, Copy, Gauge, type LucideIcon } from "lucide-react";
-import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { type ButtonHTMLAttributes, type ReactNode, type RefObject, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
 import { BackLink } from "./BackLink";
@@ -69,6 +69,32 @@ export function Button({
 
 export function Card({ className, children }: { className?: string; children?: ReactNode }) {
   return <div className={cn("rounded-ui border border-border bg-bg", className)}>{children}</div>;
+}
+
+/** A card with a title line (an icon, the title, an action at its end): the one way a page shows a part of itself. */
+export function Panel({
+  icon: Icon,
+  title,
+  action,
+  className,
+  children,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Card className={cn("min-w-0 space-y-2 p-4", className)}>
+      <h2 className="flex items-center gap-2 text-[13.5px] font-semibold">
+        {Icon && <Icon size={15} className="text-accent" aria-hidden="true" />}
+        <span className="flex-1">{title}</span>
+        {action}
+      </h2>
+      {children}
+    </Card>
+  );
 }
 
 export function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
@@ -173,6 +199,54 @@ export function EmptyState({
       <h2 className="text-[15px] font-semibold">{title}</h2>
       <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">{body}</p>
       {action && <div className="mt-5">{action}</div>}
+    </div>
+  );
+}
+
+/** A small menu's open state: it closes on a click outside it or on Escape. */
+export function usePopover(): [
+  boolean,
+  (open: boolean | ((v: boolean) => boolean)) => void,
+  RefObject<HTMLDivElement | null>,
+] {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const esc = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    window.addEventListener("mousedown", close);
+    window.addEventListener("keydown", esc);
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+  return [open, setOpen, ref];
+}
+
+/**
+ * A button that opens a short list of more actions under it: where a page keeps what is used less,
+ * so its bar shows one or two buttons instead of eight (a user could not read the title for them).
+ */
+export function ActionsMenu({ label, children }: { label: string; children: ReactNode }) {
+  const [open, setOpen, ref] = usePopover();
+  return (
+    <div ref={ref} className="relative">
+      <Button size="sm" variant="ghost" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        {label}
+        <ChevronDown size={13} aria-hidden="true" className={cn("transition-transform", open && "rotate-180")} />
+      </Button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute end-0 top-full z-30 mt-1 flex w-64 flex-col items-stretch gap-0.5 rounded-ui border border-border bg-bg p-1 shadow-ui"
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 }

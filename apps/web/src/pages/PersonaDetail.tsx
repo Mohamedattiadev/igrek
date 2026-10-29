@@ -14,6 +14,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { Badge, Button, Card, Dialog, field, PageHeader, Section } from "../components/ui";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { sameBook } from "../lib/books";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
@@ -222,7 +223,7 @@ function Editor({
   const [timeline, setTimeline] = useState(timelineText(initial));
   const [reading, setReading] = useState(readingText(initial));
   const [error, setError] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("PersonaDetail.Editor");
   const profile = (patch: Partial<Persona["profile"]>) => setP({ ...p, profile: { ...p.profile, ...patch } });
   const save = async () => {
     setBusy(true);
@@ -581,7 +582,7 @@ export function NewPersonaPage() {
   const navigate = useNavigate();
   const [description, setDescription] = useState("");
   const [draft, setDraft] = useState<Persona>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("PersonaDetail.NewPersonaPage");
   const [error, setError] = useState<string>();
   const make = async () => {
     setBusy(true);

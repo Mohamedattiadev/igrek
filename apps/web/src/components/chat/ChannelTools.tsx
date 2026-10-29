@@ -7,6 +7,8 @@ import { relativeTime } from "../../lib/format";
 import { Button, field } from "../ui";
 import { showMessage } from "./MessageExtras";
 
+const capital = (s: string) => s.charAt(0).toLocaleUpperCase() + s.slice(1);
+
 /** Where the messages I have not read start, like WhatsApp's "Unread messages" band. */
 export function UnreadLine({ count }: { count: number }) {
   const { t } = useTranslation();
@@ -64,9 +66,7 @@ function Found({ message, onPick }: { message: ChatMessage; onPick: () => void }
     <li>
       <button type="button" onClick={onPick} className="w-full px-3 py-2 text-start hover:bg-bg-hover">
         <span className="flex items-baseline gap-2 text-[12px]">
-          <span className="inline-block font-semibold first-letter:uppercase">
-            {message.mine ? t("team.you") : message.author}
-          </span>
+          <span className="font-semibold">{message.mine ? capital(t("team.you")) : message.author}</span>
           <span className="text-fg-subtle">{relativeTime(message.at)}</span>
         </span>
         <span className="line-clamp-2 text-[13px] text-fg-muted">{message.text}</span>

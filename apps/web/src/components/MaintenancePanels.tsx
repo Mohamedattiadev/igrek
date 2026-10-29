@@ -3,6 +3,7 @@ import { Download, RefreshCw, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, request } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useSettings } from "../lib/settings";
@@ -16,7 +17,7 @@ export function BackupPanel() {
   const [password, setPassword] = useState("");
   const [importPassword, setImportPassword] = useState("");
   const [note, setNote] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("MaintenancePanels.BackupPanel");
   const input = useRef<HTMLInputElement>(null);
   const download = async () => {
     setBusy(true);
@@ -92,7 +93,7 @@ export function MovePanel() {
   const { t } = useTranslation();
   const [password, setPassword] = useState("");
   const [note, setNote] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("MaintenancePanels.MovePanel");
   const [waiting, setWaiting] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -673,7 +674,7 @@ export function DiskPanel() {
     prunable: number;
   }>();
   const [note, setNote] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("MaintenancePanels.DiskPanel");
   const load = useCallback(
     () =>
       void request<typeof usage>("/api/disk")

@@ -170,7 +170,8 @@ function Row({ s, projectName }: { s: Schedule; projectName?: string }) {
 }
 
 /** Scheduled work (plan.md Faz 9): say it in a sentence, it runs on time, the result waits for you. */
-export function SchedulesPage() {
+/** `embedded`: inside the Tools page, under its own title. */
+export function SchedulesPage({ embedded }: { embedded?: boolean } = {}) {
   const { t } = useTranslation();
   const projects = useProjects();
   const [list, setList] = useState<Schedule[]>([]);
@@ -204,8 +205,8 @@ export function SchedulesPage() {
   };
   return (
     <>
-      <PageHeader title={t("schedules.title")} />
-      <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
+      {!embedded && <PageHeader title={t("schedules.title")} />}
+      <div className={embedded ? "space-y-4" : "mx-auto w-full max-w-4xl space-y-4 p-6"}>
         <p className="text-[13px] leading-relaxed text-fg-muted">{t("schedules.intro")}</p>
         <Card className="space-y-2 p-pad">
           <div className="flex flex-wrap gap-2">

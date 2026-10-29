@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card } from "../../components/ui";
 import { api, type ServerPort } from "../../lib/api";
+import { useBackground } from "../../lib/background";
 import { relativeTime } from "../../lib/format";
 import { ConfirmRun } from "./ConfirmRun";
 
@@ -16,19 +17,16 @@ type Change = { action: "open" | "close" | "forget"; port: number; proto: string
  */
 export function ServerPorts({ server }: { server: ServerInfo }) {
   const { t } = useTranslation();
-  const [data, setData] = useState<{ ports: ServerPort[]; firewall: string; at: number }>();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
+  // Kept outside the page: leaving and coming back shows the scan still running, then its result.
+  const scan = useBackground<{ ports: ServerPort[]; firewall: string; at: number }>(
+    `ports:${server.id}`,
+    t("serverPorts.task", { server: server.name }),
+  );
+  const data = scan.result;
+  const busy = scan.running;
+  const error = scan.error;
   const [change, setChange] = useState<Change>();
-  const load = () => {
-    setBusy(true);
-    setError(undefined);
-    void api
-      .serverPorts(server.id)
-      .then(setData)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setBusy(false));
-  };
+  const load = () => void scan.run(() => api.serverPorts(server.id));
   const ssh = server.port ?? 22;
   const command = change ? { open: "ufw allow", close: "ufw deny", forget: "ufw delete allow" }[change.action] : "";
   return (

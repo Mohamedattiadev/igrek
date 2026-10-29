@@ -1,37 +1,15 @@
 import { healthOf, isOpen, isOverdue, newCard, type OrgCard, type ProjectGlance, phaseOf } from "@igrek/core";
-import { type Activity, ExternalLink, FileText, MousePointerClick, Radio, ShieldAlert, Sparkles } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { ExternalLink, FileText, MousePointerClick, Radio, ShieldAlert, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
-import { Badge, Button, Card, field } from "../ui";
+import { Badge, Button, Card, field, Panel } from "../ui";
 import { nameOf, type OrgApi, type OrgView, teamName } from "./api";
 import { CardDetail, NewCard } from "./OrgCards";
 
 const box = cn(field, "w-full");
 const RISK = { low: "success", medium: "warning", high: "danger" } as const;
-
-function Panel({
-  icon: Icon,
-  title,
-  children,
-  action,
-}: {
-  icon: typeof Activity;
-  title: string;
-  children: ReactNode;
-  action?: ReactNode;
-}) {
-  return (
-    <Card className="min-w-0 space-y-2 p-4">
-      <h2 className="flex items-center gap-2 text-[13.5px] font-semibold">
-        <Icon size={15} className="text-accent" aria-hidden="true" /> <span className="flex-1">{title}</span>
-        {action}
-      </h2>
-      {children}
-    </Card>
-  );
-}
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "danger" | "warning" }) {
   return (

@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRightLeft,
   Bot,
+  ChevronUp,
   Eye,
   EyeOff,
   FileText,
@@ -29,12 +30,14 @@ import { Comments } from "../components/Comments";
 import { ShareToChat } from "../components/chat/ShareToChat";
 import { ElsewhereButton } from "../components/Handoff";
 import { Replay } from "../components/Replay";
+import { SessionBot } from "../components/SessionBot";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { TeamText } from "../components/TeamText";
 import { Term } from "../components/Term";
-import { Badge, Button, Card, EmptyState, field } from "../components/ui";
+import { ActionsMenu, Badge, Button, Card, EmptyState, field } from "../components/ui";
 import { ActiveDot, ContextBar, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { compactNumber, dateTime, mainModel, modelName, relativeTime } from "../lib/format";
 import { learnApi } from "../lib/learn-api";
@@ -85,6 +88,9 @@ function Message({ message }: { message: TranscriptMessage }) {
   );
 }
 
+/** How many of a chat's messages show before "show earlier". */
+const LAST = 12;
+
 function ResumeButtons({ session }: { session: SessionDetail }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -102,53 +108,56 @@ function ResumeButtons({ session }: { session: SessionDetail }) {
     <div className="flex items-center gap-1">
       {error && <span className="me-2 text-xs text-danger">{error}</span>}
       <ShareToChat session={session} />
-      <ElsewhereButton session={session} />
-      <Button
-        size="sm"
-        variant="ghost"
-        icon={RotateCcw}
-        title={t("term.freshHint")}
-        onClick={() => open(() => api.handoff(session.id))}
-      >
-        <span className="hidden lg:inline">{t("term.fresh")}</span>
-      </Button>
-      {(["claude", "codex"] as const)
-        .filter((tool) => tool !== session.tool)
-        .map((tool) => (
+      {/* The ways to carry on elsewhere, used now and then: one menu, so the title has room. */}
+      <ActionsMenu label={t("session.moreActions")}>
+        <ElsewhereButton session={session} />
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={RotateCcw}
+          title={t("term.freshHint")}
+          onClick={() => open(() => api.handoff(session.id))}
+        >
+          <span className="hidden lg:inline">{t("term.fresh")}</span>
+        </Button>
+        {(["claude", "codex"] as const)
+          .filter((tool) => tool !== session.tool)
+          .map((tool) => (
+            <Button
+              key={tool}
+              size="sm"
+              variant="ghost"
+              icon={ArrowRightLeft}
+              title={t("term.handToHint", { tool: t(`term.${tool}`) })}
+              onClick={() => open(() => api.handoff(session.id, tool))}
+            >
+              <span className="hidden xl:inline">{t("term.handTo", { tool: t(`term.${tool}`) })}</span>
+            </Button>
+          ))}
+        {capabilitiesOf(session.tool).fork && (
           <Button
-            key={tool}
             size="sm"
             variant="ghost"
-            icon={ArrowRightLeft}
-            title={t("term.handToHint", { tool: t(`term.${tool}`) })}
-            onClick={() => open(() => api.handoff(session.id, tool))}
+            icon={GitFork}
+            title={t("term.forkHint")}
+            onClick={() =>
+              open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id, fork: true }))
+            }
           >
-            <span className="hidden xl:inline">{t("term.handTo", { tool: t(`term.${tool}`) })}</span>
+            <span className="hidden lg:inline">{t("term.fork")}</span>
           </Button>
-        ))}
-      {capabilitiesOf(session.tool).fork && (
-        <Button
-          size="sm"
-          variant="ghost"
-          icon={GitFork}
-          title={t("term.forkHint")}
-          onClick={() =>
-            open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id, fork: true }))
-          }
-        >
-          <span className="hidden lg:inline">{t("term.fork")}</span>
-        </Button>
-      )}
-      {capabilitiesOf(session.tool).resume && (
-        <Button
-          size="sm"
-          variant="ghost"
-          icon={Play}
-          onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id }))}
-        >
-          <span className="hidden lg:inline">{t("chat.openInTerminal")}</span>
-        </Button>
-      )}
+        )}
+        {capabilitiesOf(session.tool).resume && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={Play}
+            onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id }))}
+          >
+            <span className="hidden lg:inline">{t("chat.openInTerminal")}</span>
+          </Button>
+        )}
+      </ActionsMenu>
       {capabilitiesOf(session.tool).chat && (
         <Button
           size="sm"
@@ -324,7 +333,8 @@ export function SessionPage() {
   const { projectId = "", sessionId = "" } = useParams();
   const [showTools, setShowTools] = useState(false);
   const [replay, setReplay] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [all, setAll] = useState(false);
+  const [busy, setBusy] = useBusyState("Session.SessionPage");
   const [summaryError, setSummaryError] = useState<string>();
   const {
     data: session,
@@ -374,12 +384,13 @@ export function SessionPage() {
 
   return (
     <>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-6">
+      <header className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-border px-6 py-2">
         <BackLink to={`/p/${projectId}`} className="text-fg-subtle hover:text-fg" aria-label={t("nav.projects")}>
           <ArrowLeft size={16} className="rtl:rotate-180" />
         </BackLink>
         {session && <ActiveDot active={session.active} />}
-        <h1 className="min-w-0 flex-1 truncate text-[14px] font-semibold">
+        {/* The whole title, on two lines if it needs them: it was cut to one letter beside the buttons. */}
+        <h1 className="line-clamp-2 min-w-48 flex-1 text-[14px] font-semibold leading-snug">
           {session?.authorId ? (
             <TeamText text={session.summary?.title || session.title || "…"} authorId={session.authorId} />
           ) : (
@@ -444,8 +455,14 @@ export function SessionPage() {
               {session.messages.length >= 400 && (
                 <p className="border-b border-border px-pad py-2 text-xs text-fg-subtle">{t("session.older")}</p>
               )}
+              {/* The last few messages; the rest one click away (a user scrolled far for little). */}
               <div className={replay ? "hidden" : "space-y-4 p-pad"}>
-                {messages.map((message) => (
+                {!all && messages.length > LAST && (
+                  <Button size="sm" variant="ghost" icon={ChevronUp} onClick={() => setAll(true)}>
+                    {t("session.showEarlier", { count: messages.length - LAST })}
+                  </Button>
+                )}
+                {(all ? messages : messages.slice(-LAST)).map((message) => (
                   <Message key={message.id} message={message} />
                 ))}
               </div>
@@ -454,6 +471,7 @@ export function SessionPage() {
 
           <div className="space-y-4">
             <HealthCard session={session} />
+            <SessionBot session={session} />
             <TeamActions session={session} />
             {!session.author && (
               <Card className="flex items-center gap-3 p-pad">
@@ -485,24 +503,6 @@ export function SessionPage() {
                 label={t("session.tokens")}
                 value={compactNumber(session.tokens.input + session.tokens.cacheRead + session.tokens.output)}
               />
-            </Card>
-            <Card className="space-y-2 p-pad">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("session.inView")}</h3>
-              <p className={cn("text-xs", session.inView.memoryInjected ? "text-success" : "text-fg-muted")}>
-                {session.inView.memoryInjected ? t("session.memoryOn") : t("session.memoryOff")}
-              </p>
-              {session.inView.recentFiles.length > 0 && (
-                <>
-                  <p className="text-[11px] text-fg-subtle">{t("session.inViewHint")}</p>
-                  <ul className="space-y-0.5">
-                    {session.inView.recentFiles.map((file) => (
-                      <li key={file} className="truncate font-mono text-[11px] text-fg-muted" title={file}>
-                        {session.cwd && file.startsWith(session.cwd) ? file.slice(session.cwd.length + 1) : file}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
             </Card>
             {session.mentionedMissing.length > 0 && (
               <Card className="space-y-2 border-warning p-pad">

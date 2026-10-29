@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { useTeamPeople } from "../components/TeamAvatar";
-import { Card, Dialog, EmptyState, PageHeader, Section, Segmented, TabBar } from "../components/ui";
+import { Card, Dialog, EmptyState, PageHeader, Segmented, TabBar } from "../components/ui";
 import { api } from "../lib/api";
 import { useServerEvent } from "../lib/live";
 import { useSettings } from "../lib/settings";
@@ -102,9 +102,10 @@ export function CompanyPage() {
           {tab === "work" && <CompanyWork />}
           {tab === "rules" && <CompanyRules />}
           {tab === "sharing" && (
-            <Section title={t("team.sharing")} hint={t("team.sharingHint")}>
+            <div className="space-y-3">
+              <p className="text-[13px] text-fg-muted">{t("team.sharingHint")}</p>
               <Sharing />
-            </Section>
+            </div>
           )}
           {me && (tab === "people" || tab === "audit" || tab === "hub") && (
             <AdminPanel me={me.id} part={tab} onRecovery={setRecovery} />

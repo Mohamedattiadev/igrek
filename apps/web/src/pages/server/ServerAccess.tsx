@@ -1,10 +1,10 @@
 import type { ServerInfo } from "@igrek/core";
 import type { TFunction } from "i18next";
 import { KeyRound, LogIn, ShieldAlert, ShieldX, TerminalSquare, Users } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { type ServerAccess as Access, api } from "../../lib/api";
+import { useBackground } from "../../lib/background";
 import { dateTime, relativeTime } from "../../lib/format";
 import { duration } from "../tools/Time";
 
@@ -68,18 +68,12 @@ function WeekSummary({ report }: { report: Access }) {
  */
 export function ServerAccess({ server }: { server: ServerInfo }) {
   const { t } = useTranslation();
-  const [report, setReport] = useState<Access>();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
-  const load = () => {
-    setBusy(true);
-    setError(undefined);
-    void api
-      .serverAccess(server.id)
-      .then(setReport)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setBusy(false));
-  };
+  // Kept outside the page (lib/background.ts): leaving and coming back shows it still running, then its result.
+  const task = useBackground<Access>(`ServerAccess.serverAccess:${server.id}`);
+  const report = task.result;
+  const busy = task.running;
+  const error = task.error;
+  const load = () => void task.run(() => api.serverAccess(server.id));
   return (
     <div className="space-y-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-pad">

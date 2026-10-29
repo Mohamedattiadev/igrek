@@ -1,10 +1,36 @@
 import type { Account, AiTool, LimitsOverview, MonthlyReport, RateLimitInfo, UsageBucket } from "@igrek/core";
-import { AlertTriangle, CheckCircle2, Download, Gauge, LogIn, Plus, RefreshCw, Trash2, User } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  Bot,
+  CheckCircle2,
+  Cpu,
+  Download,
+  FolderKanban,
+  Gauge,
+  LogIn,
+  MessagesSquare,
+  Plus,
+  RefreshCw,
+  Trash2,
+  User,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { Term } from "../components/Term";
-import { Badge, Button, Card, Dialog, EmptyState, field, PageHeader, Section, Segmented } from "../components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  Dialog,
+  EmptyState,
+  field,
+  PageHeader,
+  Panel,
+  Section,
+  Segmented,
+} from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, modelName, relativeTime } from "../lib/format";
@@ -419,13 +445,10 @@ function JobsCard() {
   }, []);
   if (!week?.kinds.length) return null;
   return (
-    <Card className="space-y-3 p-pad">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.jobsTitle")}</h3>
-        <span className="text-xs text-fg-muted">
-          {t("limits.jobsTotal", { tokens: compactNumber(week.tokens), saved: compactNumber(week.saved) })}
-        </span>
-      </div>
+    <Panel icon={Bot} title={t("limits.jobsTitle")} className="shrink-0 lg:w-80">
+      <p className="text-[12px] text-fg-muted">
+        {t("limits.jobsTotal", { tokens: compactNumber(week.tokens), saved: compactNumber(week.saved) })}
+      </p>
       <ul className="divide-y divide-border text-[12.5px]">
         {week.kinds.slice(0, 8).map((k) => (
           <li key={k.kind} className="flex items-center gap-3 py-1.5">
@@ -439,7 +462,7 @@ function JobsCard() {
         ))}
       </ul>
       <p className="text-[11.5px] text-fg-subtle">{t("limits.jobsHint")}</p>
-    </Card>
+    </Panel>
   );
 }
 
@@ -562,47 +585,57 @@ export function LimitsPage() {
   useServerEvent("limits-changed", load);
   useServerEvent("accounts-changed", load);
   const accounts = useMemo(() => data?.accounts ?? [], [data]);
+  const shown = accounts.filter((a) => a.provider === "claude" || a.rateLimit);
+  const limited = shown.filter((a) => a.rateLimit);
+  const unknown = shown.filter((a) => !a.rateLimit);
 
   return (
     <>
       <PageHeader title={t("limits.title")} />
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
         <p className="text-[13px] text-fg-muted">{t("limits.subtitle")}</p>
+        {/* Accounts with limits as cards side by side; one with nothing known yet is a line, not an
+            empty card (a user found the page loose). */}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {accounts
-            .filter((a) => a.provider === "claude" || a.rateLimit)
-            .map((account) => (
-              <AccountLimits key={account.id} account={account} />
-            ))}
+          {limited.map((account) => (
+            <AccountLimits key={account.id} account={account} />
+          ))}
         </div>
-        <JobsCard />
+        {unknown.length > 0 && (
+          <p className="text-[12px] text-fg-subtle">
+            {t("limits.noDataFor", { names: unknown.map((a) => a.label).join(", ") })}
+          </p>
+        )}
         {data && data.total === 0 && (
           <EmptyState icon={Gauge} title={t("limits.emptyTitle")} body={t("limits.emptyBody")} />
         )}
         {data && data.total > 0 && (
           <>
-            <Card className="space-y-3 p-pad">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.days")}</h3>
-                <span className="text-xs text-fg-muted" title={t("limits.tokensHint")}>
-                  {t("limits.total", { tokens: compactNumber(data.total) })}
-                </span>
-              </div>
-              <DaysChart data={data} />
-            </Card>
+            {/* Side by side when there are Igrek's own jobs to show; the chart alone takes the width. */}
+            <div className="flex flex-col gap-4 lg:flex-row">
+              <Panel
+                icon={BarChart3}
+                title={t("limits.days")}
+                className="flex-1"
+                action={
+                  <span className="text-[12px] font-normal text-fg-muted" title={t("limits.tokensHint")}>
+                    {t("limits.total", { tokens: compactNumber(data.total) })}
+                  </span>
+                }
+              >
+                <DaysChart data={data} />
+              </Panel>
+              <JobsCard />
+            </div>
             <div className="grid gap-4 lg:grid-cols-3">
-              <Card className="space-y-3 p-pad">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.projects")}</h3>
+              <Panel icon={FolderKanban} title={t("limits.projects")}>
                 <Bars items={data.projects} link={(item) => (item.key ? `/p/${item.key}` : undefined)} />
-              </Card>
-              <Card className="space-y-3 p-pad">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.models")}</h3>
+              </Panel>
+              <Panel icon={Cpu} title={t("limits.models")}>
                 <Bars items={data.models} format={modelName} />
                 {data.personas.length > 0 && (
                   <>
-                    <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
-                      {t("limits.personas")}
-                    </h3>
+                    <h3 className="pt-2 text-[12px] font-semibold text-fg-muted">{t("limits.personas")}</h3>
                     <Bars
                       items={data.personas}
                       format={(id) =>
@@ -615,18 +648,15 @@ export function LimitsPage() {
                     />
                   </>
                 )}
-                <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
-                  {t("limits.hours")}
-                </h3>
+                <h3 className="pt-2 text-[12px] font-semibold text-fg-muted">{t("limits.hours")}</h3>
                 <HoursChart hours={data.hours} />
-              </Card>
-              <Card className="space-y-3 p-pad">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.sessions")}</h3>
+              </Panel>
+              <Panel icon={MessagesSquare} title={t("limits.sessions")}>
                 <Bars
                   items={data.sessions}
                   link={(item) => (item.projectId ? `/p/${item.projectId}/s/${item.key}` : undefined)}
                 />
-              </Card>
+              </Panel>
             </div>
             <MonthlyCard />
             <p className="text-[11px] text-fg-subtle">{t("limits.tokensHint")}</p>

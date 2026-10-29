@@ -67,6 +67,7 @@ const router = createBrowserRouter([
       { path: "mine", ...page(() => import("./pages/MinePage"), "MinePage") },
       { path: "company", ...page(() => import("./pages/CompanyPage"), "CompanyPage") },
       { path: "org", ...page(() => import("./pages/Org"), "Org") },
+      { path: "meetings", ...page(() => import("./pages/Org"), "Org") },
       { path: "me", ...page(() => import("./pages/ProfilePage"), "ProfilePage") },
       { path: "team/:userId", ...page(() => import("./pages/Person"), "PersonPage") },
       { path: "settings", ...page(() => import("./pages/Settings"), "SettingsPage") },

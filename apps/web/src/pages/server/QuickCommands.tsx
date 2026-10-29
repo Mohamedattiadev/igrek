@@ -1,9 +1,9 @@
 import type { RemoteRun, ServerInfo } from "@igrek/core";
 import { Activity, Container, HardDrive, type LucideIcon, Network, ScrollText, ShieldCheck } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "../../components/ui";
 import { api } from "../../lib/api";
+import { runInBackground, useBackgroundTasks } from "../../lib/background";
 
 /** Read-only commands people reach for first, grouped; each says in words what it shows. */
 const GROUPS: { id: string; icon: LucideIcon; commands: { id: string; command: string }[] }[] = [
@@ -64,17 +64,14 @@ const GROUPS: { id: string; icon: LucideIcon; commands: { id: string; command: s
  */
 export function QuickCommands({ server, onRan }: { server: ServerInfo; onRan: (run: RemoteRun) => void }) {
   const { t } = useTranslation();
-  const [busy, setBusy] = useState<string>();
-  const [error, setError] = useState<string>();
-  const run = (id: string, command: string) => {
-    setBusy(id);
-    setError(undefined);
-    void api
-      .runOnServer(server.id, command, 0)
+  // In the background store: the click's command keeps running, and shows as such, if the page is left.
+  const task = useBackgroundTasks().find((x) => x.key === `cmd:${server.id}`);
+  const busy = task?.status === "running" ? task.label : undefined;
+  const error = task?.status === "failed" ? task.error : undefined;
+  const run = (id: string, command: string) =>
+    void runInBackground(`cmd:${server.id}`, t(`quickCmd.${id}`), () => api.runOnServer(server.id, command, 0))
       .then(onRan)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setBusy(undefined));
-  };
+      .catch(() => undefined);
   return (
     <Card className="space-y-3 p-pad">
       <div>
@@ -97,7 +94,9 @@ export function QuickCommands({ server, onRan }: { server: ServerInfo; onRan: (r
                 className="block w-full rounded-ui border border-border px-2.5 py-1.5 text-start hover:border-accent disabled:opacity-60"
               >
                 <span className="flex items-center gap-1.5 text-[12.5px] font-medium">
-                  {busy === c.id && <ScrollText size={12} className="animate-pulse text-accent" aria-hidden="true" />}
+                  {busy === t(`quickCmd.${c.id}`) && (
+                    <ScrollText size={12} className="animate-pulse text-accent" aria-hidden="true" />
+                  )}
                   {t(`quickCmd.${c.id}`)}
                 </span>
                 <span className="block text-[11.5px] text-fg-subtle">{t(`quickCmd.${c.id}_hint`)}</span>

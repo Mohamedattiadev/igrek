@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, RefreshCw, Sunrise, Volume2, VolumeX } from 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { Button } from "./ui";
 
 /** The morning briefing (plan.md 11): yesterday, today, where it's stuck; can be read aloud by the browser. */
@@ -10,7 +11,7 @@ export function BriefingCard() {
   const { t, i18n } = useTranslation();
   const [briefing, setBriefing] = useState<Briefing | null>();
   const [open, setOpen] = useState(() => new Date().getHours() < 12);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("BriefingCard.BriefingCard");
   const [speaking, setSpeaking] = useState(false);
   const [error, setError] = useState<string>();
   useEffect(() => {

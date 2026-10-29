@@ -1,6 +1,18 @@
 import type { CommandRisk, DeployRecord, RemoteRun, ServerInfo, ServerTag } from "@igrek/core";
-import { ArrowLeft, Bot, Download, Plus, RefreshCw, Rocket, Server, SquareTerminal, Trash2, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  Bot,
+  Download,
+  Plus,
+  RefreshCw,
+  Rocket,
+  Server,
+  SquareTerminal,
+  Trash2,
+  User,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
@@ -19,6 +31,7 @@ import {
   TabBar,
 } from "../components/ui";
 import { api } from "../lib/api";
+import { useBackground } from "../lib/background";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
@@ -451,6 +464,15 @@ function ServerCommands({ server }: { server: ServerInfo }) {
   const { t } = useTranslation();
   const [audit, setAudit] = useState<RemoteRun[]>([]);
   const [selected, setSelected] = useState<RemoteRun>();
+  // A quick command finished while this page was closed: its output opens on coming back, once.
+  const quick = useBackground<RemoteRun>(`cmd:${server.id}`);
+  const shownRun = useRef<string>(undefined);
+  useEffect(() => {
+    if (quick.result && shownRun.current !== quick.result.id) {
+      shownRun.current = quick.result.id;
+      setSelected(quick.result);
+    }
+  }, [quick.result]);
   const loadAudit = () => {
     api
       .serverAudit(server.id)
@@ -474,19 +496,30 @@ function ServerCommands({ server }: { server: ServerInfo }) {
           loadAudit();
         }}
       />
-      {selected && (
-        <Card>
-          <div className="flex items-center gap-2 border-b border-border px-pad py-2 text-xs">
-            <span className="font-semibold uppercase tracking-wide text-fg-subtle">{t("servers.output")}</span>
-            <RiskBadge risk={selected.risk} />
-            <Badge tone={selected.exitCode === 0 ? "success" : "danger"}>exit {selected.exitCode}</Badge>
-            <span className="ms-auto font-mono text-fg-subtle">{selected.durationMs} ms</span>
+      {/* The output opens over the page, where the click was: it used to land at the bottom,
+          under the command list (a user had to scroll down to see what a click did). */}
+      <Dialog open={!!selected} onClose={() => setSelected(undefined)} label={t("servers.output")} wide>
+        {selected && (
+          <div>
+            <div className="flex items-center gap-2 border-b border-border px-pad py-2.5 text-xs">
+              <code className="min-w-0 flex-1 truncate font-mono text-[12px]">{selected.command}</code>
+              <RiskBadge risk={selected.risk} />
+              <Badge tone={selected.exitCode === 0 ? "success" : "danger"}>exit {selected.exitCode}</Badge>
+              <span className="font-mono text-fg-subtle">{selected.durationMs} ms</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={X}
+                onClick={() => setSelected(undefined)}
+                aria-label={t("helper.close")}
+              />
+            </div>
+            <pre className="max-h-[65vh] overflow-auto p-pad font-mono text-[12px] leading-relaxed">
+              {selected.output || "—"}
+            </pre>
           </div>
-          <pre className="max-h-[50vh] overflow-auto p-pad font-mono text-[12px] leading-relaxed">
-            {selected.output || "—"}
-          </pre>
-        </Card>
-      )}
+        )}
+      </Dialog>
       <Card>
         <h3 className="border-b border-border px-pad py-2.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
           {t("servers.audit")}
@@ -526,7 +559,8 @@ export function ServerPage() {
   const { serverId = "" } = useParams();
   const servers = useServers();
   const server = servers?.find((s) => s.id === serverId);
-  const [checking, setChecking] = useState(false);
+  const check = useBackground(`check:${serverId}`, t("servers.checkTask", { server: server?.name ?? "" }));
+  const checking = check.running;
   const [params, setParams] = useSearchParams();
   const tab = (TABS.find((v) => v === params.get("tab")) ?? "overview") as (typeof TABS)[number];
 
@@ -550,11 +584,7 @@ export function ServerPage() {
           variant="ghost"
           icon={RefreshCw}
           disabled={checking}
-          onClick={async () => {
-            setChecking(true);
-            await api.checkServer(server.id).catch(() => undefined);
-            setChecking(false);
-          }}
+          onClick={() => void check.run(() => api.checkServer(server.id))}
         >
           {checking ? t("servers.checking") : t("servers.check")}
         </Button>

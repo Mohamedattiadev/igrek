@@ -90,7 +90,7 @@ export function TeamTimeline() {
   const shown = (items ?? []).filter((i) => !who || (who === "me" ? i.mine : i.who === who));
   const days = [...new Set(shown.map((i) => dayOf(i.at, i18n.language)))];
   return (
-    <section className="flex min-w-0 flex-1 flex-col">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
       <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border px-4">
         <h1 className="flex items-center gap-1.5 text-[14px] font-semibold">
           <Activity size={15} className="text-fg-subtle" aria-hidden="true" />

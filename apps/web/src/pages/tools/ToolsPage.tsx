@@ -1,9 +1,12 @@
 import type { PluginInfo } from "@igrek/core";
 import type { LucideIcon } from "lucide-react";
 import {
+  BookMarked,
+  CalendarClock,
   CalendarDays,
   CircleDollarSign,
   Clock,
+  Compass,
   Container,
   Database,
   Globe,
@@ -22,6 +25,8 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { PageHeader, Segmented, TabBar } from "../../components/ui";
 import { pluginApi } from "../../lib/ops-api";
+import { PromptsPage } from "../Prompts";
+import { SchedulesPage } from "../SchedulesPage";
 import { BackupsTab } from "./Backups";
 import { CalendarTab } from "./Calendar";
 import { CostsTab } from "./Costs";
@@ -33,10 +38,14 @@ import { PluginFrame, PluginsTab } from "./Plugins";
 import { ReaTab } from "./Rea";
 import { SkillsTab } from "./Skills";
 import { TimeTab } from "./Time";
+import { ToolsStart } from "./ToolsStart";
 import { DomainsTab, UptimeTab } from "./Uptime";
 import { VaultTab } from "./Vault";
 
 const TOOL_TABS: { key: string; icon: LucideIcon }[] = [
+  // Scheduled work and prompts are tools too (a user looked for them here).
+  { key: "schedules", icon: CalendarClock },
+  { key: "prompts", icon: BookMarked },
   { key: "uptime", icon: Radio },
   { key: "domains", icon: Globe },
   { key: "docker", icon: Container },
@@ -54,6 +63,8 @@ const TOOL_TABS: { key: string; icon: LucideIcon }[] = [
 ];
 
 const TABS: Record<string, () => React.ReactNode> = {
+  schedules: () => <SchedulesPage embedded />,
+  prompts: () => <PromptsPage embedded />,
   uptime: () => <UptimeTab />,
   domains: () => <DomainsTab />,
   docker: () => <DockerTab />,
@@ -89,8 +100,9 @@ export function ToolsPage() {
       .filter((x) => x.place === "tools")
       .map((x) => ({ key: `plugin:${p.id}:${x.id}`, title: x.title, plugin: p, entry: x.entry })),
   );
-  const asked = params.get("tab") ?? "uptime";
-  const tab = TOOL_TABS.some((x) => x.key === asked) || pluginTabs.some((x) => x.key === asked) ? asked : "uptime";
+  // The page opens on "Start": a box to say what you want and every tool with what it is for.
+  const asked = params.get("tab") ?? "start";
+  const tab = TOOL_TABS.some((x) => x.key === asked) || pluginTabs.some((x) => x.key === asked) ? asked : "start";
   const pluginTab = pluginTabs.find((x) => x.key === tab);
   return (
     <>
@@ -103,13 +115,16 @@ export function ToolsPage() {
           wrap
           onChange={(key) => setParams({ tab: key })}
           options={[
+            { value: "start", label: t("suite.start"), icon: Compass },
             ...TOOL_TABS.map(({ key, icon }) => ({ value: key as string, label: t(`suite.${key}`), icon })),
             ...pluginTabs.map((x) => ({ value: x.key, label: x.title, icon: Puzzle })),
           ]}
         />
       </TabBar>
       <div className="mx-auto w-full max-w-6xl p-6">
-        {pluginTab ? (
+        {tab === "start" ? (
+          <ToolsStart tools={TOOL_TABS} onOpen={(key) => setParams({ tab: key })} />
+        ) : pluginTab ? (
           <PluginFrame key={pluginTab.key} plugin={pluginTab.plugin} entry={pluginTab.entry} />
         ) : tab === "plugins" ? (
           <PluginsTab onChange={loadPlugins} />

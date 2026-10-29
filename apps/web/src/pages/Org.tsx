@@ -1,6 +1,6 @@
 import type { TimelineItem } from "@igrek/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { CallTransport } from "../components/meet/call";
 import type { OrgApi, OrgView } from "../components/org/api";
 import { OrgPage } from "../components/org/OrgPage";
@@ -28,6 +28,7 @@ const post = <T,>(path: string, body: unknown) => request<T>(path, { method: "PO
  * teams; this page reads them and writes back through it. The hub's web page shows the same page.
  */
 export function Org() {
+  const { pathname } = useLocation();
   const [view, setView] = useState<OrgView>();
   const [hubUrl, setHubUrl] = useState<string>();
   const [sfu, setSfu] = useState(false);
@@ -50,7 +51,7 @@ export function Org() {
       current = false;
     };
   }, []);
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const navigate = useNavigate();
   const load = useCallback(() => {
     let current = true;
@@ -99,9 +100,11 @@ export function Org() {
     <div className="flex h-full flex-col overflow-y-auto">
       <OrgPage
         api={api}
+        // Meetings have their own place in the strip (a user could not find them as a tab here).
         tab={params.get("tab") ?? undefined}
+        only={pathname === "/meetings" ? "meetings" : undefined}
         meeting={params.get("meet") ?? undefined}
-        onTab={(tab) => setParams({ tab }, { replace: true })}
+        onTab={(tab) => void navigate(tab === "meetings" ? "/meetings" : `/org?tab=${tab}`, { replace: true })}
       />
     </div>
   );

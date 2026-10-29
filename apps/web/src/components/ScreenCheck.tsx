@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { relativeTime } from "../lib/format";
 import { Button, Card, Dialog } from "./ui";
 
@@ -94,7 +95,7 @@ export function ScreenCheckCard({
   const [, setParams] = useSearchParams();
   const [audits, setAudits] = useState<UiAudit[]>([]);
   const [running, setRunning] = useState<boolean>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("ScreenCheck.ScreenCheckCard");
   const [error, setError] = useState<string>();
   const [big, setBig] = useState<string>();
   // biome-ignore lint/correctness/useExhaustiveDependencies: again after each check

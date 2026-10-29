@@ -36,6 +36,7 @@ import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
 import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
+import { BackgroundChip } from "./BackgroundChip";
 import { CodingQuestion } from "./CodingQuestion";
 import { ExtensionPairPrompt } from "./ExtensionPairPrompt";
 import { Helper } from "./Helper";
@@ -577,6 +578,7 @@ function TopBar({
       </button>
       <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
         <UpdateChip version={update} />
+        <BackgroundChip />
         <SyncChip />
         <span data-tour="account" className="flex">
           <AccountChip />

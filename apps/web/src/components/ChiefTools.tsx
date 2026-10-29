@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { Button, Dialog, field } from "./ui";
 
@@ -81,7 +82,7 @@ function Phone({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const [status, setStatus] = useState<TelegramStatus>();
   const [token, setToken] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("ChiefTools.Phone");
   const [error, setError] = useState<string>();
   const run = async (action: () => Promise<TelegramStatus>) => {
     setBusy(true);

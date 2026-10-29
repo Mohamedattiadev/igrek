@@ -38,11 +38,10 @@ import { Link, useNavigate } from "react-router";
 import { ApprovalCard } from "../components/ApprovalCard";
 import { ChatPill, needsYou } from "../components/ChatPill";
 import { TeamText } from "../components/TeamText";
-import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, EmptyState, PageHeader, Panel, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { shownTitle } from "../lib/chat";
-import { cn } from "../lib/cn";
-import { relativeTime } from "../lib/format";
+import { dateTime, relativeTime } from "../lib/format";
 import { useApprovals, useChats, useLiveData, useTerminals } from "../lib/live";
 import { isSnoozed, snooze } from "../lib/snooze";
 import { TerminalStatus } from "./Terminals";
@@ -171,10 +170,13 @@ function Notices({
   notices,
   onLater,
   onDone,
+  onFocus,
 }: {
   notices: InboxNotice[];
   onLater: (id: string) => void;
   onDone: (ids: string[]) => void;
+  /** The notice pointed at, for the card beside the list. */
+  onFocus: (n: InboxNotice) => void;
 }) {
   const { t } = useTranslation();
   const [topic, setTopic] = useState<Topic>("all");
@@ -196,22 +198,17 @@ function Notices({
           {t("inbox.allDone")}
         </Button>
       </div>
-      <fieldset aria-label={t("inbox.topics")} className="flex flex-wrap gap-1.5">
-        {TOPICS.filter((x) => count(x) > 0).map((x) => (
-          <button
-            key={x}
-            type="button"
-            aria-pressed={topic === x}
-            onClick={() => setTopic(x)}
-            className={cn(
-              "rounded-full border px-2.5 py-0.5 text-[12px]",
-              topic === x ? "border-accent bg-accent-soft text-fg" : "border-border text-fg-muted hover:bg-bg-hover",
-            )}
-          >
-            {t(`inbox.topic_${x}`)} <span className="text-fg-subtle">{count(x)}</span>
-          </button>
-        ))}
-      </fieldset>
+      <Segmented
+        label={t("inbox.topics")}
+        value={topic}
+        wrap
+        onChange={setTopic}
+        options={TOPICS.filter((x) => count(x) > 0).map((x) => ({
+          value: x,
+          label: t(`inbox.topic_${x}`),
+          count: count(x),
+        }))}
+      />
       {[...groups].map(([name, list]) => (
         <Card key={name}>
           <p className="flex items-center gap-2 border-b border-border px-3 py-2 text-[12.5px] font-medium">
@@ -226,6 +223,8 @@ function Notices({
                   key={n.id}
                   to={n.link}
                   data-nav-item
+                  onMouseEnter={() => onFocus(n)}
+                  onFocus={() => onFocus(n)}
                   className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
                 >
                   <Icon size={15} className={n.kind === "env" ? "text-fg-subtle" : "text-warning"} aria-hidden="true" />
@@ -267,6 +266,8 @@ export function InboxPage() {
   const limitAlerts = (alerts ?? []).filter((a) => !isSnoozed(`limit-${a.accountId}-${a.window}-${a.resetsAt}`));
   const { data: noticeData } = useLiveData(() => api.inboxNotices(), []);
   const notices = (noticeData ?? []).filter((n) => !isSnoozed(n.id));
+  const [focus, setFocus] = useState<InboxNotice>();
+  const shownNotice = notices.find((n) => n.id === focus?.id) ?? notices[0];
   const navigate = useNavigate();
   const { data: messageData, reload: reloadMessages } = useLiveData(() => api.teamMessages(), []);
   const messages = messageData ?? [];
@@ -291,177 +292,229 @@ export function InboxPage() {
       {empty ? (
         <EmptyState icon={Inbox} title={t("inbox.emptyTitle")} body={t("inbox.emptyBody")} />
       ) : (
-        <div className="mx-auto w-full max-w-4xl space-y-6 p-6">
-          {approvals.length > 0 && (
-            <section className="space-y-2">
-              <Heading dot="bg-danger">
-                {t("inbox.urgent")} · {t("approvals.title")}
-              </Heading>
-              {approvals.map((approval) => (
-                <ApprovalCard key={approval.id} approval={approval} />
-              ))}
-            </section>
-          )}
+        // The list, and beside it the notice pointed at in full, as on "Assigned to me".
+        <div className="mx-auto grid w-full max-w-6xl gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="min-w-0 space-y-6">
+            {approvals.length > 0 && (
+              <section className="space-y-2">
+                <Heading dot="bg-danger">
+                  {t("inbox.urgent")} · {t("approvals.title")}
+                </Heading>
+                {approvals.map((approval) => (
+                  <ApprovalCard key={approval.id} approval={approval} />
+                ))}
+              </section>
+            )}
 
-          {limitAlerts.length > 0 && (
-            <section>
-              <Heading dot="bg-danger">
-                {t("inbox.urgent")} · {t("inbox.limits")}
-              </Heading>
-              <Card>
-                <div className="divide-y divide-border">
-                  {limitAlerts.map((a) => (
-                    <Link
-                      key={`${a.accountId}-${a.window}`}
-                      to="/limits"
-                      data-nav-item
-                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
-                    >
-                      <Gauge size={15} className="text-warning" />
-                      <span className="flex-1 text-[13px] font-medium">
-                        {a.label} · {a.window === "fiveHour" ? t("limits.fiveHour") : t("limits.week")}
-                      </span>
-                      <Badge tone={a.value >= 0.95 ? "danger" : "warning"}>{Math.round(a.value * 100)}%</Badge>
-                      {a.resetsAt && <span className="text-[11px] text-fg-subtle">{relativeTime(a.resetsAt)}</span>}
-                      <SnoozeButton onClick={() => later(`limit-${a.accountId}-${a.window}-${a.resetsAt}`)} />
-                    </Link>
-                  ))}
-                </div>
-              </Card>
-            </section>
-          )}
-          {terminals.length + chats.length > 0 && (
-            <section>
-              <Heading dot="bg-warning">
-                {t("inbox.today")} · {t("inbox.needsYou")}
-              </Heading>
-              <Card>
-                <div className="divide-y divide-border">
-                  {chats.map((chat) => (
-                    <Link
-                      key={chat.id}
-                      to={`/c/${chat.id}`}
-                      data-nav-item
-                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
-                    >
-                      <MessageSquare size={15} className="text-accent" />
-                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
-                        {shownTitle(chat.title, t)}
-                      </span>
-                      <ChatPill chat={chat} />
-                      <SnoozeButton onClick={() => later(`chat-${chat.id}-${chat.pill}`)} />
-                    </Link>
-                  ))}
-                  {[...terminals]
-                    .sort((a, b) => (a.status === "attention" ? -1 : 0) - (b.status === "attention" ? -1 : 0))
-                    .map((term) => (
+            {limitAlerts.length > 0 && (
+              <section>
+                <Heading dot="bg-danger">
+                  {t("inbox.urgent")} · {t("inbox.limits")}
+                </Heading>
+                <Card>
+                  <div className="divide-y divide-border">
+                    {limitAlerts.map((a) => (
                       <Link
-                        key={term.id}
-                        to={`/t/${term.id}`}
+                        key={`${a.accountId}-${a.window}`}
+                        to="/limits"
                         data-nav-item
                         className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
                       >
-                        <SquareTerminal size={15} className="text-fg-subtle" />
-                        <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{term.title}</span>
-                        <TerminalStatus term={term} />
-                        <span className="w-24 text-end text-[11px] text-fg-subtle">
-                          {relativeTime(term.lastOutputAt)}
+                        <Gauge size={15} className="text-warning" />
+                        <span className="flex-1 text-[13px] font-medium">
+                          {a.label} · {a.window === "fiveHour" ? t("limits.fiveHour") : t("limits.week")}
                         </span>
-                        <SnoozeButton onClick={() => later(`term-${term.id}-${term.lastOutputAt}`)} />
+                        <Badge tone={a.value >= 0.95 ? "danger" : "warning"}>{Math.round(a.value * 100)}%</Badge>
+                        {a.resetsAt && <span className="text-[11px] text-fg-subtle">{relativeTime(a.resetsAt)}</span>}
+                        <SnoozeButton onClick={() => later(`limit-${a.accountId}-${a.window}-${a.resetsAt}`)} />
                       </Link>
                     ))}
-                </div>
-              </Card>
-            </section>
-          )}
-
-          {messages.length > 0 && (
-            <section>
-              <Heading dot="bg-accent">{t("inbox.fromTeam")}</Heading>
-              <Card>
-                <div className="divide-y divide-border">
-                  {messages.map((m) => {
-                    const Icon = m.kind === "handoff" ? Forward : m.kind === "dayend" ? Moon : Lightbulb;
-                    return (
-                      <div key={m.id} className="flex items-start gap-3 px-3 py-2.5">
-                        <Icon size={15} className="mt-0.5 text-accent" aria-hidden="true" />
-                        <div className="min-w-0 flex-1 text-[13px]">
-                          <p>
-                            <span className="font-medium">{m.from}</span> ·{" "}
-                            {t(
-                              m.kind === "handoff"
-                                ? "inbox.handoffFrom"
-                                : m.kind === "dayend"
-                                  ? "inbox.dayendFrom"
-                                  : "inbox.suggestionFrom",
-                            )}
-                            {m.title && <span className="ms-1 text-fg-subtle">· {m.title}</span>}
-                          </p>
-                          <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-fg-muted">
-                            <TeamText text={m.text} authorId={m.fromId} />
-                          </p>
-                        </div>
-                        <span className="text-[11px] text-fg-subtle">{relativeTime(m.at)}</span>
-                        <Button
-                          size="sm"
-                          icon={Check}
-                          onClick={() => void acceptMessage(m)}
-                          data-tip={t("inbox.useTip")}
+                  </div>
+                </Card>
+              </section>
+            )}
+            {terminals.length + chats.length > 0 && (
+              <section>
+                <Heading dot="bg-warning">
+                  {t("inbox.today")} · {t("inbox.needsYou")}
+                </Heading>
+                <Card>
+                  <div className="divide-y divide-border">
+                    {chats.map((chat) => (
+                      <Link
+                        key={chat.id}
+                        to={`/c/${chat.id}`}
+                        data-nav-item
+                        className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
+                      >
+                        <MessageSquare size={15} className="text-accent" />
+                        <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
+                          {shownTitle(chat.title, t)}
+                        </span>
+                        <ChatPill chat={chat} />
+                        <SnoozeButton onClick={() => later(`chat-${chat.id}-${chat.pill}`)} />
+                      </Link>
+                    ))}
+                    {[...terminals]
+                      .sort((a, b) => (a.status === "attention" ? -1 : 0) - (b.status === "attention" ? -1 : 0))
+                      .map((term) => (
+                        <Link
+                          key={term.id}
+                          to={`/t/${term.id}`}
+                          data-nav-item
+                          className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
                         >
-                          {t("inbox.use")}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          icon={X}
-                          aria-label={t("inbox.dismiss")}
-                          onClick={() => void api.teamMessageDone(m.id, "dismissed").then(reloadMessages)}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            </section>
-          )}
+                          <SquareTerminal size={15} className="text-fg-subtle" />
+                          <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{term.title}</span>
+                          <TerminalStatus term={term} />
+                          <span className="w-24 text-end text-[11px] text-fg-subtle">
+                            {relativeTime(term.lastOutputAt)}
+                          </span>
+                          <SnoozeButton onClick={() => later(`term-${term.id}-${term.lastOutputAt}`)} />
+                        </Link>
+                      ))}
+                  </div>
+                </Card>
+              </section>
+            )}
 
-          {notices.length > 0 && (
-            <Notices
-              notices={notices}
-              onLater={later}
-              onDone={(ids) => {
-                for (const id of ids) snooze(id, 10 * 365 * 86_400_000);
+            {messages.length > 0 && (
+              <section>
+                <Heading dot="bg-accent">{t("inbox.fromTeam")}</Heading>
+                <Card>
+                  <div className="divide-y divide-border">
+                    {messages.map((m) => {
+                      const Icon = m.kind === "handoff" ? Forward : m.kind === "dayend" ? Moon : Lightbulb;
+                      return (
+                        <div key={m.id} className="flex items-start gap-3 px-3 py-2.5">
+                          <Icon size={15} className="mt-0.5 text-accent" aria-hidden="true" />
+                          <div className="min-w-0 flex-1 text-[13px]">
+                            <p>
+                              <span className="font-medium">{m.from}</span> ·{" "}
+                              {t(
+                                m.kind === "handoff"
+                                  ? "inbox.handoffFrom"
+                                  : m.kind === "dayend"
+                                    ? "inbox.dayendFrom"
+                                    : "inbox.suggestionFrom",
+                              )}
+                              {m.title && <span className="ms-1 text-fg-subtle">· {m.title}</span>}
+                            </p>
+                            <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-fg-muted">
+                              <TeamText text={m.text} authorId={m.fromId} />
+                            </p>
+                          </div>
+                          <span className="text-[11px] text-fg-subtle">{relativeTime(m.at)}</span>
+                          <Button
+                            size="sm"
+                            icon={Check}
+                            onClick={() => void acceptMessage(m)}
+                            data-tip={t("inbox.useTip")}
+                          >
+                            {t("inbox.use")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={X}
+                            aria-label={t("inbox.dismiss")}
+                            onClick={() => void api.teamMessageDone(m.id, "dismissed").then(reloadMessages)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              </section>
+            )}
+
+            {notices.length > 0 && (
+              <Notices
+                notices={notices}
+                onFocus={setFocus}
+                onLater={later}
+                onDone={(ids) => {
+                  for (const id of ids) snooze(id, 10 * 365 * 86_400_000);
+                  refresh((n) => n + 1);
+                }}
+              />
+            )}
+
+            {conflicts.length > 0 && (
+              <section>
+                <Heading dot="bg-fg-subtle">
+                  {t("inbox.info")} · {t("inbox.conflicts")}
+                </Heading>
+                <Card>
+                  <div className="divide-y divide-border">
+                    {conflicts.map((c) => (
+                      <Link
+                        key={c.projectId}
+                        to={`/p/${c.projectId}?tab=memory`}
+                        data-nav-item
+                        className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
+                      >
+                        <Brain size={15} className="text-warning" />
+                        <span className="flex-1 text-[13px] font-medium">{c.projectName}</span>
+                        <Badge tone="warning">{c.count}</Badge>
+                        <SnoozeButton onClick={() => later(`conflict-${c.projectId}-${c.count}`)} />
+                      </Link>
+                    ))}
+                  </div>
+                </Card>
+              </section>
+            )}
+          </div>
+          {shownNotice && (
+            <NoticeDetail
+              notice={shownNotice}
+              onLater={() => later(shownNotice.id)}
+              onDone={() => {
+                snooze(shownNotice.id, 10 * 365 * 86_400_000);
                 refresh((n) => n + 1);
               }}
             />
           )}
-
-          {conflicts.length > 0 && (
-            <section>
-              <Heading dot="bg-fg-subtle">
-                {t("inbox.info")} · {t("inbox.conflicts")}
-              </Heading>
-              <Card>
-                <div className="divide-y divide-border">
-                  {conflicts.map((c) => (
-                    <Link
-                      key={c.projectId}
-                      to={`/p/${c.projectId}?tab=memory`}
-                      data-nav-item
-                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
-                    >
-                      <Brain size={15} className="text-warning" />
-                      <span className="flex-1 text-[13px] font-medium">{c.projectName}</span>
-                      <Badge tone="warning">{c.count}</Badge>
-                      <SnoozeButton onClick={() => later(`conflict-${c.projectId}-${c.count}`)} />
-                    </Link>
-                  ))}
-                </div>
-              </Card>
-            </section>
-          )}
         </div>
       )}
     </>
+  );
+}
+
+/** One notice in full: what, where, when, its whole detail, and what to do with it. */
+function NoticeDetail({ notice, onLater, onDone }: { notice: InboxNotice; onLater: () => void; onDone: () => void }) {
+  const { t } = useTranslation();
+  const Icon = NOTICE_ICON[notice.kind] ?? KeyRound;
+  const detail = notice.kind === "tool" ? t(`tools.kind_${notice.detail}`) : noticeDetail(notice, t);
+  return (
+    <aside className="lg:sticky lg:top-0 lg:self-start">
+      <Panel icon={Icon} title={t(`inbox.notice_${notice.kind}`)}>
+        <p className="whitespace-pre-wrap break-words font-mono text-[12px] text-fg-muted">{detail}</p>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-t border-border pt-2 text-[12px]">
+          <dt className="text-fg-subtle">{t("inbox.detailWhere")}</dt>
+          <dd className="truncate">{notice.projectName ?? t("inbox.general")}</dd>
+          <dt className="text-fg-subtle">{t("inbox.detailWhen")}</dt>
+          <dd>
+            {dateTime(notice.at)} ({relativeTime(notice.at)})
+          </dd>
+          <dt className="text-fg-subtle">{t("inbox.detailTopic")}</dt>
+          <dd>{t(`inbox.topic_${topicOf(notice)}`)}</dd>
+        </dl>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to={notice.link}
+            className="inline-flex h-7 items-center gap-1.5 rounded-ui bg-accent px-2 text-xs font-medium text-accent-fg hover:bg-accent-hover"
+          >
+            {t("inbox.detailOpen")}
+          </Link>
+          <Button size="sm" variant="ghost" icon={AlarmClock} onClick={onLater}>
+            {t("inbox.snooze")}
+          </Button>
+          <Button size="sm" variant="ghost" icon={Check} onClick={onDone}>
+            {t("inbox.done")}
+          </Button>
+        </div>
+      </Panel>
+    </aside>
   );
 }

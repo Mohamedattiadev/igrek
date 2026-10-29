@@ -3,6 +3,7 @@ import { Download, FileUp, Globe, Library, PackageCheck, ShieldCheck } from "luc
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { usePersonaLabel, usePersonas } from "../lib/personas";
 import { Badge, Button, Card, field } from "./ui";
 
@@ -186,7 +187,7 @@ export function PacksTab() {
   const [url, setUrl] = useState("");
   const [opened, setOpened] = useState<Opened>();
   const [note, setNote] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("PacksTab.PacksTab");
   const file = useRef<HTMLInputElement>(null);
   const open = async (source: { pack?: unknown; url?: string }) => {
     setBusy(true);

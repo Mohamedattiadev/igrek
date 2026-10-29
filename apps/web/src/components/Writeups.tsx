@@ -2,6 +2,7 @@ import { FileClock, Globe, Megaphone, Moon, ScrollText } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
+import { useBusyState } from "../lib/background";
 import { cn } from "../lib/cn";
 import { docsApi } from "../lib/ops-api";
 import { LazyMarkdown as Markdown } from "./LazyMarkdown";
@@ -242,7 +243,7 @@ export function DayEndButton() {
 /** A static documentation site from the wiki and README, as a zip (plan.md 13.5). */
 export function DocsSiteButton({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("Writeups.DocsSiteButton");
   const [error, setError] = useState<string>();
   return (
     <>
@@ -287,7 +288,7 @@ export function LaunchKitButton({ projectId, onSaved }: { projectId: string; onS
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useBusyState("Writeups.LaunchKitButton");
   const [error, setError] = useState<string>();
   return (
     <>
