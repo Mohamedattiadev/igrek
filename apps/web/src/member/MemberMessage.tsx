@@ -105,7 +105,7 @@ export interface MessageActions {
   onDelete?: () => void;
 }
 
-/** Reply, thread, edit and delete over the message while it is pointed at, as in Igrek. */
+/** Reply, thread, edit and delete right after the message's time while it is pointed at, as in Igrek. */
 function Actions({ actions }: { actions: MessageActions }) {
   const { t } = useTranslation();
   const action = "rounded px-2 py-1 text-[12px] hover:bg-bg-hover";
@@ -117,7 +117,7 @@ function Actions({ actions }: { actions: MessageActions }) {
   ].filter((i) => i.on);
   if (!items.length) return null;
   return (
-    <div className="absolute -top-3 end-2 hidden gap-0.5 rounded-ui border border-border bg-bg p-0.5 shadow-ui group-focus-within:flex group-hover:flex">
+    <div className="absolute -top-1.5 start-full z-10 ms-2 hidden gap-0.5 whitespace-nowrap rounded-ui border border-border bg-bg p-0.5 shadow-ui group-focus-within:flex group-hover:flex">
       {items.map(({ on, icon: Icon, label }) => (
         <button key={label} type="button" onClick={on} className={action} data-tip={label} aria-label={label}>
           <Icon size={14} aria-hidden="true" />
@@ -164,7 +164,7 @@ export function ChannelMessage({
         <PersonAvatar client={client} id={c.authorId} />
       )}
       <div className="min-w-0 flex-1">
-        <p className="flex items-baseline gap-2">
+        <div className="relative inline-flex items-baseline gap-2">
           <span className="text-[13.5px] font-semibold">
             {c.bot ? t("teamChat.aiFor", { name: c.author }) : c.author}
           </span>
@@ -177,7 +177,8 @@ export function ChannelMessage({
           <span className="self-center">
             <SeenTicks message={ticks as unknown as ChatMessage} />
           </span>
-        </p>
+          {!c.deleted && <Actions actions={actions} />}
+        </div>
         <Body c={c} client={client} project={project} />
         {!!replies && (
           <button
@@ -197,7 +198,6 @@ export function ChannelMessage({
           />
         )}
       </div>
-      {!c.deleted && <Actions actions={actions} />}
     </article>
   );
 }
@@ -222,16 +222,16 @@ export function DirectMessageItem({
     <article className="group relative flex gap-3 rounded-ui px-2 py-1.5 transition-colors hover:bg-bg-hover">
       <PersonAvatar client={client} id={author} />
       <div className="min-w-0 flex-1">
-        <p className="flex items-baseline gap-2">
+        <div className="relative inline-flex items-baseline gap-2">
           <span className="text-[13.5px] font-semibold">{client.nameOf(author)}</span>
           <span className="text-[11px] text-fg-subtle" title={dateTime(at)}>
             {relativeTime(at)}
           </span>
-        </p>
+          <Actions actions={{ onQuote }} />
+        </div>
         {quote && <Quoted {...quote} />}
         <p className="whitespace-pre-wrap break-words text-[13.5px]">{text}</p>
       </div>
-      <Actions actions={{ onQuote }} />
     </article>
   );
 }

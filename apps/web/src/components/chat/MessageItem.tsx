@@ -135,7 +135,10 @@ export interface MessageHandlers {
   plain?: boolean;
 }
 
-/** React, quote-reply, open its thread, and the rest behind "more", over the message while it is pointed at. */
+/**
+ * React, quote-reply, open its thread, and the rest behind "more", while the message is pointed at. They
+ * sit right after its time, by the words: at the far end of a wide window they were too far away.
+ */
 function Actions({
   message,
   compact,
@@ -149,7 +152,7 @@ function Actions({
   const action = "rounded px-2 py-1 text-[12px] hover:bg-bg-hover";
   const canTask = !!handlers.onTask && !message.task && !message.bot;
   return (
-    <div className="absolute -top-3 end-2 hidden gap-0.5 rounded-ui border border-border bg-bg p-0.5 shadow-ui group-focus-within:flex group-hover:flex">
+    <div className="absolute -top-1.5 start-full z-10 ms-2 hidden gap-0.5 whitespace-nowrap rounded-ui border border-border bg-bg p-0.5 shadow-ui group-focus-within:flex group-hover:flex">
       {!handlers.plain && <ReactionPicker message={message} className={action} />}
       {handlers.onQuote && (
         <button
@@ -287,18 +290,18 @@ function MessageView({
         <Face message={message} member={member} name={name} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="flex items-baseline gap-2">
+        <div className="relative inline-flex items-baseline gap-2">
           <span className="text-[13.5px] font-semibold">{name}</span>
           {message.bot && <Badge tone="accent">{t("teamChat.aiBadge")}</Badge>}
           <Meta message={message} />
-        </p>
+          {!message.deleted && <Actions message={message} compact={compact} handlers={handlers} />}
+        </div>
         <Body message={message} projectId={projectId} members={members} meId={meId} />
         {!compact && message.replies > 0 && <RepliesLink message={message} onThread={handlers.onThread} />}
         <div>
           <ReactionChips message={message} />
         </div>
       </div>
-      {!message.deleted && <Actions message={message} compact={compact} handlers={handlers} />}
     </article>
   );
 }

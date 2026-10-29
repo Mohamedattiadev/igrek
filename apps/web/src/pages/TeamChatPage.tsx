@@ -202,11 +202,14 @@ type Panel = "search" | "pinned" | "starred";
 
 function ChannelHeader({
   channel,
+  panel: open,
   onPanel,
   onChanged,
 }: {
   channel: ChatChannel;
-  onPanel: (panel: Panel) => void;
+  /** The side panel open now: its button shows pressed, and a second click closes it. */
+  panel?: Panel;
+  onPanel: (panel?: Panel) => void;
   onChanged: () => void;
 }) {
   const { t } = useTranslation();
@@ -267,7 +270,9 @@ function ChannelHeader({
             size="sm"
             variant="ghost"
             icon={icon}
-            onClick={() => onPanel(panel)}
+            onClick={() => onPanel(open === panel ? undefined : panel)}
+            aria-pressed={open === panel}
+            className={open === panel ? "bg-bg-active text-accent" : undefined}
             aria-label={t(`teamChat.panel_${panel}`)}
             data-tip={t(`teamChat.panel_${panel}`)}
           />
@@ -365,6 +370,7 @@ function ChannelView({
   onOpen,
   onTask,
   onForward,
+  panel,
   onPanel,
 }: {
   channel: ChatChannel;
@@ -379,7 +385,8 @@ function ChannelView({
   onOpen: (id: string, threadId?: string) => void;
   onTask: (m: ChatMessage) => void;
   onForward: (m: ChatMessage) => void;
-  onPanel: (panel: Panel) => void;
+  panel?: Panel;
+  onPanel: (panel?: Panel) => void;
 }) {
   const { t } = useTranslation();
   const unread = useUnreadStart(channel.id, messages);
@@ -391,7 +398,7 @@ function ChannelView({
   return (
     <section className={`min-w-0 flex-1 flex-col ${thread ? "hidden lg:flex" : "flex"}`}>
       <ChannelSelect channels={channels} value={channel.id} onPick={onOpen} onTimeline={() => onOpen("timeline")} />
-      <ChannelHeader key={channel.id} channel={channel} onPanel={onPanel} onChanged={onReloadChannels} />
+      <ChannelHeader key={channel.id} channel={channel} panel={panel} onPanel={onPanel} onChanged={onReloadChannels} />
       <div className="border-b border-border py-1.5">
         <GapsLine projectId={channel.projectId} />
       </div>
@@ -548,9 +555,10 @@ export function TeamChatPage() {
           onOpen={open}
           onTask={setTaskFor}
           onForward={setForwarding}
+          panel={panel}
           onPanel={(p) => {
             setPanel(p);
-            if (thread) open(channel.id);
+            if (p && thread) open(channel.id);
           }}
         />
       )}

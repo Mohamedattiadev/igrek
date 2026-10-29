@@ -1,5 +1,5 @@
 import type { UiElement } from "@igrek/core";
-import { MessageSquareText } from "lucide-react";
+import { SquareDashedMousePointer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
@@ -36,7 +36,8 @@ function describe(el: Element, path: string): UiElement {
 /**
  * A note on Igrek's own screens (plan.md 19.5): press the button, point at what you do not like,
  * write why. It goes to the notes of the project you pick (the one Igrek is built in), where it is
- * sent to a chat and fixed like a note on a preview.
+ * sent to a chat and fixed like a note on a preview. It sits in the status bar with its name written
+ * out: in the top bar, as a speech bubble, it was taken for messages.
  */
 export function ScreenNote() {
   const { t } = useTranslation();
@@ -99,19 +100,19 @@ export function ScreenNote() {
   };
   return (
     <>
-      <Button
-        size="sm"
-        variant="ghost"
-        icon={MessageSquareText}
+      <button
+        type="button"
         aria-pressed={picking}
-        aria-label={t("uiNotes.screen")}
-        data-tip={t(picking ? "uiNotes.screenPicking" : "uiNotes.screen")}
-        className={cn(picking && "bg-accent-soft text-accent")}
+        data-tip={t("uiNotes.screenTip")}
+        className={cn("flex items-center gap-1 hover:text-fg", picking && "font-medium text-accent")}
         onClick={(e) => {
           e.stopPropagation();
           setPicking(!picking);
         }}
-      />
+      >
+        <SquareDashedMousePointer size={12} aria-hidden="true" />
+        {t(picking ? "uiNotes.screenPicking" : "uiNotes.screen")}
+      </button>
       <Dialog open={!!element} onClose={close} label={t("uiNotes.screen")}>
         <form
           className="space-y-3 p-5"

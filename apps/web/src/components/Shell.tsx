@@ -137,7 +137,7 @@ function PinnableLink({
   const label = pinned ? t("nav.unpin", { page: t(item.label) }) : t("nav.pin", { page: t(item.label) });
   return (
     <div className={cn("group/pin relative", wide && "w-full")}>
-      <ToolStripLink item={item} badge={badge} wide={wide} onPick={onPick} dense />
+      <ToolStripLink item={item} badge={badge} wide={wide} onPick={onPick} />
       {wide && (
         <button
           type="button"
@@ -162,7 +162,6 @@ function ToolStripLink({
   badge,
   badgeTip,
   badgeTone = "warning",
-  dense,
   wide,
   onPick,
 }: {
@@ -172,8 +171,6 @@ function ToolStripLink({
   badgeTip?: string;
   /** The count's colour by what is waiting: red needs an answer, blue is from people, amber the rest. */
   badgeTone?: "danger" | "accent" | "warning";
-  /** Two to a row under "More": a smaller gap and text so the label still fits. */
-  dense?: boolean;
   wide: boolean;
   onPick?: () => void;
 }) {
@@ -193,11 +190,8 @@ function ToolStripLink({
         cn(
           // 32 px rows: the whole strip, "More" open, fits a laptop screen without scrolling.
           "relative flex h-8 shrink-0 items-center rounded-ui transition-colors",
-          wide
-            ? dense
-              ? "w-full gap-1.5 px-2 text-[12px]"
-              : "w-full gap-2.5 px-2.5 text-[13px]"
-            : "w-9 justify-center",
+          // Under "More" too: one a row, the same size as the rest (two a row looked cramped).
+          wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
           isActive ? "bg-bg-active font-medium text-accent-hover" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
         )
       }
@@ -287,15 +281,12 @@ function NavGroup({
   id,
   label,
   wide,
-  columns,
   children,
 }: {
   /** Its key in the colour store ("group:team"); right-click on the heading to colour it. */
   id: string;
   label: string;
   wide: boolean;
-  /** Two items a row when wide: "More" open then fits without scrolling. */
-  columns?: boolean;
   children: ReactNode;
 }) {
   const [colors] = useNavColors();
@@ -313,7 +304,7 @@ function NavGroup({
       ) : (
         <span className="mb-1 h-px w-6 bg-border" aria-hidden="true" />
       )}
-      {columns && wide ? <div className="grid grid-cols-2 gap-0.5">{children}</div> : children}
+      {children}
     </div>
   );
 }
@@ -482,10 +473,10 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
         <MoreToggle open={showMore} wide={wide} onClick={flipMore} />
         {showMore && (
           <>
-            <NavGroup id="work" label={t("nav.groupWork")} wide={wide} columns>
+            <NavGroup id="work" label={t("nav.groupWork")} wide={wide}>
               {visible.filter((item) => item.group === "work").map(pinnable)}
             </NavGroup>
-            <NavGroup id="know" label={t("nav.groupKnow")} wide={wide} columns>
+            <NavGroup id="know" label={t("nav.groupKnow")} wide={wide}>
               {visible.filter((item) => item.group === "know").map(pinnable)}
             </NavGroup>
           </>
@@ -593,7 +584,6 @@ function TopBar({
         <span data-tour="stop" className="flex">
           <StopButton onStopped={onToast} />
         </span>
-        <ScreenNote />
         <Helper />
       </div>
     </header>
@@ -666,6 +656,7 @@ function StatusBar({ status }: { status: SocketStatus }) {
       <div className="flex-1" />
       <StatusLinks />
       {settings.keymap === "vim" && <span className="font-mono font-semibold text-accent">VIM</span>}
+      <ScreenNote />
       <span>Igrek {APP_VERSION}</span>
     </footer>
   );
