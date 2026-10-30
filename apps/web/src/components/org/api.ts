@@ -47,6 +47,8 @@ export interface OrgApi {
   guestLink?: (room: string) => Promise<string>;
   /** The hub's web page, where a guest's link opens. */
   hubUrl?: string;
+  /** The address that opens a meeting straight into its call, for "open in a new tab". */
+  meetingLink?: (id: string) => string;
   /** Speech to text on this computer (Whisper); only in Igrek. */
   transcribe?: (audio: Blob) => Promise<string>;
   /** Questions to the history by words and by meaning (a local model); only in Igrek. */

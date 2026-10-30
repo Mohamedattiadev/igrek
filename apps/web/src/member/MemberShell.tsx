@@ -244,7 +244,8 @@ function Page({
       />
     );
   }
-  if (page === "org") return <MemberOrg client={client} tab={rest[0]} meeting={rest[1]} go={go} />;
+  if (page === "org")
+    return <MemberOrg client={client} tab={rest[0]} meeting={rest[1]} join={rest[2] === "join"} go={go} />;
   if (page === "company" && client.me()?.role === "admin") return <MemberCompany client={client} />;
   if (page === "profile") return <MemberProfile client={client} />;
   return <MemberHome client={client} go={go} />;

@@ -94,9 +94,12 @@ export function MemberOrg({
   client,
   tab,
   meeting,
+  join,
   go,
 }: {
   client: MemberClient;
+  /** Opened from "a new tab": straight into the call. */
+  join?: boolean;
   tab?: string;
   meeting?: string;
   go: (to: string) => void;
@@ -111,6 +114,7 @@ export function MemberOrg({
     guestLink: (room) => client.guestLink(room),
     ...(client.sfu ? { sfu: (room: string) => client.sfuToken(room) } : {}),
     hubUrl: location.origin,
+    meetingLink: (id) => `${location.origin}${location.pathname}#/org/meetings/${id}/join`,
   };
-  return <OrgPage api={api} tab={tab} meeting={meeting} onTab={(next: OrgTab) => go(`org/${next}`)} />;
+  return <OrgPage api={api} tab={tab} meeting={meeting} join={join} onTab={(next: OrgTab) => go(`org/${next}`)} />;
 }

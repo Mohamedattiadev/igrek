@@ -82,6 +82,7 @@ export function Org() {
       call: callTransport,
       guestLink: (room) => post<{ token: string }>("/api/org/guest-link", { room }).then((r) => r.token),
       ...(sfu ? { sfu: (room: string) => post<{ url: string; token: string }>("/api/org/sfu-token", { room }) } : {}),
+      meetingLink: (id: string) => `${location.origin}/meetings?meet=${id}&join=1`,
       hubUrl,
       transcribe: (audio) => transcribe(audio, i18n.language.split("-")[0] ?? "en"),
       ask: (question) => post<TimelineItem[]>("/api/org/ask", { question }),
@@ -104,6 +105,7 @@ export function Org() {
         tab={params.get("tab") ?? undefined}
         only={pathname === "/meetings" ? "meetings" : undefined}
         meeting={params.get("meet") ?? undefined}
+        join={params.get("join") === "1"}
         onTab={(tab) => void navigate(tab === "meetings" ? "/meetings" : `/org?tab=${tab}`, { replace: true })}
       />
     </div>

@@ -6038,7 +6038,10 @@
     "reminder": "Everyone invited gets a reminder ten minutes before and when it starts.",
     "instantTitle": "Quick meeting, {{time}}",
     "invite": "Invite someone",
-    "name": "What is it about?"
+    "name": "What is it about?",
+    "full": "Full screen",
+    "exitFull": "Leave full screen",
+    "newTab": "Open in a new tab"
   },
   "history": {
     "ask": "Ask the history",

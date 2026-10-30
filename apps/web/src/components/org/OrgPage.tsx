@@ -23,12 +23,15 @@ export function OrgPage({
   tab,
   onTab,
   meeting,
+  join,
   only,
 }: {
   api: OrgApi;
   tab?: string;
   onTab: (tab: OrgTab) => void;
   meeting?: string;
+  /** Straight into that meeting's call (opened in a new tab). */
+  join?: boolean;
   /** One part as a page of its own (Meetings in the strip): its name as the title, no tabs. */
   only?: OrgTab;
 }) {
@@ -77,7 +80,13 @@ export function OrgPage({
         {current === "cards" && <OrgCards api={api} view={view} />}
         {current === "channels" && <OrgChannels api={api} view={view} />}
         {current === "meetings" && (
-          <Meetings api={api} view={view} open={meeting} dark={document.documentElement.dataset.theme === "dark"} />
+          <Meetings
+            api={api}
+            view={view}
+            open={meeting}
+            join={join}
+            dark={document.documentElement.dataset.theme === "dark"}
+          />
         )}
         {current === "history" && <OrgHistory api={api} view={view} />}
         {current === "teams" && <OrgTeams api={api} view={view} />}

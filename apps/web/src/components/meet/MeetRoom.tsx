@@ -4,9 +4,11 @@ import {
   ExternalLink,
   Hand,
   Link2,
+  Maximize2,
   MessageSquare,
   Mic,
   MicOff,
+  Minimize2,
   MonitorUp,
   PenLine,
   PhoneOff,
@@ -151,7 +153,12 @@ function Controls({
   onGuest,
   onError,
   onLeave,
+  full,
+  onFull,
 }: {
+  /** The call fills the screen; the button toggles it. */
+  full: boolean;
+  onFull: () => void;
   api: OrgApi;
   meeting: OrgMeeting;
   call?: MeetCall;
@@ -268,6 +275,32 @@ function Controls({
       )}
       <button
         type="button"
+        style={{ width: 40, height: 40 }}
+        className={button(full)}
+        onClick={onFull}
+        aria-label={full ? t("meet.exitFull") : t("meet.full")}
+        data-tip={full ? t("meet.exitFull") : t("meet.full")}
+      >
+        {full ? <Minimize2 size={18} aria-hidden="true" /> : <Maximize2 size={18} aria-hidden="true" />}
+      </button>
+      {api.meetingLink && (
+        // The call in a tab of its own, kept while working elsewhere; this one leaves so the two do not echo.
+        <button
+          type="button"
+          style={{ width: 40, height: 40 }}
+          className={button(false)}
+          onClick={() => {
+            window.open(api.meetingLink?.(meeting.id), "_blank", "noopener");
+            onLeave();
+          }}
+          aria-label={t("meet.newTab")}
+          data-tip={t("meet.newTab")}
+        >
+          <ExternalLink size={18} aria-hidden="true" />
+        </button>
+      )}
+      <button
+        type="button"
         className="flex h-10 items-center gap-1.5 rounded-full bg-danger px-4 text-[13px] font-medium text-white"
         onClick={onLeave}
       >
@@ -306,6 +339,13 @@ export function MeetRoom({
   const [guest, setGuest] = useState<string>();
   const [scribing, setScribing] = useState(false);
   const board = useRef<string>(meeting.board ?? "");
+  const room = useRef<HTMLDivElement>(null);
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const on = () => setFull(document.fullscreenElement === room.current);
+    document.addEventListener("fullscreenchange", on);
+    return () => document.removeEventListener("fullscreenchange", on);
+  }, []);
   const me = view.me.id;
   // More than five people with a router set up: through the router (sfu.ts); otherwise directly.
   const big = !!api.sfu && invited(meeting, view) > 5;
@@ -346,6 +386,7 @@ export function MeetRoom({
       }),
   );
   const leave = () => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
     if (board.current)
       void api.act("org-meeting-board", {
         id: `${meeting.id}-board`.slice(0, 40),
@@ -371,7 +412,8 @@ export function MeetRoom({
     );
   const peers = [...(call?.peers.values() ?? [])];
   return (
-    <div className="space-y-3">
+    // Full screen takes this part only: the pictures, the chat or board, the buttons.
+    <div ref={room} className={cn("space-y-3", full && "overflow-auto bg-bg p-4")}>
       {error && <p className="text-xs text-danger">{error}</p>}
       {!everyoneAgreed && meeting.consent[me] === undefined && (
         <div className="flex flex-wrap items-center gap-2 rounded-ui border border-border bg-bg p-3 text-[13px]">
@@ -464,6 +506,12 @@ export function MeetRoom({
         onGuest={setGuest}
         onError={setError}
         onLeave={leave}
+        full={full}
+        onFull={() =>
+          void (document.fullscreenElement ? document.exitFullscreen() : room.current?.requestFullscreen())?.catch(
+            (e: Error) => setError(e.message),
+          )
+        }
       />
       {guest && (
         <p className="text-center text-[12px] text-fg-muted">

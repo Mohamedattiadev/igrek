@@ -582,9 +582,23 @@ function Week({ coming, onOpen }: { coming: { m: OrgMeeting; at: number }[]; onO
  * and booking too much): start one now, plan one, the week, and what is coming with a Join button.
  * Finding a time is part of planning; booking and calendar files are under "More".
  */
-export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView; open?: string; dark: boolean }) {
+export function Meetings({
+  api,
+  view,
+  open,
+  join,
+  dark,
+}: {
+  api: OrgApi;
+  view: OrgView;
+  open?: string;
+  join?: boolean;
+  dark: boolean;
+}) {
   const { t } = useTranslation();
-  const [picked, setPicked] = useState<{ id: string; join?: boolean } | undefined>(open ? { id: open } : undefined);
+  const [picked, setPicked] = useState<{ id: string; join?: boolean } | undefined>(
+    open ? { id: open, join } : undefined,
+  );
   const [dialog, setDialog] = useState<"plan" | "find" | "book">();
   const [draft, setDraft] = useState<{ at: number; people: string[] }>();
   const now = Date.now();

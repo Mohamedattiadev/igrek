@@ -6038,7 +6038,10 @@
     "reminder": "Davet edilen herkese on dakika önce ve başlarken hatırlatma gider.",
     "instantTitle": "Hızlı toplantı, {{time}}",
     "invite": "Birini davet et",
-    "name": "Toplantının adı"
+    "name": "Toplantının adı",
+    "full": "Tam ekran",
+    "exitFull": "Tam ekrandan çık",
+    "newTab": "Ayrı sekmede aç"
   },
   "history": {
     "ask": "Geçmişe sor",
