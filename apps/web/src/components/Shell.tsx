@@ -412,7 +412,6 @@ function TopBar({
         </span>
       </button>
       <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
-        <UpdateChip version={update} />
         <BackgroundChip />
         <SyncChip />
         <span data-tour="account" className="flex">
@@ -422,6 +421,8 @@ function TopBar({
           <StopButton onStopped={onToast} />
         </span>
         <Helper />
+        {/* Last, at the far end: next to the search it sat on it (a user). */}
+        <UpdateChip version={update} />
       </div>
     </header>
   );
@@ -436,13 +437,17 @@ function UpdateChip({ version }: { version?: string }) {
   const { t } = useTranslation();
   if (!version) return null;
   return (
+    // The version number always, the words only on a wide screen: the long label pushed the other
+    // buttons over the search box (a user).
     <Link
       to="/settings#update"
-      data-tip={t("update.chipTip")}
+      data-tip={`${t("update.chip", { version })}: ${t("update.chipTip")}`}
+      aria-label={t("update.chip", { version })}
       className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-accent px-2.5 text-[12px] font-medium text-white hover:bg-accent-hover"
     >
       <Download size={13} aria-hidden="true" />
-      <span className="hidden sm:inline">{t("update.chip", { version })}</span>
+      <span className="xl:hidden">{version}</span>
+      <span className="hidden xl:inline">{t("update.chip", { version })}</span>
     </Link>
   );
 }
