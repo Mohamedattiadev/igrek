@@ -35,7 +35,13 @@ export function Tile({
   self,
   hand,
   weak,
+  fill,
+  letter,
 }: {
+  /** The initial shown without a picture, when the name is a word like "You". */
+  letter?: string;
+  /** Full screen: as tall as its cell, not a fixed 16:9 box. */
+  fill?: boolean;
   stream?: MediaStream;
   name: string;
   muted?: boolean;
@@ -51,7 +57,7 @@ export function Tile({
   return (
     <div
       className="relative flex items-center justify-center overflow-hidden rounded-xl border border-border bg-bg-subtle"
-      style={{ aspectRatio: "16 / 9" }}
+      style={fill ? { height: "100%", minHeight: 0 } : { aspectRatio: "16 / 9" }}
       data-live={stream ? "true" : undefined}
     >
       <video
@@ -61,7 +67,11 @@ export function Tile({
         muted={self}
         className={cn("h-full w-full object-cover", !video && "hidden")}
       />
-      {!video && <span className="text-[20px] font-semibold text-fg-muted">{name.slice(0, 1).toUpperCase()}</span>}
+      {!video && (
+        <span className="font-semibold text-fg-muted" style={{ fontSize: fill ? 48 : 20 }}>
+          {(letter ?? name).slice(0, 1).toUpperCase()}
+        </span>
+      )}
       <span className="absolute start-2 bottom-2 inline-flex items-center gap-1 rounded-ui bg-bg px-1.5 py-0.5 text-[11.5px]">
         {muted && <MicOff size={12} className="text-danger" aria-hidden="true" />}
         {hand && <Hand size={12} className="text-warning" aria-hidden="true" />}
@@ -310,6 +320,80 @@ function Controls({
   );
 }
 
+/** The call's own chat beside the pictures; as tall as the screen in full screen. */
+function CallChat({ call, full }: { call: MeetCall; full: boolean }) {
+  const { t } = useTranslation();
+  const [text, setText] = useState("");
+  return (
+    <div
+      className="flex flex-col rounded-xl border border-border bg-bg"
+      style={{ width: 300, height: full ? "100%" : 360 }}
+    >
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2 text-[13px]">
+        {call.chat.map((c) => (
+          <p key={`${c.at}${c.who}`}>
+            <span className="font-semibold">{c.who}</span> {c.text}
+          </p>
+        ))}
+      </div>
+      <form
+        className="border-t border-border p-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (text.trim()) call.say(text.trim());
+          setText("");
+        }}
+      >
+        <input
+          className={cn(field, "w-full")}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={t("meet.chat")}
+          aria-label={t("meet.chat")}
+        />
+      </form>
+    </div>
+  );
+}
+
+/**
+ * Everyone's picture or initial. On a full screen: one person fills it, two to four share it in two
+ * columns, more in three.
+ */
+function Pictures({ call, view, me, full }: { call?: MeetCall; view: OrgView; me: string; full: boolean }) {
+  const { t } = useTranslation();
+  const peers = [...(call?.peers.values() ?? [])];
+  const count = peers.length + 1;
+  const columns = count === 1 ? "1fr" : count <= 4 ? "1fr 1fr" : "repeat(3, 1fr)";
+  return (
+    <div
+      className="grid gap-2 sm:grid-cols-2"
+      style={full ? { height: "100%", minHeight: 0, gridAutoRows: "1fr", gridTemplateColumns: columns } : undefined}
+    >
+      <Tile
+        stream={call?.local}
+        name={t("meet.you")}
+        letter={nameOf(view, me)}
+        muted={call?.muted}
+        self
+        hand={call?.hand}
+        fill={full}
+      />
+      {peers.map((p: Peer) => (
+        <Tile
+          key={p.device}
+          stream={p.stream}
+          name={p.name || nameOf(view, p.user)}
+          muted={p.muted}
+          hand={p.hand}
+          weak={p.weak}
+          fill={full}
+        />
+      ))}
+    </div>
+  );
+}
+
 /** Everyone invited: the people named and the members of the teams asked. */
 function invited(m: OrgMeeting, view: OrgView): number {
   const teams = view.structure.teams.filter((t) => m.teams.includes(t.id)).flatMap((t) => t.members);
@@ -335,7 +419,6 @@ export function MeetRoom({
   const [, redraw] = useState(0);
   const [error, setError] = useState<string>();
   const [panel, setPanel] = useState<"chat" | "board">();
-  const [text, setText] = useState("");
   const [guest, setGuest] = useState<string>();
   const [scribing, setScribing] = useState(false);
   const board = useRef<string>(meeting.board ?? "");
@@ -410,10 +493,15 @@ export function MeetRoom({
         </a>
       </div>
     );
-  const peers = [...(call?.peers.values() ?? [])];
   return (
     // Full screen takes this part only: the pictures, the chat or board, the buttons.
-    <div ref={room} className={cn("space-y-3", full && "overflow-auto bg-bg p-4")}>
+    <div
+      ref={room}
+      className={cn("space-y-3", full && "bg-bg p-4")}
+      // Full screen: the pictures take all the height there is, the buttons stay at the bottom (they sat
+      // small in a corner of an empty screen before).
+      style={full ? { display: "flex", flexDirection: "column", height: "100vh", gap: 12 } : undefined}
+    >
       {error && <p className="text-xs text-danger">{error}</p>}
       {!everyoneAgreed && meeting.consent[me] === undefined && (
         <div className="flex flex-wrap items-center gap-2 rounded-ui border border-border bg-bg p-3 text-[13px]">
@@ -445,50 +533,21 @@ export function MeetRoom({
           </Button>
         </div>
       )}
-      <div className="grid gap-3 lg:grid-cols-[1fr_auto]" style={{ gridTemplateColumns: panel ? undefined : "1fr" }}>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Tile stream={call?.local} name={t("meet.you")} muted={call?.muted} self hand={call?.hand} />
-          {peers.map((p: Peer) => (
-            <Tile
-              key={p.device}
-              stream={p.stream}
-              name={p.name || nameOf(view, p.user)}
-              muted={p.muted}
-              hand={p.hand}
-              weak={p.weak}
-            />
-          ))}
-        </div>
-        {panel === "chat" && call && (
-          <div className="flex flex-col rounded-xl border border-border bg-bg" style={{ width: 300, height: 360 }}>
-            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2 text-[13px]">
-              {call.chat.map((c) => (
-                <p key={`${c.at}${c.who}`}>
-                  <span className="font-semibold">{c.who}</span> {c.text}
-                </p>
-              ))}
-            </div>
-            <form
-              className="border-t border-border p-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (text.trim()) call.say(text.trim());
-                setText("");
-              }}
-            >
-              <input
-                className={cn(field, "w-full")}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={t("meet.chat")}
-                aria-label={t("meet.chat")}
-              />
-            </form>
-          </div>
-        )}
+      <div
+        className="grid gap-3 lg:grid-cols-[1fr_auto]"
+        style={{
+          gridTemplateColumns: panel === "chat" ? undefined : "1fr",
+          ...(full ? { flex: 1, minHeight: 0, marginTop: 0 } : {}),
+        }}
+      >
+        <Pictures call={call} view={view} me={me} full={full} />
+        {panel === "chat" && call && <CallChat call={call} full={full} />}
       </div>
       {panel === "board" && call && (
-        <div className="overflow-hidden rounded-xl border border-border" style={{ height: 480 }}>
+        <div
+          className="overflow-hidden rounded-xl border border-border"
+          style={full ? { flex: 2, minHeight: 0, marginTop: 0 } : { height: 480 }}
+        >
           <Suspense fallback={<p className="p-4 text-[13px] text-fg-subtle">{t("meet.boardLoading")}</p>}>
             <MeetBoard call={call} initial={meeting.board} dark={dark} onScene={(s) => (board.current = s)} />
           </Suspense>
