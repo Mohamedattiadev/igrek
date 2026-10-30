@@ -10,13 +10,14 @@ import {
   type Recurrence,
   toIcs,
 } from "@igrek/core";
-import { CalendarPlus, Download, Search, Sparkles, Upload, Video } from "lucide-react";
+import { CalendarPlus, Download, Link2, Search, Sparkles, Upload, Video } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { dateTime } from "../../lib/format";
 import { nameOf, type OrgApi, type OrgView } from "../org/api";
-import { Badge, Button, Card, field, Segmented } from "../ui";
+import { ProjectSelect } from "../org/ProjectSelect";
+import { ActionsMenu, Badge, Button, Card, Dialog, field } from "../ui";
 import { MeetRoom } from "./MeetRoom";
 
 const box = cn(field, "w-full");
@@ -42,12 +43,15 @@ function NewMeeting({
   at,
   people,
   onDone,
+  onFindTime,
 }: {
   api: OrgApi;
   view: OrgView;
   at?: number;
   people?: string[];
   onDone: () => void;
+  /** Look for a time everyone is free instead of typing one. */
+  onFindTime?: () => void;
 }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState("");
@@ -85,21 +89,13 @@ function NewMeeting({
     void api.act("org-meeting", m).then(onDone);
   };
   return (
-    <Card className="space-y-2 p-4">
+    <div className="space-y-2">
       <input
         className={box}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder={t("meet.title")}
-        aria-label={t("meet.title")}
-      />
-      <textarea
-        className={cn(field, "h-auto w-full py-1.5")}
-        style={{ minHeight: 56 }}
-        value={agenda}
-        onChange={(e) => setAgenda(e.target.value)}
-        placeholder={t("meet.agenda")}
-        aria-label={t("meet.agenda")}
+        placeholder={t("meet.name")}
+        aria-label={t("meet.name")}
       />
       <div className="grid gap-2 sm:grid-cols-3">
         <input
@@ -121,18 +117,11 @@ function NewMeeting({
             </option>
           ))}
         </select>
-        <select
-          className={box}
-          value={recurrence}
-          onChange={(e) => setRecurrence(e.target.value as Recurrence)}
-          aria-label={t("meet.repeat")}
-        >
-          {(["none", "daily", "weekly"] as const).map((r) => (
-            <option key={r} value={r}>
-              {t(`meet.repeat_${r}`)}
-            </option>
-          ))}
-        </select>
+        {onFindTime && (
+          <Button icon={Search} onClick={onFindTime}>
+            {t("meet.findTime")}
+          </Button>
+        )}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[12.5px]">
         {view.people
@@ -150,23 +139,40 @@ function NewMeeting({
           </label>
         ))}
       </div>
-      <select
-        className={box}
-        value={project}
-        onChange={(e) => setProject(e.target.value)}
-        aria-label={t("org.project")}
-      >
-        <option value="">{t("org.noProject")}</option>
-        {view.projects.map((p) => (
-          <option key={p.key} value={p.key}>
-            {p.name}
-          </option>
-        ))}
-      </select>
+      {/* What most meetings do not need, folded: an agenda, repeating, a project. */}
+      <details className="text-[12.5px]">
+        <summary className="cursor-pointer text-fg-muted">{t("meet.moreOptions")}</summary>
+        <div className="mt-2 space-y-2">
+          <textarea
+            className={cn(field, "h-auto w-full py-1.5")}
+            style={{ minHeight: 56 }}
+            value={agenda}
+            onChange={(e) => setAgenda(e.target.value)}
+            placeholder={t("meet.agenda")}
+            aria-label={t("meet.agenda")}
+          />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <select
+              className={box}
+              value={recurrence}
+              onChange={(e) => setRecurrence(e.target.value as Recurrence)}
+              aria-label={t("meet.repeat")}
+            >
+              {(["none", "daily", "weekly"] as const).map((r) => (
+                <option key={r} value={r}>
+                  {t(`meet.repeat_${r}`)}
+                </option>
+              ))}
+            </select>
+            <ProjectSelect view={view} value={project} onChange={setProject} />
+          </div>
+        </div>
+      </details>
+      <p className="text-[11.5px] text-fg-subtle">{t("meet.reminder")}</p>
       <Button variant="primary" icon={CalendarPlus} disabled={!title.trim()} onClick={save}>
         {t("meet.schedule")}
       </Button>
-    </Card>
+    </div>
   );
 }
 
@@ -397,15 +403,18 @@ function MeetingPage({
   m,
   dark,
   onClose,
+  join,
 }: {
   api: OrgApi;
   view: OrgView;
   m: OrgMeeting;
   dark: boolean;
   onClose: () => void;
+  /** Straight into the call: "Start now" and "Join" in the list. */
+  join?: boolean;
 }) {
   const { t } = useTranslation();
-  const [inCall, setInCall] = useState(false);
+  const [inCall, setInCall] = useState(!!join);
   const me = view.me.id;
   const reply = (r: "yes" | "no") =>
     void api.act("org-meeting", { ...m, replies: { ...m.replies, [me]: r }, updatedAt: Date.now() });
@@ -444,6 +453,27 @@ function MeetingPage({
           <Button variant="ghost" onClick={() => reply("no")}>
             {t("meet.no")}
           </Button>
+        )}
+        {/* Ask someone in, from a meeting started on the spot or a planned one: they get its reminder. */}
+        {view.people.some((p) => !m.attendees.includes(p.id)) && (
+          <select
+            value=""
+            onChange={(e) =>
+              e.target.value &&
+              void api.act("org-meeting", { ...m, attendees: [...m.attendees, e.target.value], updatedAt: Date.now() })
+            }
+            aria-label={t("meet.invite")}
+            className={cn(field, "max-w-48")}
+          >
+            <option value="">{t("meet.invite")}</option>
+            {view.people
+              .filter((p) => !m.attendees.includes(p.id))
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.displayName || p.username}
+                </option>
+              ))}
+          </select>
         )}
         {m.by === me && m.status !== "cancelled" && (
           <Button
@@ -515,20 +545,57 @@ function IcsTools({ api, view }: { api: OrgApi; view: OrgView }) {
   );
 }
 
-/** Meetings and the calendar (plan.md 20.8): what is coming, a new one, finding a time, booking, .ics. */
+/** The next seven days side by side, each with its meetings: the week at a glance. */
+function Week({ coming, onOpen }: { coming: { m: OrgMeeting; at: number }[]; onOpen: (id: string) => void }) {
+  const { i18n } = useTranslation();
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const days = Array.from({ length: 7 }, (_, i) => start.getTime() + i * DAY);
+  const name = (at: number) => new Intl.DateTimeFormat(i18n.language, { weekday: "short", day: "numeric" }).format(at);
+  const time = (at: number) =>
+    new Intl.DateTimeFormat(i18n.language, { hour: "2-digit", minute: "2-digit" }).format(at);
+  return (
+    <Card className="grid grid-cols-7 divide-x divide-border overflow-hidden">
+      {days.map((day, i) => (
+        <div key={day} className={cn("min-h-24 min-w-0 p-1.5", i === 0 && "bg-accent-soft")}>
+          <p className="px-1 text-[11px] font-medium text-fg-subtle">{name(day)}</p>
+          {coming
+            .filter(({ at }) => at >= day && at < day + DAY)
+            .map(({ m, at }) => (
+              <button
+                key={`${m.id}${at}`}
+                type="button"
+                onClick={() => onOpen(m.id)}
+                className="mt-1 block w-full truncate rounded px-1 py-0.5 text-start text-[11px] hover:bg-bg-hover"
+              >
+                <span className="text-fg-subtle">{time(at)}</span> {m.title}
+              </button>
+            ))}
+        </div>
+      ))}
+    </Card>
+  );
+}
+
+/**
+ * Meetings, as simple as a video call app (a user found tabs for listing, making, finding a time
+ * and booking too much): start one now, plan one, the week, and what is coming with a Join button.
+ * Finding a time is part of planning; booking and calendar files are under "More".
+ */
 export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView; open?: string; dark: boolean }) {
   const { t } = useTranslation();
-  const [picked, setPicked] = useState(open);
-  const [mode, setMode] = useState<"list" | "new" | "find" | "book">("list");
+  const [picked, setPicked] = useState<{ id: string; join?: boolean } | undefined>(open ? { id: open } : undefined);
+  const [dialog, setDialog] = useState<"plan" | "find" | "book">();
   const [draft, setDraft] = useState<{ at: number; people: string[] }>();
   const now = Date.now();
   const coming = mine(view)
+    .filter((m) => m.status !== "cancelled")
     .flatMap((m) => occurrences(m, now - 2 * 3_600_000, now + 14 * DAY).map((at) => ({ m, at })))
     .sort((a, b) => a.at - b.at);
   const past = mine(view)
     .filter((m) => m.transcript.length || m.summary || m.status === "ended")
     .sort((a, b) => b.start - a.start);
-  const meeting = picked ? view.state.meetings[picked] : undefined;
+  const meeting = picked ? view.state.meetings[picked.id] : undefined;
   // Due dates are on the calendar too (plan.md 20.11): my cards and the ones I asked for.
   const due = Object.values(view.state.cards)
     .filter(
@@ -536,45 +603,62 @@ export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView
         isOpen(c) && !!c.due && c.due < now + 14 * DAY && (c.assignee === view.me.id || c.requestedBy === view.me.id),
     )
     .sort((a, b) => (a.due ?? 0) - (b.due ?? 0));
+  // "Start now": a meeting from this minute, and straight into its call; invite from inside it.
+  const startNow = () => {
+    const at = Date.now();
+    const m = {
+      id: crypto.randomUUID().slice(0, 18),
+      title: t("meet.instantTitle", {
+        time: new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(at),
+      }),
+      agenda: "",
+      start: at,
+      minutes: 30,
+      recurrence: "none" as const,
+      attendees: [view.me.id],
+      teams: [],
+      key: newMeetingKey(),
+      replies: { [view.me.id]: "yes" },
+      consent: {},
+      status: "planned",
+      transcript: [],
+      decisions: [],
+      actions: [],
+      by: view.me.id,
+      at,
+      updatedAt: at,
+    };
+    void api.act("org-meeting", m).then(() => setPicked({ id: m.id, join: true }));
+  };
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Segmented
-          label={t("meet.title")}
-          value={mode}
-          onChange={setMode}
-          options={[
-            { value: "list", label: t("meet.coming") },
-            { value: "new", label: t("meet.new") },
-            { value: "find", label: t("meet.findTime") },
-            { value: "book", label: t("meet.booking") },
-          ]}
-        />
-        <IcsTools api={api} view={view} />
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="primary" icon={Video} onClick={startNow}>
+          {t("meet.startNow")}
+        </Button>
+        <Button icon={CalendarPlus} onClick={() => setDialog("plan")}>
+          {t("meet.plan")}
+        </Button>
+        <span className="flex-1" />
+        <ActionsMenu label={t("meet.more")}>
+          <Button size="sm" variant="ghost" icon={Link2} onClick={() => setDialog("book")}>
+            {t("meet.booking")}
+          </Button>
+          <IcsTools api={api} view={view} />
+        </ActionsMenu>
       </div>
-      {mode === "new" && (
-        <NewMeeting api={api} view={view} at={draft?.at} people={draft?.people} onDone={() => setMode("list")} />
-      )}
-      {mode === "find" && (
-        <FindTime
-          view={view}
-          onPick={(at, people) => {
-            setDraft({ at, people });
-            setMode("new");
-          }}
-        />
-      )}
-      {mode === "book" && <Booking api={api} view={view} />}
       {meeting && (
         <MeetingPage
-          key={meeting.id}
+          key={`${meeting.id}${picked?.join ? ":join" : ""}`}
           api={api}
           view={view}
           m={meeting}
           dark={dark}
+          join={picked?.join}
           onClose={() => setPicked(undefined)}
         />
       )}
+      <Week coming={coming} onOpen={(id) => setPicked({ id })} />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="min-w-0 space-y-1 p-4">
           <h3 className="text-[13.5px] font-semibold">{t("meet.coming")}</h3>
@@ -587,16 +671,23 @@ export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView
             </p>
           ))}
           {coming.map(({ m, at }) => (
-            <button
+            <div
               key={`${m.id}${at}`}
-              type="button"
-              onClick={() => setPicked(m.id)}
-              className="flex w-full items-center gap-2 rounded-ui px-2 py-1 text-start text-[13px] hover:bg-bg-hover"
+              className="flex items-center gap-2 rounded-ui px-2 py-1 text-[13px] hover:bg-bg-hover"
             >
-              <span className="w-36 shrink-0 text-[12px] text-fg-subtle">{dateTime(at)}</span>
-              <span className="min-w-0 flex-1 truncate">{m.title}</span>
-              {m.replies[view.me.id] === "no" && <Badge tone="danger">{t("meet.no")}</Badge>}
-            </button>
+              <button
+                type="button"
+                onClick={() => setPicked({ id: m.id })}
+                className="flex min-w-0 flex-1 items-center gap-2 text-start"
+              >
+                <span className="w-36 shrink-0 text-[12px] text-fg-subtle">{dateTime(at)}</span>
+                <span className="min-w-0 flex-1 truncate">{m.title}</span>
+                {m.replies[view.me.id] === "no" && <Badge tone="danger">{t("meet.no")}</Badge>}
+              </button>
+              <Button size="sm" icon={Video} onClick={() => setPicked({ id: m.id, join: true })}>
+                {t("meet.join")}
+              </Button>
+            </div>
           ))}
         </Card>
         <Card className="min-w-0 space-y-1 p-4">
@@ -606,7 +697,7 @@ export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView
             <button
               key={m.id}
               type="button"
-              onClick={() => setPicked(m.id)}
+              onClick={() => setPicked({ id: m.id })}
               className="flex w-full items-center gap-2 rounded-ui px-2 py-1 text-start text-[13px] hover:bg-bg-hover"
             >
               <span className="w-36 shrink-0 text-[12px] text-fg-subtle">{dateTime(m.start)}</span>
@@ -616,6 +707,41 @@ export function Meetings({ api, view, open, dark }: { api: OrgApi; view: OrgView
           ))}
         </Card>
       </div>
+      <Dialog
+        open={!!dialog}
+        onClose={() => setDialog(undefined)}
+        label={t(dialog === "book" ? "meet.booking" : "meet.plan")}
+      >
+        <div className="space-y-3 p-5">
+          <h2 className="text-[15px] font-semibold">
+            {t(dialog === "book" ? "meet.booking" : dialog === "find" ? "meet.findTime" : "meet.plan")}
+          </h2>
+          {dialog === "plan" && (
+            <NewMeeting
+              key={draft?.at ?? 0}
+              api={api}
+              view={view}
+              at={draft?.at}
+              people={draft?.people}
+              onFindTime={() => setDialog("find")}
+              onDone={() => {
+                setDialog(undefined);
+                setDraft(undefined);
+              }}
+            />
+          )}
+          {dialog === "find" && (
+            <FindTime
+              view={view}
+              onPick={(at, people) => {
+                setDraft({ at, people });
+                setDialog("plan");
+              }}
+            />
+          )}
+          {dialog === "book" && <Booking api={api} view={view} />}
+        </div>
+      </Dialog>
     </div>
   );
 }

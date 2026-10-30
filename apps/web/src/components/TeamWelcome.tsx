@@ -1,5 +1,5 @@
 import type { TeamTimelineItem } from "@igrek/core";
-import { KanbanSquare, MessagesSquare, SquareCheckBig, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -26,28 +26,11 @@ export function TeamWelcome({ team }: { team: boolean }) {
   const soon = useCoalesced(load);
   useServerEvent("chat-changed", (m) => m.writing === undefined && !m.typing && soon());
   if (!team) return null;
-  const places = [
-    { to: "/chat", icon: MessagesSquare, key: "messages" },
-    { to: "/mine", icon: SquareCheckBig, key: "mine" },
-    { to: "/company?tab=work", icon: KanbanSquare, key: "projects" },
-  ] as const;
   return (
     <section className="rounded-ui border border-border">
       <div className="flex flex-wrap items-center gap-2 px-3 py-1.5">
         <Users size={14} className="shrink-0 text-accent" aria-hidden="true" />
         <span className="text-[13px] font-medium">{t("teamWelcome.title")}</span>
-        <span className="flex-1" />
-        {places.map((p) => (
-          <Link
-            key={p.key}
-            to={p.to}
-            data-tip={t(`teamWelcome.${p.key}Hint`)}
-            className="inline-flex items-center gap-1 rounded-ui px-2 py-1 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
-          >
-            <p.icon size={13} aria-hidden="true" />
-            {t(`teamWelcome.${p.key}`)}
-          </Link>
-        ))}
       </div>
       {latest.length > 0 && (
         <ul className="divide-y divide-border border-t border-border">

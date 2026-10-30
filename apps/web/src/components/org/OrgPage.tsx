@@ -64,7 +64,11 @@ export function OrgPage({
             label={t("org.title")}
             value={current}
             onChange={onTab}
-            options={TABS.filter((x) => x !== "home" || manages).map((x) => ({ value: x, label: t(`org.tab_${x}`) }))}
+            // Meetings have their own place (Team > Meetings); a tab here jumped to that other page.
+            options={TABS.filter((x) => x !== "meetings" && (x !== "home" || manages)).map((x) => ({
+              value: x,
+              label: t(`org.tab_${x}`),
+            }))}
           />
         </TabBar>
       )}

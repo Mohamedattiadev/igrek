@@ -1,8 +1,8 @@
 import type { Seat } from "@igrek/core";
-import { Building2, Users } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { Card, Dialog, EmptyState, PageHeader, Segmented, TabBar } from "../components/ui";
 import { api } from "../lib/api";
@@ -54,12 +54,6 @@ function CompanyOverview() {
               ]}
             />
           </Card>
-          <p className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
-            <Users size={13} aria-hidden="true" />
-            <Link to="/team" className="text-accent hover:underline">
-              {t("company.manage")}
-            </Link>
-          </p>
         </>
       )}
     </div>

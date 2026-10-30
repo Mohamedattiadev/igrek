@@ -4,25 +4,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
-import { Badge, Button, Card, field, Panel } from "../ui";
+import { Badge, Button, Card, Dialog, field, Panel } from "../ui";
 import { nameOf, type OrgApi, type OrgView, teamName } from "./api";
 import { CardDetail, NewCard } from "./OrgCards";
 
 const box = cn(field, "w-full");
 const RISK = { low: "success", medium: "warning", high: "danger" } as const;
-
-function Stat({ label, value, tone }: { label: string; value: number; tone?: "danger" | "warning" }) {
-  return (
-    <Card className="p-4">
-      <p className="text-[11.5px] font-medium uppercase tracking-wide text-fg-subtle">{label}</p>
-      <p
-        className={`mt-1 text-[22px] font-semibold tracking-tight ${tone && value ? (tone === "danger" ? "text-danger" : "text-warning") : ""}`}
-      >
-        {value}
-      </p>
-    </Card>
-  );
-}
 
 /** A note on a project's preview (plan.md 20.3): it becomes a card in the queue of the team that owns it. */
 function PreviewNote({
@@ -262,9 +249,10 @@ function Approvals({ api, view }: { api: OrgApi; view: OrgView }) {
   );
   const card = open ? view.state.cards[open] : undefined;
   const extra = everything ? (view.approvals ?? []) : [];
+  // Shown only when something waits: an empty "nothing to approve" box was one more thing to read.
+  if (!list.length && !extra.length) return null;
   return (
     <Panel icon={ShieldAlert} title={t("org.approvals")}>
-      {list.length === 0 && !extra.length && <p className="text-[12.5px] text-fg-subtle">{t("org.approvalsNone")}</p>}
       {extra.map((x) => (
         <a
           key={x.id}
@@ -310,48 +298,53 @@ export function OrgHome({ api, view }: { api: OrgApi; view: OrgView }) {
     })),
     { id: "", name: t("org.noTeam"), projects: view.projects.filter((p) => !p.teams.length) },
   ].filter((g) => g.projects.length);
+  const late = cards.filter((c) => isOverdue(c)).length;
+  const waiting = cards.filter((c) => !!c.waitingOn && isOpen(c)).length;
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label={t("org.projects")} value={view.projects.length} />
-        <Stat label={t("org.openCards")} value={cards.filter(isOpen).length} />
-        <Stat label={t("org.late")} value={cards.filter((c) => isOverdue(c)).length} tone="danger" />
-        <Stat
-          label={t("org.waitingCards")}
-          value={cards.filter((c) => !!c.waitingOn && isOpen(c)).length}
-          tone="warning"
-        />
-      </div>
+      {/* The numbers in one line, the two things a manager does here as buttons, then only the boxes
+          that have something in them (a user found eight boxes, mostly empty, too much). */}
+      <Card className="flex flex-wrap items-center gap-x-6 gap-y-2 px-pad py-2.5 text-[13px]">
+        <span>
+          <b className="text-[16px]">{view.projects.length}</b> {t("org.projects")}
+        </span>
+        <span>
+          <b className="text-[16px]">{cards.filter(isOpen).length}</b> {t("org.openCards")}
+        </span>
+        <span className={late ? "text-danger" : undefined}>
+          <b className="text-[16px]">{late}</b> {t("org.late")}
+        </span>
+        <span className={waiting ? "text-warning" : undefined}>
+          <b className="text-[16px]">{waiting}</b> {t("org.waitingCards")}
+        </span>
+        <span className="flex-1" />
+        {view.me.role !== "viewer" && (
+          <Button variant="primary" icon={FileText} onClick={() => setGiving(true)}>
+            {t("org.giveWork")}
+          </Button>
+        )}
+      </Card>
+      <Dialog open={giving} onClose={() => setGiving(false)} label={t("org.giveWork")}>
+        <div className="space-y-3 p-5">
+          <h2 className="text-[15px] font-semibold">{t("org.giveWork")}</h2>
+          <p className="text-[12.5px] text-fg-subtle">{t("org.giveWorkHint", { handle: view.state.bot.handle })}</p>
+          <NewCard api={api} view={view} />
+        </div>
+      </Dialog>
       <div className="grid gap-4 lg:grid-cols-2">
         <Summary api={api} view={view} />
         <Approvals api={api} view={view} />
-        <Panel icon={Radio} title={t("org.liveNow")}>
-          {view.live.length === 0 && <p className="text-[12.5px] text-fg-subtle">{t("org.liveNone")}</p>}
-          {view.live.map((l) => (
-            <p key={`${l.userId}${l.project}`} className="text-[13px]">
-              <span className="font-medium">{nameOf(view, l.userId)}</span>{" "}
-              <span className="text-fg-muted">{l.title || l.tool}</span>{" "}
-              <span className="text-[11.5px] text-fg-subtle">
-                {view.projects.find((p) => p.key === l.project)?.name}
-              </span>
-            </p>
-          ))}
-        </Panel>
-        {view.me.role !== "viewer" && (
-          <Panel
-            icon={FileText}
-            title={t("org.giveWork")}
-            action={
-              <Button size="sm" variant="ghost" onClick={() => setGiving((v) => !v)}>
-                {giving ? t("org.hide") : t("org.show")}
-              </Button>
-            }
-          >
-            {giving ? (
-              <NewCard api={api} view={view} />
-            ) : (
-              <p className="text-[12.5px] text-fg-subtle">{t("org.giveWorkHint", { handle: view.state.bot.handle })}</p>
-            )}
+        {view.live.length > 0 && (
+          <Panel icon={Radio} title={t("org.liveNow")}>
+            {view.live.map((l) => (
+              <p key={`${l.userId}${l.project}`} className="text-[13px]">
+                <span className="font-medium">{nameOf(view, l.userId)}</span>{" "}
+                <span className="text-fg-muted">{l.title || l.tool}</span>{" "}
+                <span className="text-[11.5px] text-fg-subtle">
+                  {view.projects.find((p) => p.key === l.project)?.name}
+                </span>
+              </p>
+            ))}
           </Panel>
         )}
       </div>

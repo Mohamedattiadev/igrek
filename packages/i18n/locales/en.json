@@ -1336,8 +1336,6 @@
     "addEmail": "add email",
     "linkedBanner": "Your team shares this repo: you see their sessions and decisions here. Yours stay on this computer until you share them.",
     "linkedShare": "Share mine too",
-    "toCompany": "Company",
-    "toProfile": "My profile",
     "alsoShared": "A teammate shares it too",
     "sees_off": "The team sees nothing of it; it stays on this computer.",
     "sees_summary": "The team sees what you did: session titles, summaries, decisions. Your conversations stay here.",
@@ -5234,13 +5232,7 @@
     "emptyBody": "Share a project with the team (Company, Sharing) and its work shows up here."
   },
   "teamWelcome": {
-    "title": "Team",
-    "projects": "Team work",
-    "projectsHint": "Who is on what across the team's shared projects.",
-    "messages": "Messages",
-    "messagesHint": "Talk in the project's channels; @name tells someone, @ai asks Igrek.",
-    "mine": "My cards",
-    "mineHint": "Cards given to you or taken by you, on every project."
+    "title": "Team"
   },
   "chats": {
     "noSummary": "No summary yet: it is written when the chat ends.",
@@ -5283,7 +5275,6 @@
   },
   "teamChat": {
     "board": "Board",
-    "open": "Open messages",
     "channels": "Channels",
     "channel": "Channel",
     "newChannel": "New channel",
@@ -5443,7 +5434,6 @@
     "oldVersion": "older than the team's newest",
     "shareTitle": "Share my usage with the team",
     "shareHint": "Your accounts' names and plans, how full their limits are, and this week's sessions and tokens. Never your chats, code or email address.",
-    "manage": "People, roles and devices are on the Team page",
     "tab_overview": "Overview",
     "tab_work": "Work",
     "tab_people": "People",
@@ -5806,14 +5796,10 @@
     "nothingMoved": "Nothing moved in that time.",
     "summaryInIgrek": "Here you see the facts it is made of; in Igrek on a computer your own Claude writes it as a few lines.",
     "approvals": "Waiting for a yes",
-    "approvalsNone": "Nothing waits for a decision.",
     "request": "Request",
     "liveNow": "Working now",
-    "liveNone": "Nobody is working in Igrek right now.",
     "giveWork": "Give work",
     "giveWorkHint": "Open the form, or write to @{{handle}} in the bot's channel: \"Friday: the payment page, Kerim\".",
-    "hide": "Hide",
-    "show": "Open",
     "noTeam": "No team",
     "openCount_one": "{{count}} open",
     "openCount_other": "{{count}} open",
@@ -5982,9 +5968,7 @@
     "meetLate": "\"{{title}}\" started 5 minutes ago; they are waiting for you."
   },
   "meet": {
-    "title": "Meetings",
     "coming": "Coming up",
-    "new": "New meeting",
     "findTime": "Find a time",
     "booking": "Book a time",
     "bookWith": "With whom",
@@ -6046,7 +6030,15 @@
     "close": "Close",
     "dueBadge": "due",
     "notice_late": "Started 5 minutes ago; they are waiting for you",
-    "quality": "Line: {{upKbps}} kbit/s up, {{downKbps}} kbit/s down, {{rttMs}} ms round trip"
+    "quality": "Line: {{upKbps}} kbit/s up, {{downKbps}} kbit/s down, {{rttMs}} ms round trip",
+    "startNow": "Start a meeting now",
+    "plan": "Plan a meeting",
+    "more": "More",
+    "moreOptions": "More options: agenda, repeat, project",
+    "reminder": "Everyone invited gets a reminder ten minutes before and when it starts.",
+    "instantTitle": "Quick meeting, {{time}}",
+    "invite": "Invite someone",
+    "name": "What is it about?"
   },
   "history": {
     "ask": "Ask the history",

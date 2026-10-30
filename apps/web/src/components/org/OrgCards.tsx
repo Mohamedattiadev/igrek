@@ -15,6 +15,7 @@ import { dateTime, relativeTime } from "../../lib/format";
 import { Badge, Button, Card, field, Segmented } from "../ui";
 import { nameOf, type OrgApi, type OrgView, teamName } from "./api";
 import { BotText, PostList, Writer } from "./OrgPosts";
+import { ProjectSelect } from "./ProjectSelect";
 
 const box = cn(field, "w-full");
 const PRIORITIES: OrgPriority[] = ["low", "normal", "high", "urgent"];
@@ -399,19 +400,7 @@ export function NewCard({
           <option value="">{t("org.giveTo")}</option>
           <AssignOptions view={view} />
         </select>
-        <select
-          className={box}
-          value={project}
-          onChange={(e) => setProject(e.target.value)}
-          aria-label={t("org.project")}
-        >
-          <option value="">{t("org.noProject")}</option>
-          {view.projects.map((p) => (
-            <option key={p.key} value={p.key}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+        <ProjectSelect view={view} value={project} onChange={setProject} />
         <select
           className={box}
           value={priority}

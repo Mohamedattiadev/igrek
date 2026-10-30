@@ -11,8 +11,6 @@ import type {
 } from "@igrek/core";
 import {
   BarChart3,
-  Building2,
-  CalendarDays,
   Copy,
   Download,
   Eraser,
@@ -24,15 +22,12 @@ import {
   Mail,
   MailCheck,
   MailX,
-  MessagesSquare,
   Plus,
   RefreshCw,
   ShieldCheck,
   Smartphone,
-  SquareCheckBig,
   Sun,
   Trash2,
-  UserRound,
   Users,
   UserX,
 } from "lucide-react";
@@ -1056,29 +1051,9 @@ export function TeamPage() {
             }}
           />
         ) : (
-          // The day's team on one screen: where to go, who is here, what happened today, then the
-          // board; titled cards, no wide column of hints (a user found the page loose and empty).
+          // The day's team on one screen: who is here, what happened today, then the board. No row of
+          // buttons to other pages: they are the tabs above (a user found buttons that jumped away confusing).
           <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
-            <nav className="flex flex-wrap gap-2" aria-label={t("nav.team")}>
-              {(
-                [
-                  ["/chat", MessagesSquare, t("teamChat.open")],
-                  ["/meetings", CalendarDays, t("nav.meetings")],
-                  ["/mine", SquareCheckBig, t("nav.mine")],
-                  ["/company", Building2, t("team.toCompany")],
-                  ["/me", UserRound, t("team.toProfile")],
-                ] as const
-              ).map(([to, Icon, label]) => (
-                <Link
-                  key={to}
-                  to={to}
-                  className="inline-flex items-center gap-2 rounded-ui border border-border bg-bg px-3 py-1.5 text-[13px] font-medium hover:border-accent"
-                >
-                  <Icon size={15} className="text-accent" aria-hidden="true" />
-                  {label}
-                </Link>
-              ))}
-            </nav>
             <div className="grid gap-4 lg:grid-cols-2">
               <Panel icon={Users} title={t("team.members")}>
                 {status.members.length ? (

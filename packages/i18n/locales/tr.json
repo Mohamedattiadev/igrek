@@ -1336,8 +1336,6 @@
     "addEmail": "e-posta ekle",
     "linkedBanner": "Takımın bu repoyu paylaşıyor: onların oturumlarını ve kararlarını burada görüyorsun. Seninkiler paylaşmayı açana kadar bu bilgisayarda kalır.",
     "linkedShare": "Benimkileri de paylaş",
-    "toCompany": "Şirket",
-    "toProfile": "Profilim",
     "alsoShared": "Takımdan biri de paylaşıyor",
     "sees_off": "Takım bundan hiçbir şey görmez; bu bilgisayarda kalır.",
     "sees_summary": "Takım ne yaptığını görür: oturum başlıkları, özetler, kararlar. Konuşmaların sende kalır.",
@@ -5234,13 +5232,7 @@
     "emptyBody": "Bir projeyi takımla paylaş (Şirket, Paylaşım); işi burada görünür."
   },
   "teamWelcome": {
-    "title": "Takım",
-    "projects": "Takımın işi",
-    "projectsHint": "Takımın paylaşılan projelerinde kim ne üzerinde.",
-    "messages": "Mesajlar",
-    "messagesHint": "Projenin kanallarında konuş; @ad birine haber verir, @ai Igrek'e sorar.",
-    "mine": "Bana atanan",
-    "mineHint": "Sana verilen ya da senin aldığın kartlar, tüm projelerde."
+    "title": "Takım"
   },
   "chats": {
     "noSummary": "Henüz özet yok: sohbet bitince yazılır.",
@@ -5283,7 +5275,6 @@
   },
   "teamChat": {
     "board": "Pano",
-    "open": "Mesajları aç",
     "channels": "Kanallar",
     "channel": "Kanal",
     "newChannel": "Yeni kanal",
@@ -5443,7 +5434,6 @@
     "oldVersion": "takımın en yenisinden eski",
     "shareTitle": "Kullanımımı takımla paylaş",
     "shareHint": "Hesaplarının adları ve planları, limitlerinin doluluğu, bu haftanın oturum ve token sayısı. Sohbetlerin, kodun ve e-posta adresin asla.",
-    "manage": "Kişiler, roller ve cihazlar Takım sayfasında",
     "tab_overview": "Genel bakış",
     "tab_work": "İş",
     "tab_people": "Kişiler",
@@ -5806,14 +5796,10 @@
     "nothingMoved": "O sürede bir şey değişmedi.",
     "summaryInIgrek": "Burada özetin dayandığı bilgiler görünür; bilgisayardaki Igrek'te kendi Claude'un bunu birkaç satır olarak yazar.",
     "approvals": "Onay bekleyenler",
-    "approvalsNone": "Karar bekleyen bir şey yok.",
     "request": "İstek",
     "liveNow": "Şu an çalışanlar",
-    "liveNone": "Şu an Igrek'te çalışan yok.",
     "giveWork": "İş ver",
     "giveWorkHint": "Formu aç ya da botun kanalına @{{handle}} diye yaz: \"Cuma'ya ödeme sayfası, Kerim baksın\".",
-    "hide": "Gizle",
-    "show": "Aç",
     "noTeam": "Takımsız",
     "openCount_one": "{{count}} açık",
     "openCount_other": "{{count}} açık",
@@ -5982,9 +5968,7 @@
     "meetLate": "\"{{title}}\" 5 dakika önce başladı; seni bekliyorlar."
   },
   "meet": {
-    "title": "Toplantılar",
     "coming": "Yaklaşanlar",
-    "new": "Yeni toplantı",
     "findTime": "Boş saat bul",
     "booking": "Randevu al",
     "bookWith": "Kiminle",
@@ -6046,7 +6030,15 @@
     "close": "Kapat",
     "dueBadge": "son tarih",
     "notice_late": "5 dakika önce başladı; seni bekliyorlar",
-    "quality": "Hat: {{upKbps}} kbit/s giden, {{downKbps}} kbit/s gelen, {{rttMs}} ms gidiş-dönüş"
+    "quality": "Hat: {{upKbps}} kbit/s giden, {{downKbps}} kbit/s gelen, {{rttMs}} ms gidiş-dönüş",
+    "startNow": "Şimdi toplantı başlat",
+    "plan": "Toplantı planla",
+    "more": "Diğer",
+    "moreOptions": "Diğer seçenekler: gündem, tekrar, proje",
+    "reminder": "Davet edilen herkese on dakika önce ve başlarken hatırlatma gider.",
+    "instantTitle": "Hızlı toplantı, {{time}}",
+    "invite": "Birini davet et",
+    "name": "Toplantının adı"
   },
   "history": {
     "ask": "Geçmişe sor",
