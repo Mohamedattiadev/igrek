@@ -1,19 +1,9 @@
 import type { ServerMessage } from "@igrek/core";
 import { APP_VERSION } from "@igrek/core";
-import {
-  ChevronDown,
-  Download,
-  Menu,
-  Minimize2,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Pin,
-  PinOff,
-  Search,
-} from "lucide-react";
-import { lazy, type ReactNode, Suspense, useCallback, useEffect, useState } from "react";
+import { Download, Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useDesktopTray, useDesktopUpdateCheck } from "../lib/desktop";
@@ -44,14 +34,14 @@ import { IdeaCapture } from "./IdeaCapture";
 import { LanguagePackBanner, useLanguagePackSync } from "./LanguagePack";
 import { Logo } from "./Logo";
 import { NavColorMenu } from "./NavColors";
-import { NAV_ITEMS, type NavItem } from "./nav";
+import { NAV_ITEMS, NAV_SECTIONS, type NavItem, sectionOf } from "./nav";
 import { QuickAskGate } from "./QuickAskGate";
 import { ScreenNote } from "./ScreenNote";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
 import { UndoToast } from "./UndoToast";
-import { Count, Kbd, StatusDot } from "./ui";
+import { Count, Kbd, Segmented, StatusDot, TabBar } from "./ui";
 import { WhatIs } from "./WhatIs";
 import { WorkspacePicker } from "./WorkspacePicker";
 
@@ -60,42 +50,6 @@ const CommandPalette = lazy(() => import("./CommandPalette").then((m) => ({ defa
 const Tour = lazy(() => import("./Tour").then((m) => ({ default: m.Tour })));
 
 const WIDE = "igrek.nav.wide";
-const MORE = "igrek.nav.more";
-const PINNED = "igrek.nav.pinned";
-
-/**
- * Pages under "More" the user pinned (plan.md, 26 Oct 2026): they stay on the strip while "More" is
- * folded. Kept in this browser only, like the strip's width.
- */
-function usePinned(): [Set<string>, (to: string) => void] {
-  const [pinned, setPinned] = useState<Set<string>>(() => {
-    try {
-      return new Set(JSON.parse(localStorage.getItem(PINNED) ?? "[]") as string[]);
-    } catch {
-      return new Set();
-    }
-  });
-  const toggle = (to: string) =>
-    setPinned((now) => {
-      const next = new Set(now);
-      if (!next.delete(to)) next.add(to);
-      try {
-        localStorage.setItem(PINNED, JSON.stringify([...next]));
-      } catch {
-        // Only a convenience.
-      }
-      return next;
-    });
-  return [pinned, toggle];
-}
-
-function readMore(): boolean {
-  try {
-    return localStorage.getItem(MORE) === "1";
-  } catch {
-    return false;
-  }
-}
 
 function readWide(): boolean {
   try {
@@ -118,46 +72,6 @@ function useNarrow(): boolean {
   return narrow;
 }
 
-/** A page under "More" with a pin beside it on the wide strip: pinned, it stays when "More" is folded. */
-function PinnableLink({
-  item,
-  badge,
-  wide,
-  onPick,
-  pinned,
-  onPin,
-}: {
-  item: NavItem;
-  badge?: number;
-  wide: boolean;
-  onPick?: () => void;
-  pinned: boolean;
-  onPin: () => void;
-}) {
-  const { t } = useTranslation();
-  const label = pinned ? t("nav.unpin", { page: t(item.label) }) : t("nav.pin", { page: t(item.label) });
-  return (
-    <div className={cn("group/pin relative", wide && "w-full")}>
-      <ToolStripLink item={item} badge={badge} wide={wide} onPick={onPick} />
-      {wide && (
-        <button
-          type="button"
-          onClick={onPin}
-          aria-label={label}
-          aria-pressed={pinned}
-          data-tip={label}
-          className={cn(
-            "absolute end-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-fg-subtle hover:bg-bg-active hover:text-fg",
-            pinned ? "text-accent" : "opacity-0 focus:opacity-100 group-hover/pin:opacity-100",
-          )}
-        >
-          {pinned ? <PinOff size={13} aria-hidden="true" /> : <Pin size={13} aria-hidden="true" />}
-        </button>
-      )}
-    </div>
-  );
-}
-
 function ToolStripLink({
   item,
   badge,
@@ -165,8 +79,11 @@ function ToolStripLink({
   badgeTone = "warning",
   wide,
   onPick,
+  active,
 }: {
   item: NavItem;
+  /** For a place: lit while any of its pages is open, not only its first. */
+  active?: boolean;
   badge?: number;
   /** What the count is made of, e.g. "Kerim, Ati". */
   badgeTip?: string;
@@ -189,11 +106,14 @@ function ToolStripLink({
       aria-label={t(item.label)}
       className={({ isActive }) =>
         cn(
+          // (active ?? isActive) below: a place is lit on all its pages.
           // 32 px rows: the whole strip, "More" open, fits a laptop screen without scrolling.
           "relative flex h-8 shrink-0 items-center rounded-ui transition-colors",
           // Under "More" too: one a row, the same size as the rest (two a row looked cramped).
           wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
-          isActive ? "bg-bg-active font-medium text-accent-hover" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
+          (active ?? isActive)
+            ? "bg-bg-active font-medium text-accent-hover"
+            : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
         )
       }
     >
@@ -277,68 +197,6 @@ function useMyCards(): number {
   return count;
 }
 
-/** A heading over a few items when the strip is wide; a thin line between them when it is narrow. */
-function NavGroup({
-  id,
-  label,
-  wide,
-  children,
-}: {
-  /** Its key in the colour store ("group:team"); right-click on the heading to colour it. */
-  id: string;
-  label: string;
-  wide: boolean;
-  children: ReactNode;
-}) {
-  const [colors] = useNavColors();
-  const color = colors[`group:${id}`];
-  return (
-    <div className={cn("mt-2 flex flex-col gap-0.5", !wide && "items-center")}>
-      {wide ? (
-        <span
-          data-nav-color={`group:${id}`}
-          className="px-2.5 pb-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-fg-subtle"
-          style={{ color: color ? NAV_COLORS[color] : undefined }}
-        >
-          {label}
-        </span>
-      ) : (
-        <span className="mb-1 h-px w-6 bg-border" aria-hidden="true" />
-      )}
-      {children}
-    </div>
-  );
-}
-
-const stripRow = (wide: boolean) => (wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center");
-
-function MoreToggle({ open, wide, onClick }: { open: boolean; wide: boolean; onClick: () => void }) {
-  const { t } = useTranslation();
-  const label = open ? t("nav.less") : t("nav.more");
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-expanded={open}
-      aria-label={label}
-      data-tip={wide ? undefined : label}
-      data-tip-side="right"
-      className={cn(
-        "mt-1 flex h-8 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
-        stripRow(wide),
-      )}
-    >
-      <ChevronDown
-        size={16}
-        strokeWidth={1.75}
-        className={cn("shrink-0 transition-transform", open && "rotate-180")}
-        aria-hidden="true"
-      />
-      {wide && <span className="min-w-0 flex-1 truncate text-start">{label}</span>}
-    </button>
-  );
-}
-
 function WidthToggle({ wide, onClick }: { wide: boolean; onClick: () => void }) {
   const { t } = useTranslation();
   return (
@@ -366,26 +224,23 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
   const unread = useChatUnread();
   const mine = useMyCards();
   const people = useInboxPeople();
-  const badges: Record<string, number> = {
-    "/terminals": waiting,
-    "/inbox": waiting + approvals + people.messages + people.mentions,
-    "/chat": unread.count,
-    "/mine": mine,
-  };
+  const inbox = waiting + approvals + people.messages + people.mentions;
+  // A place's count is its pages' together: the inbox and my cards on Home, unread on Messages.
+  const badges: Record<string, number> = { home: inbox + mine, projects: waiting, chat: unread.count };
   const inboxParts = [
     approvals && t("nav.inboxApprovals", { count: approvals }),
     waiting && t("nav.inboxWaiting", { count: waiting }),
     people.mentions && t("nav.inboxMentions", { count: people.mentions }),
     people.messages && t("nav.inboxMessages", { count: people.messages }),
+    mine && t("nav.mineCards", { count: mine }),
   ].filter(Boolean);
   const badgeTips: Record<string, string> = {
-    "/chat": t("nav.unreadFrom", { names: unread.from.join(", ") }),
-    "/inbox": inboxParts.join(", "),
+    chat: t("nav.unreadFrom", { names: unread.from.join(", ") }),
+    home: inboxParts.join(", "),
   };
   const badgeTones: Record<string, "danger" | "accent" | "warning"> = {
-    "/inbox": approvals ? "danger" : people.messages + people.mentions ? "accent" : "warning",
-    "/chat": "accent",
-    "/mine": "accent",
+    home: approvals ? "danger" : people.messages + people.mentions + mine ? "accent" : "warning",
+    chat: "accent",
   };
   const flip = () =>
     setWide((on) => {
@@ -397,43 +252,8 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
       return !on;
     });
   const { pathname } = useLocation();
-  const [moreSetting, setMore] = useState(readMore);
-  const [pinned, togglePin] = usePinned();
-  const folded = (item: NavItem) => item.group === "work" || item.group === "know";
-  const inMore = visible.some((item) => folded(item) && !pinned.has(item.to) && pathname.startsWith(item.to));
-  const showMore = moreSetting || inMore;
-  const flipMore = () =>
-    setMore((on) => {
-      try {
-        localStorage.setItem(MORE, on ? "0" : "1");
-      } catch {
-        // Only a convenience.
-      }
-      return !on;
-    });
-  const link = (item: NavItem) => (
-    <ToolStripLink
-      key={item.to}
-      item={item}
-      badge={badges[item.to]}
-      badgeTip={badgeTips[item.to]}
-      badgeTone={badgeTones[item.to]}
-      wide={wide}
-      onPick={onClose}
-    />
-  );
-  const pinnable = (item: NavItem) => (
-    <PinnableLink
-      key={item.to}
-      item={item}
-      badge={badges[item.to]}
-      wide={wide}
-      onPick={onClose}
-      pinned={pinned.has(item.to)}
-      onPin={() => togglePin(item.to)}
-    />
-  );
-  const pinnedItems = visible.filter((item) => folded(item) && pinned.has(item.to));
+  const here = sectionOf(pathname)?.id;
+  const link = (item: NavItem) => <ToolStripLink key={item.to} item={item} wide={wide} onPick={onClose} />;
   const [colorMenu, setColorMenu] = useState<{ x: number; y: number; key: string }>();
   return (
     <nav
@@ -455,33 +275,25 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
         <Logo />
         {wide && <span className="text-[14px] font-semibold tracking-tight">Igrek</span>}
       </div>
-      {/* Only the middle scrolls, without a visible bar; settings and the width toggle stay put. */}
+      {/* Five places; each one's pages are tabs across the top of the page (SectionTabs). */}
       <div
         className={cn(
           "flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           !wide && "items-center",
         )}
       >
-        {visible.filter((item) => !item.bottom && !item.group).map(link)}
-        <NavGroup id="team" label={t("nav.groupTeam")} wide={wide}>
-          {visible.filter((item) => item.group === "team").map(link)}
-        </NavGroup>
-        {!showMore && pinnedItems.length > 0 && (
-          <NavGroup id="pinned" label={t("nav.groupPinned")} wide={wide}>
-            {pinnedItems.map(pinnable)}
-          </NavGroup>
-        )}
-        <MoreToggle open={showMore} wide={wide} onClick={flipMore} />
-        {showMore && (
-          <>
-            <NavGroup id="work" label={t("nav.groupWork")} wide={wide}>
-              {visible.filter((item) => item.group === "work").map(pinnable)}
-            </NavGroup>
-            <NavGroup id="know" label={t("nav.groupKnow")} wide={wide}>
-              {visible.filter((item) => item.group === "know").map(pinnable)}
-            </NavGroup>
-          </>
-        )}
+        {NAV_SECTIONS.map((section) => (
+          <ToolStripLink
+            key={section.id}
+            item={{ to: section.pages[0] ?? "/", label: section.label, icon: section.icon }}
+            active={here === section.id}
+            badge={badges[section.id]}
+            badgeTip={badgeTips[section.id]}
+            badgeTone={badgeTones[section.id]}
+            wide={wide}
+            onPick={onClose}
+          />
+        ))}
       </div>
       {/* Profile, settings and the width toggle share one row when wide (they took three). */}
       <div
@@ -529,6 +341,29 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
       </div>
       <NavColorMenu at={colorMenu} onClose={() => setColorMenu(undefined)} />
     </nav>
+  );
+}
+
+/**
+ * The pages of the place that is open, as tabs across the top (Home: inbox, my cards, the news;
+ * Team: the team, meetings, the company...). Only on those pages: a project or a chat has its own.
+ */
+function SectionTabs() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const section = sectionOf(pathname);
+  if (!section || section.pages.length < 2 || !section.pages.includes(pathname)) return null;
+  const page = (to: string) => NAV_ITEMS.find((item) => item.to === to);
+  return (
+    <TabBar>
+      <Segmented
+        label={t(section.label)}
+        value={pathname}
+        onChange={(to) => void navigate(to)}
+        options={section.pages.map((to) => ({ value: to, label: t(page(to)?.label ?? ""), icon: page(to)?.icon }))}
+      />
+    </TabBar>
   );
 }
 
@@ -773,6 +608,7 @@ export function Shell() {
           />
         )}
         <LanguagePackBanner code={settings.language} />
+        {!zen && <SectionTabs />}
         <main
           id="main"
           tabIndex={-1}
