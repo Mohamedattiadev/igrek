@@ -3,224 +3,92 @@
 <h1 align="center">Igrek</h1>
 
 <p align="center">
-  A desktop app for Claude Code and Codex. It keeps the chats of all your projects in one window,<br>
-  shows which request changed which file, and hides your secrets from the model.
+  One window for all your Claude Code and Codex work.<br>
+  See what the AI changed and why, and keep your private details away from it.
+</p>
+
+<p align="center"><strong>Click to download:</strong></p>
+
+<p align="center">
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_x64_en-US.msi"><img src="docs/img/dl-windows.svg" height="44" alt="Download for Windows"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_aarch64.dmg"><img src="docs/img/dl-mac-arm.svg" height="44" alt="Download for macOS Apple silicon"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_x64.dmg"><img src="docs/img/dl-mac-intel.svg" height="44" alt="Download for macOS Intel"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_amd64.AppImage"><img src="docs/img/dl-linux-appimage.svg" height="44" alt="Download for Linux AppImage"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_amd64.deb"><img src="docs/img/dl-linux-deb.svg" height="44" alt="Download for Linux .deb"></a>
 </p>
 
 <p align="center">
+  Free. No account. No API key.<br>
   <a href="https://mohamedattiadev.github.io/igrek/">Website</a> ·
   <a href="https://mohamedattiadev.github.io/igrek/docs/">Docs</a> ·
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/latest">Download</a> ·
-  <a href="#türkçe">Türkçe</a>
+  <a href="README.tr.md">Türkçe</a>
 </p>
 
-<p align="center"><img src="site/img/en-project.webp" width="880" alt="Igrek showing a project: the latest session, reports and recent chats"></p>
+<p align="center"><img src="docs/img/en-project.webp" width="880" alt="Igrek showing a project: the latest session, reports and recent chats"></p>
 
-## What it does
+## Get started in 3 steps
 
-Claude Code and Codex write the code. Igrek runs next to them on your computer and keeps track of what they did.
+1. **Download** with a button above and open the file.
+2. **Allow it** if your computer asks (see below). This happens once.
+3. **Follow the app.** Pick your language and your project folders. If Claude Code or Codex is missing, Igrek offers
+   to install it.
 
-- **Why did this file change?** Every changed file has a Why? button: the message that asked for it, the plan step
-  it belongs to, and any expert asked in the same turn. It is read from the chat, not guessed.
-- **One box for every project.** Type a task on the home page; Igrek sends it to the right project, or to several at
-  once, each working in its own copy.
-- **Health and Fix.** Architecture, security, tests, dependencies and more get a score. Simple findings have a Fix
-  button that shows the command before it runs; the rest go to the right expert in a copy you review.
-- **Secrets stay on your side.** Saved details (IBANs, ID and card numbers, salaries) and the values in your `.env`
-  files become placeholders such as `[[private:iban]]` before a message leaves, and are put back in the answer.
-- **About thirty experts.** Read-only reviewers from security and databases to product and finance. Call one with `@`
-  in a chat. Each review is a model call, so none run unless you ask.
-- **Notes per project.** Decisions and past mistakes are saved per project and given to the agent at the start of a
-  chat. Rules that are only in `CLAUDE.md` or only in `AGENTS.md` are shown so both agents follow the same.
-- **Accounts and limits.** Switch between your Claude and Codex accounts; each chat shows what a turn took of your
-  5-hour limit and what is left.
-- **More:** scheduled tasks, your servers (each step waits for your OK), a browser extension that fills forms
-  without the AI seeing your details, a team hub you host yourself, and moving a chat or all of Igrek to another computer.
+Mac and not sure which one? Open the Apple menu, then About This Mac. If it says M1, M2 or later, pick Apple silicon.
+Otherwise pick Intel.
 
-Everything runs on your computer. There is no account, no telemetry and no server of ours, and no API key is needed:
-Igrek uses the Claude Code and Codex logins you already have. Settings lists every address it connects to.
+<details>
+<summary><strong>Your computer says the app is not safe?</strong></summary>
 
-## Install
+Igrek does not have a paid signing certificate, so your system asks once.
 
-### Desktop app (the easiest)
+- **Windows:** click **More info**, then **Run anyway**.
+- **macOS:** close the message, open **System Settings > Privacy & Security**, scroll down, click **Open Anyway**.
+- **Linux AppImage:** run `chmod +x Igrek_*.AppImage`, then open it. Some systems need `libfuse2` first.
 
-Download the package for your computer from the [latest release](https://github.com/Mohamedattiadev/igrek/releases/latest):
-`.msi` for Windows, `.dmg` for macOS (Apple silicon: `aarch64`, Intel: `x64`), `.AppImage` or `.deb` for Linux.
-Each is about 17 MB. On the first start the app downloads Bun, which runs Igrek's server (about 35 MB, checked against
-Bun's published checksum), once. Claude Code and Codex are not in the package; Igrek offers to install them on the first start.
+</details>
 
-The packages are not signed with a paid certificate, so the system asks once:
+## Prefer one command?
 
-- **Windows:** "Windows protected your PC": **More info > Run anyway**.
-- **macOS:** "Igrek cannot be opened": close it, scroll down in **System Settings > Privacy & Security**,
-  click **Open Anyway** next to Igrek, then **Open**.
-- **Linux (AppImage):** `chmod +x Igrek_*.AppImage`, then open it (some systems need `libfuse2` first).
+Paste one line into a terminal. It installs Igrek or updates it to the latest version.
 
-Closing the window stops Igrek and everything it started. The tray icon can hide the window, and `Ctrl+Space` from any
-program opens a quick question. Details: [the docs](https://mohamedattiadev.github.io/igrek/docs/install/).
-
-### From a terminal, without Docker
-
-Linux and macOS:
+**Linux and macOS**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh
 ```
 
-Windows (PowerShell; install [Git for Windows](https://git-scm.com/download/win) first, Claude Code uses its bash):
+**Windows** (PowerShell, with [Git for Windows](https://git-scm.com/download/win) installed)
 
 ```powershell
 irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex
 ```
 
+Then type `igrek` and open http://localhost:7777. You also need [Claude Code](https://docs.claude.com/en/docs/claude-code).
 
-### First start
+## What it does for you
 
-Pick your language, say whether you write code (Simple or Developer mode, changeable any time), and add your project
-folders. Folders Claude has already worked in are listed, one click each.
+- **Shows why a file changed.** Each changed file has a Why? button that shows the message behind it.
+- **Works across projects.** Type one task and Igrek sends it to the right project.
+- **Checks your project.** Security, tests and more get a score, and simple problems have a Fix button.
+- **Protects private details.** IBANs, card numbers and `.env` values are hidden before a message leaves your computer.
+- **Lets you undo.** Each file the AI changed can be undone in one click.
+- **Works for non-coders too.** Simple mode uses plain words, so you only type what you want.
 
-## Update and remove
-
-The desktop app looks for a new version when it opens and once a day, and installs it after you agree. A terminal
-install updates by running the install command again.
-
-To remove Igrek, uninstall the app (or delete the AppImage) and delete `~/.igrek` (your data) and
-`~/.local/share/igrek-runtime` (Windows: `%LOCALAPPDATA%\igrek-runtime`).
-
-## Use it with a team (optional)
-
-A team runs a small hub on a server of its own.
-
-
-- Everything is encrypted on your computer before it goes to the hub; the hub cannot read it.
-- Nothing is sent until you share a project, and secrets are removed first.
-- AI accounts, SSH keys and `.env` files are never sent; everyone uses their own AI account.
+Everything runs on your computer. There is no telemetry and no Igrek server. Igrek uses the Claude Code and Codex
+logins you already have. Full list of features: [the docs](https://mohamedattiadev.github.io/igrek/docs/).
 
 ## Questions
 
-**Do I need to know how to code?** No. In Simple mode a project shows its overview, chats and files in plain words,
-and you type what you want.
-
 **Where is my data?** On your computer, in `~/.igrek`.
 
-**Updating from God Eye?** On the first start Igrek moves `~/.godeye` to `~/.igrek` and leaves a link at the old path;
-old `GODEYE_*` settings, hooks, plugins and the MCP entry keep working.
+**How do I update?** The app asks when a new version is out. If you used the command, run it again.
 
-**Can I undo what the AI changed?** Yes. The files a chat changed are listed above the chat with a diff, and each can
-be undone in one click.
+**How do I remove it?** Uninstall the app, then delete `~/.igrek` (your data) and `~/.local/share/igrek-runtime`
+(Windows: `%LOCALAPPDATA%\igrek-runtime`).
 
-The roadmap is in [plan.md](plan.md).
+**Need help?** See [SUPPORT.md](SUPPORT.md). Security problems: [SECURITY.md](SECURITY.md).
 
----
+## License
 
-## Türkçe
+Free to install and use, companies included. Igrek is not open source: see [LICENSE](LICENSE).
 
-Claude Code ve Codex için bir masaüstü uygulaması. Tüm projelerinin sohbetlerini tek pencerede toplar, hangi isteğin
-hangi dosyayı değiştirdiğini gösterir ve sırlarını modelden saklar.
-[Site](https://mohamedattiadev.github.io/igrek/tr/) · [Belgeler](https://mohamedattiadev.github.io/igrek/tr/docs/) ·
-[İndir](https://github.com/Mohamedattiadev/igrek/releases/latest)
-
-### Ne yapar
-
-Kodu Claude Code ve Codex yazar. Igrek onların yanında, senin bilgisayarında çalışır ve ne yaptıklarını takip eder.
-
-- **Bu dosya neden değişti?** Değişen her dosyanın bir Neden? düğmesi var: onu isteyen mesaj, ait olduğu plan adımı ve
-  aynı turda sorulan uzman. Sohbetten okunur, tahmin edilmez.
-- **Her proje için tek kutu.** Ana sayfaya bir iş yaz; Igrek onu doğru projeye ya da aynı anda birkaçına gönderir,
-  her biri kendi kopyasında çalışır.
-- **Sağlık ve Düzelt.** Mimari, güvenlik, testler, bağımlılıklar ve daha fazlası puanlanır. Basit bulgularda bir Düzelt
-  düğmesi var, komutu çalıştırmadan önce gösterir; diğerlerini doğru uzman, senin bakacağın bir kopyada yapar.
-- **Sırlar senin tarafında kalır.** Kayıtlı bilgiler (IBAN, kimlik ve kart numarası, maaş) ve `.env` dosyalarındaki
-  değerler, mesaj çıkmadan `[[private:iban]]` gibi yer tutuculara dönüşür, cevapta geri konur.
-- **Otuz kadar uzman.** Güvenlikten veritabanına, üründen finansa salt okunur inceleyiciler. Sohbette `@` ile birini
-  çağır. Her inceleme bir model çağrısı olduğu için sen istemedikçe hiçbiri çalışmaz.
-- **Proje başına notlar.** Kararlar ve geçmiş hatalar proje başına saklanır, sohbetin başında ajana verilir. Yalnızca
-  `CLAUDE.md`'de ya da yalnızca `AGENTS.md`'de olan kurallar gösterilir, iki ajan da aynı kurallara uyar.
-- **Hesaplar ve limitler.** Claude ve Codex hesapların arasında geçersin; her sohbet bir turun 5 saatlik limitinden ne
-  kadar yediğini ve ne kaldığını gösterir.
-- **Ayrıca:** zamanlanmış işler, sunucuların (her adım senin onayını bekler), özel bilgilerini AI görmeden form
-  dolduran bir tarayıcı eklentisi, kendi kurduğun takım hub'ı, bir sohbeti ya da tüm Igrek'i başka bilgisayara taşıma.
-
-Her şey senin bilgisayarında çalışır. Hesap yok, telemetri yok, bizim bir sunucumuz yok; API anahtarı da gerekmez:
-Igrek zaten olan Claude Code ve Codex girişlerini kullanır. Bağlandığı her adres Ayarlar'da listelenir.
-
-### Kurulum
-
-**Masaüstü uygulaması (en kolayı).** Bilgisayarına uygun paketi [son sürümden](https://github.com/Mohamedattiadev/igrek/releases/latest)
-indir: Windows için `.msi`, macOS için `.dmg` (Apple işlemci: `aarch64`, Intel: `x64`), Linux için `.AppImage` ya da `.deb`.
-Her biri yaklaşık 17 MB. İlk açılışta uygulama, Igrek'in sunucusunu çalıştıran Bun'ı bir kez indirir (yaklaşık 35 MB,
-Bun'ın yayımladığı sağlama değeriyle doğrulanır). Claude Code ve Codex pakette yok; Igrek ilk açılışta kurmayı önerir.
-
-Paketler ücretli bir sertifikayla imzalı olmadığı için sistem bir kez sorar:
-
-- **Windows:** "Windows bilgisayarınızı korudu": **Ek bilgi > Yine de çalıştır**.
-- **macOS:** "Igrek açılamıyor": kapat, **Sistem Ayarları > Gizlilik ve Güvenlik**'te aşağı kaydır, Igrek'in yanındaki
-  **Yine de Aç**'a, sonra **Aç**'a tıkla.
-- **Linux (AppImage):** `chmod +x Igrek_*.AppImage`, sonra aç (bazı sistemlerde önce `libfuse2` gerekir).
-
-Pencereyi kapatınca Igrek ve başlattığı her şey durur. Tepsi ikonuyla pencere gizlenebilir; herhangi bir programdayken
-`Ctrl+Space` hızlı soru açar. Ayrıntılar: [belgeler](https://mohamedattiadev.github.io/igrek/tr/docs/install/).
-
-**Terminalden, Docker'sız.** Linux ve macOS:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh
-```
-
-Windows (PowerShell; önce [Git for Windows](https://git-scm.com/download/win) kur, Claude Code onun bash'ini kullanır):
-
-```powershell
-irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex
-```
-
-
-**İlk açılış.** Dilini seç, kod yazıp yazmadığını söyle (Basit ya da Geliştirici mod, istediğin zaman değişir) ve proje
-klasörlerini ekle. Claude'un daha önce çalıştığı klasörler listelenir, her biri tek tık.
-
-### Güncelleme ve kaldırma
-
-Masaüstü uygulaması açılırken ve günde bir kez yeni sürüme bakar, sen onaylayınca kurar. Terminalden kurduysan kurulum
-komutunu yeniden çalıştır.
-
-Kaldırmak için uygulamayı kaldır (ya da AppImage'ı sil), `~/.igrek` (verin) ve `~/.local/share/igrek-runtime`
-(Windows: `%LOCALAPPDATA%\igrek-runtime`) klasörlerini sil.
-
-### Takımla kullanmak (isteğe bağlı)
-
-Takım kendi sunucusunda küçük bir hub çalıştırır.
-
-
-- Her şey hub'a gitmeden önce bilgisayarında şifrelenir; hub okuyamaz.
-- Bir projeyi paylaşmadıkça hiçbir şey gitmez, sırlar önce silinir.
-- AI hesapları, SSH anahtarları ve `.env` dosyaları asla gönderilmez; herkes kendi AI hesabını kullanır.
-
-### Sorular
-
-**Kod bilmem gerekiyor mu?** Hayır. Basit modda bir proje genel bakışını, sohbetlerini ve dosyalarını sade dille
-gösterir, sen de ne istediğini yazarsın.
-
-**Verilerim nerede?** Bilgisayarında, `~/.igrek` içinde.
-
-**God Eye'dan mı güncelliyorum?** Igrek ilk açılışta `~/.godeye`'ı `~/.igrek`'e taşır ve eski yerde bir bağlantı bırakır;
-eski `GODEYE_*` ayarları, hook'lar, eklentiler ve MCP kaydı çalışmaya devam eder.
-
-**AI'ın değiştirdiğini geri alabilir miyim?** Evet. Bir sohbetin değiştirdiği dosyalar sohbetin üstünde farkıyla
-listelenir, her biri tek tıkla geri alınır.
-
-Yol haritası [plan.md](plan.md) içinde.
-
----
-
-## License / Lisans
-
-**Source-available, not open source.** © 2026 Mohamed Attia. Anyone, companies included, may install and use Igrek
-for free and read its code. Copying it into another product, distributing or selling copies, publishing changed
-versions, offering it as a service, using the Igrek name and logo, and training AI on the code need written
-permission. Components from other projects keep their own licenses. Details: [LICENSE](LICENSE), contributing:
-[CONTRIBUTING.md](CONTRIBUTING.md), security: [SECURITY.md](SECURITY.md).
-
-**Kaynağı açık, açık kaynak değil.** © 2026 Mohamed Attia. Igrek'i herkes (şirketler dahil) ücretsiz kurup
-kullanabilir ve kodunu okuyabilir. Kodu başka bir ürüne koymak, kopyasını dağıtmak ya da satmak, değiştirilmiş
-sürüm yayınlamak, servis olarak sunmak, Igrek adını ve logosunu kullanmak ve kodla yapay zekâ eğitmek yazılı izin
-olmadan yasaktır. Başka projelerden gelen bileşenler kendi lisanslarıyla kalır. Ayrıntılar: [LICENSE](LICENSE),
-katkı kuralları: [CONTRIBUTING.md](CONTRIBUTING.md), güvenlik: [SECURITY.md](SECURITY.md).
