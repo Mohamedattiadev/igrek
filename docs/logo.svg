@@ -1,14 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="64" height="64" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 5 90 90" width="64" height="64">
   <title>Igrek</title>
   <style>
-    .f { stroke: #1e1f22; }
-    .a { stroke: #2267ef; }
+    path { fill: #1e1f22; }
     @media (prefers-color-scheme: dark) {
-      .f { stroke: #dfe1e5; }
-      .a { stroke: #6b9bf8; }
+      path { fill: #dfe1e5; }
     }
   </style>
-  <path class="f" d="M8 2.5h16a6 6 0 0 1 6 6v11a6 6 0 0 1-6 6H13l-6 4.5v-4.7A6 6 0 0 1 2 19.5v-11a6 6 0 0 1 6-6Z" stroke-width="2.2" />
-  <path class="a" d="M21 8.5 16 14.5" stroke-width="3" />
-  <path class="f" d="M11 8.5 16 14.5v5.5" stroke-width="3" />
+  <path d="M66 8L90 8L34 92L10 92ZM3.96 8L29.97 8L49.01 36.5L36 56.01ZM36 43.39L40.59 36.5L26.23 15L17.04 15Z" />
 </svg>
