@@ -10,11 +10,11 @@
 <p align="center"><strong>İndirmek için tıkla:</strong></p>
 
 <p align="center">
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_x64_en-US.msi"><img src="docs/img/dl-windows.svg" height="44" alt="İndir: Windows"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_aarch64.dmg"><img src="docs/img/dl-mac-arm.svg" height="44" alt="İndir: macOS Apple silicon"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_x64.dmg"><img src="docs/img/dl-mac-intel.svg" height="44" alt="İndir: macOS Intel"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_amd64.AppImage"><img src="docs/img/dl-linux-appimage.svg" height="44" alt="İndir: Linux AppImage"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_amd64.deb"><img src="docs/img/dl-linux-deb.svg" height="44" alt="İndir: Linux .deb"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_x64_en-US.msi"><img src="docs/img/dl-windows.svg" height="44" alt="İndir: Windows"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_aarch64.dmg"><img src="docs/img/dl-mac-arm.svg" height="44" alt="İndir: macOS Apple silicon"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_x64.dmg"><img src="docs/img/dl-mac-intel.svg" height="44" alt="İndir: macOS Intel"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_amd64.AppImage"><img src="docs/img/dl-linux-appimage.svg" height="44" alt="İndir: Linux AppImage"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_amd64.deb"><img src="docs/img/dl-linux-deb.svg" height="44" alt="İndir: Linux .deb"></a>
 </p>
 
 <p align="center">
@@ -75,6 +75,17 @@ Sonra `igrek` yaz ve http://localhost:7777 adresini aç. [Claude Code](https://d
 
 Her şey senin bilgisayarında çalışır. Telemetri ve Igrek sunucusu yok. Igrek zaten olan Claude Code ve Codex
 girişlerini kullanır. Bütün özellikler: [belgeler](https://mohamedattiadev.github.io/igrek/tr/docs/).
+
+## Takım hub'ı
+
+Takımlar işlerini kendi sunucularındaki küçük bir hub ile paylaşır. Docker olan ve alan adı yönlendirilmiş bir sunucuda:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install-hub.sh | sh -s -- hub.example.com
+```
+
+HTTPS'i ve günlük şifreli yedeği kurar, ilk yöneticinin şifresini yazar. Sonra Igrek'te: **Takım > Kullanıcı adıyla giriş**.
+Güncellemek için yeniden çalıştır. Her şey bilgisayarında şifrelenir; hub okuyamaz.
 
 ## Sorular
 

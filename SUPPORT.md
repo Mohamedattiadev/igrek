@@ -7,4 +7,7 @@
 - **Security problems:** privately, as [SECURITY.md](SECURITY.md) explains. Never in a public issue.
 - **Docs:** [mohamedattiadev.github.io/igrek](https://mohamedattiadev.github.io/igrek/).
 
+- **Team hub:** on the server, `docker compose logs hub` in the hub folder shows what happened. Updating and
+  restoring are in [the docs](https://mohamedattiadev.github.io/igrek/docs/).
+
 Igrek is made by one person. Answers usually come within a few days.

@@ -10,11 +10,11 @@
 <p align="center"><strong>Click to download:</strong></p>
 
 <p align="center">
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_x64_en-US.msi"><img src="docs/img/dl-windows.svg" height="44" alt="Download for Windows"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_aarch64.dmg"><img src="docs/img/dl-mac-arm.svg" height="44" alt="Download for macOS Apple silicon"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_x64.dmg"><img src="docs/img/dl-mac-intel.svg" height="44" alt="Download for macOS Intel"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_amd64.AppImage"><img src="docs/img/dl-linux-appimage.svg" height="44" alt="Download for Linux AppImage"></a>
-  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.22/Igrek_0.1.22_amd64.deb"><img src="docs/img/dl-linux-deb.svg" height="44" alt="Download for Linux .deb"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_x64_en-US.msi"><img src="docs/img/dl-windows.svg" height="44" alt="Download for Windows"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_aarch64.dmg"><img src="docs/img/dl-mac-arm.svg" height="44" alt="Download for macOS Apple silicon"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_x64.dmg"><img src="docs/img/dl-mac-intel.svg" height="44" alt="Download for macOS Intel"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_amd64.AppImage"><img src="docs/img/dl-linux-appimage.svg" height="44" alt="Download for Linux AppImage"></a>
+  <a href="https://github.com/Mohamedattiadev/igrek/releases/download/v0.1.24/Igrek_0.1.24_amd64.deb"><img src="docs/img/dl-linux-deb.svg" height="44" alt="Download for Linux .deb"></a>
 </p>
 
 <p align="center">
@@ -76,6 +76,17 @@ Then type `igrek` and open http://localhost:7777. You also need [Claude Code](ht
 
 Everything runs on your computer. There is no telemetry and no Igrek server. Igrek uses the Claude Code and Codex
 logins you already have. Full list of features: [the docs](https://mohamedattiadev.github.io/igrek/docs/).
+
+## Team hub
+
+Teams share work through a small hub on a server of their own. On a server with Docker, with the domain pointing at it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install-hub.sh | sh -s -- hub.example.com
+```
+
+It sets up HTTPS and daily encrypted backups, and prints the first admin's password. Then in Igrek: **Team > Sign in with
+username**. Run it again to update. Everything is encrypted on your computer; the hub cannot read it.
 
 ## Questions
 
